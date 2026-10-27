@@ -1,0 +1,85 @@
+/* 1920 × 1080 reference canvas, scales with viewport. */
+:root{--cards-gap:1.65vw;--cards-surface:var(--card-surface,rgba(39,48,64,.35));--cards-ink:var(--global-text,#f4f6fb)}
+body{background:linear-gradient(155deg,#c8b7b3,#7288a5 48%,#1a3048);color:var(--cards-ink);overflow:hidden}
+main.aurora-grid{width:100%;max-width:none;height:100vh;min-height:0;margin:0;padding:11.7vh 4vw 9.6vh;display:grid;grid-template-columns:var(--cards-columns,minmax(0,44fr) minmax(0,27fr) minmax(0,25fr));grid-template-rows:18vh minmax(0,1fr) minmax(0,1.08fr);grid-template-areas:var(--layout-areas,"clock weather weather" "music apps shortcuts" "music detail info");gap:var(--spacing,18px);align-items:stretch}
+[data-area=clock]{grid-area:clock;display:flex;align-items:center;min-width:0;color:var(--cards-clock-color,var(--cards-ink));padding:0 .7vw}
+#clock{font-size:calc(6.1vw * var(--font-scale,1) * var(--font-factor,1));letter-spacing:-.035em;line-height:1;font-weight:500;white-space:nowrap}
+.calendar{border-left:1px solid currentColor;margin-left:1.8vw;padding-left:1.8vw;opacity:.85}
+#date,#lunar{font-size:calc(1.55vw * var(--font-scale,1) * var(--font-factor,1));line-height:1.65;white-space:nowrap;margin:0;opacity:1}
+main.aurora-grid [data-area=weather]{grid-area:weather;display:flex;align-items:center;min-width:0;padding:0 .5vw}
+.current-weather{display:flex;align-items:center;width:44%;flex-shrink:0}
+#weather-symbol{width:8vw;margin-right:1vw} .weather-icon{width:100%;height:100%;overflow:visible}
+#city{font-size:calc(1.5vw * var(--font-scale,1) * var(--font-factor,1));opacity:.8}#weather{font-size:calc(3.1vw * var(--font-scale,1) * var(--font-factor,1));font-weight:500;margin:0;line-height:1.25}#weather-description{font-size:calc(1.35vw * var(--font-scale,1) * var(--font-factor,1));opacity:.75}
+#forecast{display:flex;flex:1;min-width:0;justify-content:space-between}
+#forecast>div{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;border-left:1px solid #ffffff35;margin:0;padding:0 .7vw}
+#forecast small{font-size:calc(1.4vw * var(--font-scale,1) * var(--font-factor,1));white-space:nowrap}#forecast strong{font-size:calc(1.25vw * var(--font-scale,1) * var(--font-factor,1));font-weight:400;white-space:nowrap}
+#forecast .weather-icon{width:3.8vw;height:5vh;margin:1vh 0}
+.music,.apps-card,.quick-card,.detail-weather,.system-card{min-width:0;min-height:0;padding:1.8vw;border:1px solid #ffffff2b;border-radius:var(--card-radius,24px);background:var(--cards-surface);-webkit-backdrop-filter:blur(var(--glass-blur,18px));backdrop-filter:blur(var(--glass-blur,18px));box-shadow:0 8px 24px #07142412}
+main.aurora-grid .music,main.aurora-grid aside{padding:1.8vw;background:var(--cards-surface);border-radius:var(--card-radius,24px)}
+.music{grid-area:music;display:flex;flex-direction:column}
+.track-head{display:flex;position:relative;flex-shrink:0;align-items:flex-start}
+.cover-wrap{width:12.5vw;height:12.5vw;position:relative;overflow:hidden;border-radius:1vw;background:linear-gradient(145deg,#183b59,#687992);flex-shrink:0}
+#cover{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover}.cover-placeholder{display:flex;align-items:center;justify-content:center;height:100%;font-size:calc(5vw * var(--font-scale,1) * var(--font-factor,1));opacity:.6}
+.track-meta{min-width:0;padding:.3vw 2.5vw 0 1.8vw}.music .eyebrow{display:none}
+#song{font-size:calc(2.4vw * var(--font-scale,1) * var(--font-factor,1));line-height:1.4;margin:0;font-weight:600;white-space:normal;max-height:6.8vw;overflow:hidden}
+#artist{font-size:calc(1.7vw * var(--font-scale,1) * var(--font-factor,1));margin:.5vw 0 0;opacity:.75}
+#open-player{position:absolute;right:0;top:0;border:0;background:transparent;padding:0;width:2.5vw;height:2.5vw;font-size:calc(2.4vw * var(--font-scale,1) * var(--font-factor,1))}
+#desktop-lyrics{flex:1;min-height:4vh;height:14vh;margin:1.3vh 0;overflow:hidden}
+#desktop-lyrics .lyric-line{height:4.4vh;line-height:4.4vh;font-size:calc(1.65vw * var(--font-scale,1) * var(--font-factor,1));text-align:right}
+#desktop-lyrics .active{font-size:calc(1.9vw * var(--font-scale,1) * var(--font-factor,1));font-weight:600}
+.seek-line{display:flex;align-items:center;margin:.7vh 0 1.5vh;font-size:calc(1.15vw * var(--font-scale,1) * var(--font-factor,1));flex-shrink:0}.seek-line span{min-width:3.7vw}.seek-line span:last-child{text-align:right}
+#progress{flex:1;width:auto;height:4px;margin:0;border-radius:5px;cursor:pointer}
+progress::-webkit-progress-bar{background:#ffffff20;border-radius:6px}progress::-webkit-progress-value{background:var(--accent);border-radius:6px}
+#desktop-spectrum{height:2.3vh;margin:0;opacity:.45;flex-shrink:0}
+.controls{display:flex;justify-content:space-around;align-items:center;margin:0;flex-shrink:0}
+.controls button{width:3.8vw;height:3.8vw;padding:.75vw;background:transparent;border:0;margin:0!important}
+.controls svg{width:2.2vw;height:2.2vw}
+.controls #play{width:5.1vw;height:5.1vw;border-radius:50%;border:1px solid #d7e9ff80;background:#9ab8e816}
+.controls #play svg{width:2.7vw;height:2.7vw}
+.apps-card{grid-area:apps;display:flex;flex-direction:column}
+.card-heading,.quick-card h2,.detail-weather h2,.system-card h2{font-size:calc(1.65vw * var(--font-scale,1) * var(--font-factor,1));font-weight:400;line-height:1.3;margin:0 0 1.5vh;padding:0}
+.card-heading{display:block;text-align:left;border:0;background:transparent;width:100%}.card-heading span,.quick-card h2 span{float:right;opacity:.45}
+main.aurora-grid #apps{grid-area:auto;max-height:none;min-height:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8vw;overflow:hidden;flex:1;align-content:center}
+#apps .app{min-width:0;min-height:0;font-size:0;padding:.3vw;border:0;border-radius:.7vw;background:transparent;display:flex}
+#apps .app img,#apps .app-mark{width:4.1vw;height:4.1vw;object-fit:contain;margin:0;font-size:calc(3vw * var(--font-scale,1) * var(--font-factor,1))}
+#apps .app>span:last-child{display:none}
+.quick-card{grid-area:shortcuts}.quick-items{display:flex;align-items:center;justify-content:space-between;height:70%}
+.quick-items button{padding:.4vw;min-width:0;background:transparent;border:0;font-size:calc(1.25vw * var(--font-scale,1) * var(--font-factor,1));display:flex;flex-direction:column;align-items:center}
+.quick-items svg{width:2.7vw;height:2.7vw;margin-bottom:.8vh}
+.detail-weather{grid-area:detail;position:relative;overflow:hidden}
+.detail-weather-body{display:flex;align-items:center;justify-content:space-between}
+.detail-weather-body>div:first-child{display:flex;flex-direction:column;position:relative;z-index:1}
+#detail-city,#detail-description,#detail-range{font-size:calc(1.2vw * var(--font-scale,1) * var(--font-factor,1));opacity:.8}
+#detail-temperature{font-size:calc(3vw * var(--font-scale,1) * var(--font-factor,1));line-height:1.3;font-weight:500}
+#detail-symbol{width:8vw;height:8vw;opacity:.9}
+main.aurora-grid aside{grid-area:info}
+.meter-label{display:flex;justify-content:space-between;font-size:calc(1.4vw * var(--font-scale,1) * var(--font-factor,1));margin:1.3vh 0 .8vh}
+.system-card progress{display:block;height:5px;width:100%;margin:0}
+.system-card progress::-webkit-progress-value{background:#d3e4f6}
+#network-status{display:block;font-size:calc(1vw * var(--font-scale,1) * var(--font-factor,1));opacity:.65;margin-top:1.5vh}
+.top-tools{position:absolute;right:4vw;top:3.1vh;display:flex}
+.top-tools button{border:0;background:transparent;padding:.4vw;margin-left:1.6vw}
+.top-tools svg{width:2vw;height:2vw}
+#mode{visibility:hidden}
+.queue-overlay{z-index:50}.queue-panel{width:70vw;max-height:76vh;background:#1b2c3ef5;border:1px solid #a3c3d34d;color:#f3f8ff}
+.dialog-apps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.3vw;padding:1vw}
+.dialog-apps .app{min-height:8vw;font-size:calc(1.3vw * var(--font-scale,1) * var(--font-factor,1))}.dialog-apps img{width:4vw;height:4vw}
+.dialog-actions{display:flex;flex-wrap:wrap}.dialog-actions button{margin:1vw .8vw 0 0;font-size:calc(1.5vw * var(--font-scale,1) * var(--font-factor,1))}
+#notice{font-size:calc(1.5vw * var(--font-scale,1) * var(--font-factor,1))}
+@media(max-aspect-ratio:4/3){main.aurora-grid{padding-top:10vh;grid-template-columns:1.3fr 1fr;grid-template-rows:15vh 23vh 23vh 15vh;grid-template-areas:"clock weather" "music apps" "music shortcuts" "detail info"}}
+
+.repeat-one{position:absolute;left:46%;top:35%;font-size:calc(1vw * var(--font-scale,1) * var(--font-factor,1))}.controls #mode-cycle{position:relative}
+
+#desktop-lyrics[hidden]{display:block!important;visibility:hidden}
+
+.cover-placeholder svg{width:65%;height:65%}
+
+#apps .app img,#apps .app-mark{width:var(--icon-size,52px);height:var(--icon-size,52px);max-width:100%;max-height:6vw}
+
+/* Free placement is opt-in and confined to this theme. */
+main.aurora-grid.cards-freeform{display:block;position:relative;padding:0}
+main.aurora-grid.cards-freeform>[data-area]{position:absolute;box-sizing:border-box;margin:0;min-width:0;min-height:0;overflow:auto}
+main.aurora-grid.cards-freeform [data-area=music] .cover-wrap{width:min(12.5vw,34%);height:auto;aspect-ratio:1}
+main.aurora-grid.cards-freeform [data-area=music] .music-controls{flex-shrink:0}
+
+main.aurora-grid.cards-freeform>[data-area][hidden]{display:none!important}

@@ -1,0 +1,36 @@
+{
+  "weather": {
+    "provider": "openmeteo",
+    "city": "上海",
+    "lat": 31.2304,
+    "lon": 121.4737,
+    "key": "",
+    "urls": [
+      "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone=Asia%2FShanghai"
+    ],
+    "headers": {},
+    "intervalMinutes": 60,
+    "mapping": {
+      "temperature": "$.current.temperature_2m",
+      "code": "$.current.weather_code",
+      "dates": "$.daily.time",
+      "min": "$.daily.temperature_2m_min",
+      "max": "$.daily.temperature_2m_max",
+      "codes": "$.daily.weather_code"
+    }
+  },
+  "time": {
+    "ntp": [
+      "ntp.aliyun.com",
+      "time.cloudflare.com",
+      "pool.ntp.org"
+    ],
+    "http": [
+      "https://www.baidu.com",
+      "https://www.cloudflare.com"
+    ],
+    "intervalMinutes": 360,
+    "timezone": "Asia/Shanghai",
+    "syncSystem": false
+  }
+}

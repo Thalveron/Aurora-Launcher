@@ -1,0 +1,1206 @@
+{
+  "apiVersion": 1,
+  "policy": "Additive fields only; breaking changes require /api/v2/",
+  "actions": [
+    {
+      "action": "launch_app",
+      "parameters": {
+        "package": "string"
+      },
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "set_appearance",
+      "parameters": {
+        "patch": "object"
+      },
+      "permission": "settings",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "open_settings",
+      "parameters": {
+        "kind": "string"
+      },
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "switch_theme",
+      "parameters": {
+        "theme": "string"
+      },
+      "permission": "settings",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "media_play",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "media_pause",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "media_next",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "media_prev",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "media_seek",
+      "parameters": {
+        "positionMs": "integer"
+      },
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "media_mode",
+      "parameters": {
+        "mode": "integer"
+      },
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "enter_saver",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "enter_saver_auto",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    },
+    {
+      "action": "exit_saver",
+      "parameters": {},
+      "permission": "control",
+      "requiresConfirmation": false
+    }
+  ],
+  "schemas": {
+    "time": {
+      "type": "object",
+      "required": [
+        "epochMs",
+        "time",
+        "date",
+        "weekday",
+        "lunar",
+        "festival",
+        "timezone"
+      ],
+      "properties": {
+        "epochMs": {
+          "type": "integer"
+        },
+        "time": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "weekday": {
+          "type": "string"
+        },
+        "lunar": {
+          "type": "string"
+        },
+        "festival": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "weather": {
+      "type": "object",
+      "required": [
+        "available"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "city": {
+          "type": "string"
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "required": [
+        "available",
+        "playing",
+        "title",
+        "artist",
+        "positionMs",
+        "durationMs",
+        "lyrics",
+        "lyricIndex",
+        "lyricProgress"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "playing": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "artist": {
+          "type": "string"
+        },
+        "positionMs": {
+          "type": "number"
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "lyrics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lyricIndex": {
+          "type": "integer"
+        },
+        "lyricProgress": {
+          "type": "number"
+        }
+      }
+    },
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "package",
+          "name",
+          "icon"
+        ],
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "required": [
+        "storage",
+        "memory",
+        "network",
+        "bluetooth"
+      ],
+      "properties": {
+        "storage": {
+          "type": "object",
+          "required": [
+            "total",
+            "free"
+          ],
+          "properties": {
+            "total": {
+              "type": "number"
+            },
+            "free": {
+              "type": "number"
+            }
+          }
+        },
+        "memory": {
+          "type": "object",
+          "required": [
+            "total",
+            "available"
+          ],
+          "properties": {
+            "total": {
+              "type": "number"
+            },
+            "available": {
+              "type": "number"
+            }
+          }
+        },
+        "network": {
+          "type": "object",
+          "required": [
+            "connected",
+            "wifi",
+            "ethernet"
+          ],
+          "properties": {
+            "connected": {
+              "type": "boolean"
+            },
+            "wifi": {
+              "type": "boolean"
+            },
+            "ethernet": {
+              "type": "boolean"
+            }
+          }
+        },
+        "bluetooth": {
+          "type": "object",
+          "required": [
+            "known"
+          ],
+          "properties": {
+            "known": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "required": [
+        "theme",
+        "locale",
+        "icon_fallback"
+      ],
+      "properties": {
+        "theme": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "icon_fallback": {
+          "type": "string"
+        }
+      }
+    },
+    "themes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "available"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "backgrounds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "url",
+          "bytes",
+          "video"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "number"
+          },
+          "video": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "config/appearance": {
+      "type": "object",
+      "required": [
+        "fontZh",
+        "fontEn",
+        "fontSize",
+        "text",
+        "accent",
+        "card",
+        "lyricPast",
+        "lyricActive",
+        "lyricFuture",
+        "focusStyle",
+        "focusMotion",
+        "focusColor",
+        "focusWidth",
+        "focusRadius",
+        "focusGlow",
+        "motionMs",
+        "ambientMode",
+        "ambientColor",
+        "ambientOpacity",
+        "desktopSpectrum",
+        "saverSpectrum",
+        "desktopSlides",
+        "saverSlides",
+        "slideSeconds",
+        "saverSlideSeconds",
+        "saverEnabled",
+        "saverMinutes",
+        "saverInfo",
+        "saverMode",
+        "layout",
+        "greeting",
+        "greetingStyle",
+        "greetingSize",
+        "greetingX",
+        "greetingY",
+        "saverLyricsLayout",
+        "cardOpacity",
+        "glassBlur",
+        "backgroundDim",
+        "cardRadius",
+        "iconSize",
+        "spacing",
+        "fontScale"
+      ]
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "url",
+          "bytes",
+          "video"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "number"
+          },
+          "video": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "voice": {
+      "type": "object",
+      "required": [
+        "config",
+        "engines",
+        "voices",
+        "ready",
+        "reason"
+      ],
+      "properties": {
+        "config": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "language",
+            "engine",
+            "voice",
+            "rate",
+            "pitch",
+            "volume",
+            "readFocus"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "language": {
+              "type": "string"
+            },
+            "engine": {
+              "type": "string"
+            },
+            "voice": {
+              "type": "string"
+            },
+            "rate": {
+              "type": "number"
+            },
+            "pitch": {
+              "type": "number"
+            },
+            "volume": {
+              "type": "number"
+            },
+            "readFocus": {
+              "type": "boolean"
+            }
+          }
+        },
+        "engines": {
+          "type": "array"
+        },
+        "voices": {
+          "type": "array"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "action",
+          "parameters",
+          "permission",
+          "requiresConfirmation"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "object"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "bootstrap": {
+      "type": "object",
+      "required": [
+        "apiVersion",
+        "stage",
+        "legacyConsole",
+        "time",
+        "weather",
+        "media",
+        "apps",
+        "status",
+        "config",
+        "appearance",
+        "themes"
+      ],
+      "properties": {
+        "apiVersion": {
+          "type": "integer"
+        },
+        "stage": {
+          "type": "integer"
+        },
+        "legacyConsole": {
+          "type": "string"
+        },
+        "time": {
+          "type": "object",
+          "required": [
+            "epochMs",
+            "time",
+            "date",
+            "weekday",
+            "lunar",
+            "festival",
+            "timezone"
+          ],
+          "properties": {
+            "epochMs": {
+              "type": "integer"
+            },
+            "time": {
+              "type": "string"
+            },
+            "date": {
+              "type": "string"
+            },
+            "weekday": {
+              "type": "string"
+            },
+            "lunar": {
+              "type": "string"
+            },
+            "festival": {
+              "type": "string"
+            },
+            "timezone": {
+              "type": "string"
+            }
+          }
+        },
+        "weather": {
+          "type": "object",
+          "required": [
+            "available"
+          ],
+          "properties": {
+            "available": {
+              "type": "boolean"
+            },
+            "city": {
+              "type": "string"
+            }
+          }
+        },
+        "media": {
+          "type": "object",
+          "required": [
+            "available",
+            "playing",
+            "title",
+            "artist",
+            "positionMs",
+            "durationMs",
+            "lyrics",
+            "lyricIndex",
+            "lyricProgress"
+          ],
+          "properties": {
+            "available": {
+              "type": "boolean"
+            },
+            "playing": {
+              "type": "boolean"
+            },
+            "title": {
+              "type": "string"
+            },
+            "artist": {
+              "type": "string"
+            },
+            "positionMs": {
+              "type": "number"
+            },
+            "durationMs": {
+              "type": "number"
+            },
+            "lyrics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "lyricIndex": {
+              "type": "integer"
+            },
+            "lyricProgress": {
+              "type": "number"
+            }
+          }
+        },
+        "apps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "package",
+              "name",
+              "icon"
+            ],
+            "properties": {
+              "package": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "status": {
+          "type": "object",
+          "required": [
+            "storage",
+            "memory",
+            "network",
+            "bluetooth"
+          ],
+          "properties": {
+            "storage": {
+              "type": "object",
+              "required": [
+                "total",
+                "free"
+              ],
+              "properties": {
+                "total": {
+                  "type": "number"
+                },
+                "free": {
+                  "type": "number"
+                }
+              }
+            },
+            "memory": {
+              "type": "object",
+              "required": [
+                "total",
+                "available"
+              ],
+              "properties": {
+                "total": {
+                  "type": "number"
+                },
+                "available": {
+                  "type": "number"
+                }
+              }
+            },
+            "network": {
+              "type": "object",
+              "required": [
+                "connected",
+                "wifi",
+                "ethernet"
+              ],
+              "properties": {
+                "connected": {
+                  "type": "boolean"
+                },
+                "wifi": {
+                  "type": "boolean"
+                },
+                "ethernet": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "bluetooth": {
+              "type": "object",
+              "required": [
+                "known"
+              ],
+              "properties": {
+                "known": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "config": {
+          "type": "object",
+          "required": [
+            "theme",
+            "locale",
+            "icon_fallback"
+          ],
+          "properties": {
+            "theme": {
+              "type": "string"
+            },
+            "locale": {
+              "type": "string"
+            },
+            "icon_fallback": {
+              "type": "string"
+            }
+          }
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "available"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "available": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "appearance": {
+          "type": "object",
+          "required": [
+            "fontZh",
+            "fontEn",
+            "fontSize",
+            "text",
+            "accent",
+            "card",
+            "lyricPast",
+            "lyricActive",
+            "lyricFuture",
+            "focusStyle",
+            "focusMotion",
+            "focusColor",
+            "focusWidth",
+            "focusRadius",
+            "focusGlow",
+            "motionMs",
+            "ambientMode",
+            "ambientColor",
+            "ambientOpacity",
+            "desktopSpectrum",
+            "saverSpectrum",
+            "desktopSlides",
+            "saverSlides",
+            "slideSeconds",
+            "saverSlideSeconds",
+            "saverEnabled",
+            "saverMinutes",
+            "saverInfo",
+            "saverMode",
+            "layout",
+            "greeting",
+            "greetingStyle",
+            "greetingSize",
+            "greetingX",
+            "greetingY",
+            "saverLyricsLayout",
+            "cardOpacity",
+            "glassBlur",
+            "backgroundDim",
+            "cardRadius",
+            "iconSize",
+            "spacing",
+            "fontScale"
+          ]
+        }
+      }
+    }
+  },
+  "aliases": {
+    "appearance": "config/appearance",
+    "appearance/*": "config/appearance/*",
+    "custom-css": "themes/custom-css",
+    "library": "assets",
+    "library/*": "assets/*",
+    "apps/icon/*": "icons/*"
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "time",
+      "description": "时间/日期/农历/节日/时区"
+    },
+    {
+      "method": "GET",
+      "path": "weather",
+      "description": "统一天气和缓存状态"
+    },
+    {
+      "method": "GET",
+      "path": "media",
+      "description": "MediaSession信息"
+    },
+    {
+      "method": "POST",
+      "path": "media/{play|pause|next|prev|seek|mode}",
+      "description": "seek:{positionMs}；mode:{mode:0单曲/1顺序/2随机}"
+    },
+    {
+      "method": "GET",
+      "path": "media/queue",
+      "description": "当前队列"
+    },
+    {
+      "method": "GET",
+      "path": "media/cover",
+      "description": "JPEG二进制"
+    },
+    {
+      "method": "GET",
+      "path": "apps",
+      "description": "package/name/icon数组"
+    },
+    {
+      "method": "POST",
+      "path": "apps/launch",
+      "description": "{package}，专用启动兼容入口"
+    },
+    {
+      "method": "GET",
+      "path": "status",
+      "description": "存储/内存/网络/蓝牙"
+    },
+    {
+      "method": "GET/POST",
+      "path": "config",
+      "description": "写字段：theme/locale/icon_fallback/system_backends"
+    },
+    {
+      "method": "GET",
+      "path": "themes",
+      "description": "主题及available"
+    },
+    {
+      "method": "POST",
+      "path": "themes/switch",
+      "description": "{theme}，校验已安装清单"
+    },
+    {
+      "method": "GET",
+      "path": "backgrounds",
+      "description": "只返回背景素材数组"
+    },
+    {
+      "method": "POST",
+      "path": "backgrounds/upload",
+      "description": "原始图片/视频流；Content-Length、X-File-Name"
+    },
+    {
+      "method": "POST",
+      "path": "backgrounds/delete",
+      "description": "{id,confirm:true}，保护正在用的素材"
+    },
+    {
+      "method": "GET/POST",
+      "path": "config/appearance",
+      "description": "外观；POST局部更新"
+    },
+    {
+      "method": "POST",
+      "path": "config/appearance/preview",
+      "description": "外观内存预览，30秒过期"
+    },
+    {
+      "method": "GET/POST",
+      "path": "config/appearance/presets",
+      "description": "{presets:[{name,values}]}，最多20项"
+    },
+    {
+      "method": "GET/POST",
+      "path": "themes/custom-css",
+      "description": "{css}，校验后保存"
+    },
+    {
+      "method": "GET",
+      "path": "assets",
+      "description": "全部素材数组"
+    },
+    {
+      "method": "POST",
+      "path": "assets/upload",
+      "description": "原始流，按类型限制大小并校验"
+    },
+    {
+      "method": "POST",
+      "path": "assets/delete",
+      "description": "{id,confirm:true}"
+    },
+    {
+      "method": "GET",
+      "path": "assets/file/{id}",
+      "description": "二进制，支持Range206"
+    },
+    {
+      "method": "GET",
+      "path": "icons/{package}",
+      "description": "真实应用图标PNG"
+    },
+    {
+      "method": "POST",
+      "path": "apps/install",
+      "description": "{id}，后台安装上传的APK"
+    },
+    {
+      "method": "GET",
+      "path": "apps/jobs",
+      "description": "安装任务数组"
+    },
+    {
+      "method": "GET",
+      "path": "actions",
+      "description": "动作注册表；需登录"
+    },
+    {
+      "method": "POST",
+      "path": "actions",
+      "description": "{action,params}"
+    },
+    {
+      "method": "GET",
+      "path": "bootstrap",
+      "description": "初始化快照"
+    },
+    {
+      "method": "WS",
+      "path": "events",
+      "description": "snapshot及增量事件"
+    },
+    {
+      "method": "GET",
+      "path": "system/capabilities",
+      "description": "后端及可用状态"
+    },
+    {
+      "method": "POST",
+      "path": "system/connect",
+      "description": "一次ADB授权请求"
+    },
+    {
+      "method": "POST",
+      "path": "system/key",
+      "description": "{key:up/down/left/right/ok/back/home}"
+    },
+    {
+      "method": "POST",
+      "path": "system/standby/confirm",
+      "description": "一次性60秒令牌"
+    },
+    {
+      "method": "POST",
+      "path": "system/standby",
+      "description": "{confirmationToken}，二次确认"
+    },
+    {
+      "method": "GET",
+      "path": "system/screenshot",
+      "description": "JPEG单帧，需登录"
+    },
+    {
+      "method": "GET",
+      "path": "system/screen.mjpeg",
+      "description": "fps查询0.2～2；最多两名观看者"
+    },
+    {
+      "method": "POST",
+      "path": "system/{wifi|bluetooth|display}",
+      "description": "打开系统设置"
+    },
+    {
+      "method": "POST",
+      "path": "themes/open",
+      "description": "打开主题容器"
+    },
+    {
+      "method": "GET",
+      "path": "spectrum",
+      "description": "真实bins数组，静音返回零"
+    },
+    {
+      "method": "GET",
+      "path": "saver",
+      "description": "{active}"
+    },
+    {
+      "method": "POST",
+      "path": "saver/{enter|exit}",
+      "description": "进入/退出屏保"
+    },
+    {
+      "method": "GET",
+      "path": "inputs",
+      "description": "输入状态；unknown不等于断开"
+    },
+    {
+      "method": "POST",
+      "path": "inputs/switch",
+      "description": "{id}，已枚举或TCL白名单"
+    },
+    {
+      "method": "GET/POST",
+      "path": "music/local/settings",
+      "description": "coverEnabled/lyricsEnabled/lyricsUrls，Chora签名桥"
+    },
+    {
+      "method": "POST",
+      "path": "music/local/scan",
+      "description": "后台扫描"
+    },
+    {
+      "method": "GET",
+      "path": "bgm",
+      "description": "独立背景音乐状态"
+    },
+    {
+      "method": "GET",
+      "path": "bgm/library",
+      "description": "音频数组"
+    },
+    {
+      "method": "POST",
+      "path": "bgm/upload",
+      "description": "原始音频流；Content-Length、X-File-Name"
+    },
+    {
+      "method": "POST",
+      "path": "bgm/{play|pause|stop|volume|settings|delete}",
+      "description": "现有BGM保留；volume:{volume:0～100}"
+    },
+    {
+      "method": "GET/POST",
+      "path": "services",
+      "description": "天气/时间设置；需登录"
+    },
+    {
+      "method": "POST",
+      "path": "services/{test|reset}",
+      "description": "测试/恢复默认"
+    },
+    {
+      "method": "GET/POST",
+      "path": "voice",
+      "description": "朗读引擎/设置"
+    },
+    {
+      "method": "POST",
+      "path": "voice/{speak|test}",
+      "description": "{text}，限500字；test为明确试听"
+    },
+    {
+      "method": "POST",
+      "path": "voice/stop",
+      "description": "停止朗读"
+    },
+    {
+      "method": "POST",
+      "path": "auth/login",
+      "description": "{username,password}，HttpOnly会话"
+    },
+    {
+      "method": "POST",
+      "path": "auth/logout",
+      "description": "撤销会话"
+    },
+    {
+      "method": "POST",
+      "path": "themes/upload",
+      "description": "501 NOT_IMPLEMENTED"
+    },
+    {
+      "method": "POST",
+      "path": "ai/chat",
+      "description": "501 NOT_IMPLEMENTED"
+    },
+    {
+      "method": "GET/POST",
+      "path": "icons",
+      "description": "图标包管理501 NOT_IMPLEMENTED"
+    },
+    {
+      "method": "POST",
+      "path": "logs/clear",
+      "description": "需登录；{confirm:true} 清空历史及轮转日志，保留清空审计记录；不可撤销"
+    },
+    {
+      "method": "GET/POST",
+      "path": "themes/css/{id}",
+      "description": "独立主题 CSS，POST {css}"
+    },
+    {
+      "method": "POST",
+      "path": "themes/custom",
+      "description": "创建自定义主题 {name,base,css}"
+    },
+    {
+      "method": "POST",
+      "path": "themes/custom/delete",
+      "description": "删除非当前自定义主题 {id,confirm:true}"
+    },
+    {
+      "method": "GET",
+      "path": "services/cities",
+      "description": "按名称搜索全局城市及经纬度"
+    },
+    {
+      "method": "GET/POST",
+      "path": "system/idle-standby",
+      "description": "登录后读取或设置桌面/屏保15分钟自动待机；写入{enabled:boolean}；默认关闭"
+    },
+    {
+      "method": "GET",
+      "path": "network/traffic",
+      "description": "登录后读取按UID、网卡的实时速度与计数、连接快照及监控状态"
+    },
+    {
+      "method": "GET",
+      "path": "network/traffic/history?uid=-1&hours=24",
+      "description": "登录；uid=-1为总网卡，hours=1/24/168，返回分钟聚合曲线"
+    },
+    {
+      "method": "POST",
+      "path": "network/traffic/config",
+      "description": "登录；enabled/intervalSeconds=2,5,10,30/historyEnabled；记录日志"
+    },
+    {
+      "method": "POST",
+      "path": "network/traffic/export",
+      "description": "登录；返回当前快照并记录导出操作"
+    },
+    {
+      "method": "POST",
+      "path": "network/traffic/clear",
+      "description": "登录；confirm:true；清空监控历史，不改系统网络计数"
+    },
+    {
+      "method": "GET/POST",
+      "path": "inputs/shortcut",
+      "description": "原生桌面输入源快捷方式：id、remoteHint，写入需登录"
+    }
+  ]
+}

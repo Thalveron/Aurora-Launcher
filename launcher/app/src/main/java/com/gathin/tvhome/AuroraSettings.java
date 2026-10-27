@@ -1,0 +1,61 @@
+package com.gathin.tvhome;
+
+import android.content.Context;
+import org.json.*;
+import java.util.*;
+
+/** Validated presentation settings saved independently for each theme. Values are data, never CSS source. */
+final class AuroraSettings {
+    static String css(Context c)throws Exception{return AuroraCssThemes.css(c,AuroraThemes.current(c));}
+    static JSONObject css(Context c,String value)throws Exception{return AuroraCssThemes.saveCss(c,AuroraThemes.current(c),value);}
+    static void validateCss(String value)throws Exception{
+        if(value.length()>60000||value.toLowerCase(Locale.ROOT).matches("(?s).*(@import|expression\\s*\\(|javascript:|</style).*"))throw new IllegalArgumentException("CSS过大或包含不允许的外部导入、脚本内容");
+        String cleaned=value.replaceAll("(?s)/\\*.*?\\*/","").replaceAll("\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'", "");int balance=0;for(char ch:cleaned.toCharArray()){if(ch=='{')balance++;if(ch=='}'&&--balance<0)throw new IllegalArgumentException("CSS括号不匹配");}if(balance!=0)throw new IllegalArgumentException("CSS括号不匹配");
+    }
+    static volatile JSONObject preview; static volatile long previewUntil;static volatile String previewTheme;
+    static JSONObject defaults()throws Exception{JSONObject result=new JSONObject("{\"fontZh\":\"system\",\"fontEn\":\"system\",\"fontSize\":24,\"text\":\"#eff8ffff\",\"accent\":\"#77e8efff\",\"card\":\"#162535bb\",\"lyricPast\":\"#a9becfff\",\"lyricActive\":\"#77e8efff\",\"lyricFuture\":\"#edf5ff99\",\"focusStyle\":\"neon\",\"focusMotion\":\"smooth\",\"focusColor\":\"#77e8efff\",\"focusWidth\":3,\"focusRadius\":18,\"focusGlow\":24,\"motionMs\":180,\"ambientMode\":\"fixed\",\"ambientColor\":\"#60cfffff\",\"ambientOpacity\":25,\"desktopSpectrum\":{\"style\":\"bars\",\"color\":\"#77e8efff\",\"color2\":\"#6172ffff\",\"opacity\":65,\"size\":100},\"saverSpectrum\":{\"style\":\"wave\",\"color\":\"#55ddffff\",\"color2\":\"#8266ffff\",\"opacity\":50,\"size\":100},\"desktopSlides\":[],\"saverSlides\":[],\"slideSeconds\":20,\"saverSlideSeconds\":30,\"saverEnabled\":false,\"saverMinutes\":5,\"saverInfo\":\"minimal\",\"saverMode\":\"idle\",\"layout\":{\"areas\":[\"clock clock weather weather\",\"music music info info\",\"apps apps apps apps\"],\"hidden\":[],\"columns\":6,\"order\":[\"clock\",\"weather\",\"music\",\"info\",\"apps\"],\"neighbors\":{}}}");result.put("appGrid",new JSONObject("{\"limit\":4,\"order\":[],\"hidden\":[]}"));result.put("greeting","愿此刻，安静而美好。");result.put("greetingStyle","modern");result.put("desktopClockFont","native");result.put("desktopClockColor","#ffffffff");result.put("desktopClockSize",64);result.put("saverClockFont","native");result.put("saverClockColor","#eff8ffff");result.put("saverClockSize",64);result.put("greetingSize",42);result.put("greetingX",50);result.put("greetingY",32);result.put("saverLyricsLayout","bottom");result.put("cardOpacity",0.24);result.put("glassBlur",18);result.put("backgroundDim",0.2);result.put("cardRadius",24);result.put("iconSize",64);result.put("spacing",26);result.put("fontScale",1);return result;}
+    static JSONObject get(Context c)throws Exception{if(preview!=null&&AuroraThemes.current(c).equals(previewTheme)&&android.os.SystemClock.elapsedRealtime()<previewUntil)return new JSONObject(preview.toString());return stored(c);}
+    static JSONObject stored(Context c)throws Exception{JSONObject d=defaults(),v=AuroraThemeProfiles.read(c,AuroraThemes.current(c),"appearance");if(v!=null)for(Iterator<String> i=v.keys();i.hasNext();){String k=i.next();d.put(k,v.get(k));}return d;}
+    static JSONObject save(Context c,JSONObject patch)throws Exception{return apply(c,patch,true);}
+    static JSONObject apply(Context c,JSONObject patch,boolean persist)throws Exception{
+        String settingsTheme=AuroraThemes.current(c);JSONObject result=stored(c),spec=defaults();
+        for(Iterator<String> i=patch.keys();i.hasNext();){String k=i.next();Object v=patch.get(k);if(!spec.has(k))throw new IllegalArgumentException("未知外观字段："+k);
+            if(Arrays.asList("text","accent","card","lyricPast","lyricActive","lyricFuture","focusColor","ambientColor","saverClockColor","desktopClockColor").contains(k))color(v.toString());
+            else if(k.equals("greeting")){if(!(v instanceof String)||v.toString().length()>120||v.toString().matches("(?s).*[\\p{Cntrl}].*"))throw new IllegalArgumentException("问候语限120字");}
+            else if((k.equals("saverClockFont")||k.equals("desktopClockFont"))){if(!Arrays.asList("native","audiowide","monoton","bungee").contains(v.toString()))AuroraLibrary.file(c,v.toString(),"font");}
+            else if(k.equals("greetingStyle"))choice(v,"modern","soft","editorial","airy","bold");
+            else if(k.equals("saverLyricsLayout"))choice(v,"bottom","center","hidden");
+            else if(k.equals("fontZh")||k.equals("fontEn")){if(!v.toString().equals("system"))AuroraLibrary.file(c,v.toString(),"font");}
+            else if(k.equals("focusStyle"))choice(v,"thin","neon","double","glass","solid");
+            else if(k.equals("focusMotion"))choice(v,"none","smooth","scale","spring","breathe");
+            else if(k.equals("ambientMode"))choice(v,"off","fixed","icon","cover");
+            else if(k.equals("saverMode"))choice(v,"idle","continuous");
+            else if(k.equals("saverInfo"))choice(v,"minimal","full","hidden");
+            else if(k.endsWith("Spectrum")){JSONObject s=(JSONObject)v;only(s,"style","color","color2","opacity","size","angle","stops");if(s.has("angle"))range(s.getDouble("angle"),0,360);if(s.has("stops")){JSONArray stops=s.getJSONArray("stops");if(stops.length()>6)throw new IllegalArgumentException("渐变最多6个中间色标");for(int n=0;n<stops.length();n++){JSONObject stop=stops.getJSONObject(n);only(stop,"color","position");color(stop.getString("color"));range(stop.getDouble("position"),0,100);}}choice(s.get("style"),"bars","wave","mirror","dots","ring");color(s.getString("color"));color(s.getString("color2"));range(s.getDouble("opacity"),0,100);range(s.getDouble("size"),30,200);}
+            else if(k.endsWith("Slides")){JSONArray a=(JSONArray)v;if(a.length()>100)throw new IllegalArgumentException("背景最多100项");for(int n=0;n<a.length();n++)AuroraLibrary.file(c,a.getString(n),"background");}
+            else if(k.equals("appGrid")){JSONObject g=(JSONObject)v;only(g,"limit","order","hidden");range(g.getInt("limit"),1,60);for(String key:new String[]{"order","hidden"}){JSONArray list=g.getJSONArray(key);if(list.length()>500)throw new IllegalArgumentException("应用数量过多");Set<String> seen=new HashSet<>();for(int n=0;n<list.length();n++){String pkg=list.getString(n);if(!pkg.matches("[A-Za-z0-9_.]+")||!seen.add(pkg))throw new IllegalArgumentException("应用包名重复或无效");}}}
+            else if(k.equals("layout"))layout(c,(JSONObject)v);
+            else if(k.equals("saverEnabled")){if(!(v instanceof Boolean))throw new IllegalArgumentException("需要开关值");}
+            else {double n=((Number)v).doubleValue();if(k.equals("cardOpacity"))range(n,.05,.6);else if(k.equals("glassBlur"))range(n,0,40);else if(k.equals("backgroundDim"))range(n,0,.8);else if(k.equals("cardRadius"))range(n,0,80);else if(k.equals("iconSize"))range(n,24,160);else if(k.equals("spacing"))range(n,0,80);else if(k.equals("fontScale"))range(n,.6,1.8);else if((k.equals("saverClockSize")||k.equals("desktopClockSize")))range(n,32,100);else if(k.equals("greetingSize"))range(n,20,100);else if(k.equals("fontSize"))range(n,16,64);else if(k.equals("focusWidth"))range(n,1,12);else if(k.equals("focusRadius"))range(n,0,64);else if(k.equals("focusGlow"))range(n,0,100);else if(k.equals("motionMs"))range(n,0,1000);else if(k.equals("saverMinutes"))range(n,1,120);else if(k.endsWith("Seconds"))range(n,3,3600);else range(n,0,100);}
+            result.put(k,v);
+        }
+        if(!persist){previewTheme=settingsTheme;preview=result;previewUntil=android.os.SystemClock.elapsedRealtime()+30000;return result;}
+        preview=null; AuroraThemeProfiles.write(c,settingsTheme,"appearance",result);if(settingsTheme.equals("legacy")&&(patch.has("desktopClockFont")||patch.has("desktopClockColor")||patch.has("desktopClockSize")))c.sendBroadcast(new android.content.Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(c.getPackageName()).putExtra("kind","settings"));if(patch.has("desktopSlides")||patch.has("saverSlides")||patch.has("slideSeconds")||patch.has("saverSlideSeconds"))AuroraBackgrounds.changed(c);return result;
+    }
+    static void color(String v){if(!v.matches("#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?"))throw new IllegalArgumentException("颜色需为HEX RGB或RGBA");}
+    static void range(double n,double min,double max){if(!Double.isFinite(n)||n<min||n>max)throw new IllegalArgumentException("数值范围："+min+"～"+max);}
+    static void choice(Object v,String...options){if(!Arrays.asList(options).contains(v.toString()))throw new IllegalArgumentException("选项无效："+v);}
+    static void only(JSONObject v,String...keys){for(Iterator<String> i=v.keys();i.hasNext();)if(!Arrays.asList(keys).contains(i.next()))throw new IllegalArgumentException("存在未知配置字段");}
+    static void layout(Context c,JSONObject l)throws Exception{
+        only(l,"areas","hidden","columns","order","neighbors","freeform");range(l.getInt("columns"),2,10);
+        Set<String> known=new HashSet<>(Arrays.asList("clock","weather","music","info","apps"));JSONObject declared=AuroraThemes.manifest(c,AuroraThemes.current(c)).optJSONObject("defaultLayout");if(declared!=null){known.clear();JSONArray order=declared.getJSONArray("order");for(int i=0;i<order.length();i++)known.add(order.getString(i));}
+        JSONArray rows=l.getJSONArray("areas");if(rows.length()<1||rows.length()>10)throw new IllegalArgumentException("布局需1～10行");
+        String[][] grid=new String[rows.length()][];int width=-1;
+        for(int y=0;y<rows.length();y++){grid[y]=rows.getString(y).trim().split("\\s+");if(width<0)width=grid[y].length;if(width!=grid[y].length||width>12)throw new IllegalArgumentException("布局每行列数需一致且不超过12");for(String name:grid[y])if(!known.contains(name)&&!name.equals("."))throw new IllegalArgumentException("未知布局区域");}
+        Set<String> present=new HashSet<>();for(String name:known){int minX=99,minY=99,maxX=-1,maxY=-1;for(int y=0;y<grid.length;y++)for(int x=0;x<width;x++)if(grid[y][x].equals(name)){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}if(maxX>=0){present.add(name);for(int y=minY;y<=maxY;y++)for(int x=minX;x<=maxX;x++)if(!grid[y][x].equals(name))throw new IllegalArgumentException("每个区域必须是矩形");}}
+        if(!present.contains("apps"))throw new IllegalArgumentException("请保留应用区域，避免无法操作桌面");
+        for(String k:new String[]{"hidden","order"}){JSONArray a=l.getJSONArray(k);Set<String> seen=new HashSet<>();for(int n=0;n<a.length();n++){String id=a.getString(n);if(!known.contains(id)||!seen.add(id))throw new IllegalArgumentException("区域重复或未知");}if(k.equals("order")&&seen.size()!=known.size())throw new IllegalArgumentException("排序需包含当前主题的全部区块");if(k.equals("hidden")&&seen.contains("apps"))throw new IllegalArgumentException("应用区域不可全部隐藏");}
+        if(l.has("freeform")){if(!AuroraThemes.current(c).equals("cards"))throw new IllegalArgumentException("自由拖动仅限简约卡片主题");JSONObject free=l.getJSONObject("freeform");for(Iterator<String> i=free.keys();i.hasNext();){String id=i.next();if(!known.contains(id))throw new IllegalArgumentException("未知自由布局区块");JSONObject rect=free.getJSONObject(id);only(rect,"x","y","w","h");double x=rect.getDouble("x"),y=rect.getDouble("y"),w=rect.getDouble("w"),h=rect.getDouble("h");if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(w)||!Double.isFinite(h)||x<0||y<0||w<8||h<8||x+w>100.01||y+h>100.01)throw new IllegalArgumentException("区块需在画面内，宽高至少8%");}}
+        JSONObject nav=l.getJSONObject("neighbors");if(nav.toString().length()>8192)throw new IllegalArgumentException("焦点配置过大");for(Iterator<String> i=nav.keys();i.hasNext();){String id=i.next();if(!id.matches("[A-Za-z0-9_.-]{1,160}"))throw new IllegalArgumentException("焦点编号无效");JSONObject directions=nav.getJSONObject(id);only(directions,"up","down","left","right");for(Iterator<String> j=directions.keys();j.hasNext();)if(!directions.getString(j.next()).matches("[A-Za-z0-9_.-]{1,160}"))throw new IllegalArgumentException("焦点目标无效");}
+    }
+}

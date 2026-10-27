@@ -1,0 +1,3 @@
+package org.cleanyourtv.homebridge;
+import android.app.Activity;import android.os.Bundle;import android.content.pm.LauncherApps;import org.json.*;
+public class ShortcutLaunchActivity extends Activity{public void onCreate(Bundle b){super.onCreate(b);try{String key=getIntent().getStringExtra("key");JSONArray a=ShortcutStore.records(this);for(int i=0;i<a.length();i++){JSONObject s=a.getJSONObject(i);if(s.getString("key").equals(key)){getSystemService(LauncherApps.class).startShortcut(s.getString("package"),s.getString("id"),null,null,android.os.Process.myUserHandle());break;}}}catch(Exception e){android.widget.Toast.makeText(this,"快捷方式不可用，请重新添加",1).show();}finish();}}

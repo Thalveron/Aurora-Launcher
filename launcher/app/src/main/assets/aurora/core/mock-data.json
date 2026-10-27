@@ -1,0 +1,399 @@
+{
+  "apiVersion": 1,
+  "stage": 2,
+  "config": {
+    "theme": "foundation",
+    "locale": "zh-CN",
+    "lastGood": "foundation",
+    "icon_fallback": "app",
+    "consoleLocale": "zh-CN"
+  },
+  "time": {},
+  "weather": {
+    "available": true,
+    "city": "上海",
+    "source": "Mock",
+    "current": {
+      "temperature_2m": 24,
+      "weather_code": 2
+    },
+    "daily": {
+      "time": [
+        "2026-10-24",
+        "2026-10-25",
+        "2026-10-26",
+        "2026-10-27"
+      ],
+      "temperature_2m_min": [
+        18,
+        17,
+        18,
+        19
+      ],
+      "temperature_2m_max": [
+        26,
+        25,
+        27,
+        26
+      ],
+      "weather_code": [
+        2,
+        61,
+        3,
+        0
+      ]
+    }
+  },
+  "media": {
+    "available": true,
+    "playing": false,
+    "title": "Aurora Music",
+    "artist": "Preview Artist",
+    "positionMs": 45000,
+    "durationMs": 180000,
+    "lyrics": [
+      "主题只负责呈现",
+      "数据来自统一接口",
+      "方向键与回车可以操作"
+    ],
+    "lyricIndex": 1,
+    "lyricProgress": 0.5,
+    "package": "demo.music",
+    "cover": "",
+    "mode": 1,
+    "state": 2,
+    "controls": {
+      "play": true,
+      "pause": true,
+      "next": true,
+      "prev": true,
+      "seek": true,
+      "queue": false,
+      "mode": true,
+      "lyrics": true
+    }
+  },
+  "apps": [
+    {
+      "package": "demo.music",
+      "name": "音乐",
+      "icon": ""
+    },
+    {
+      "package": "demo.video",
+      "name": "视频",
+      "icon": ""
+    },
+    {
+      "package": "demo.tv",
+      "name": "电视直播",
+      "icon": ""
+    },
+    {
+      "package": "demo.apps",
+      "name": "应用",
+      "icon": ""
+    },
+    {
+      "package": "demo.files",
+      "name": "文件管理",
+      "icon": ""
+    },
+    {
+      "package": "demo.settings",
+      "name": "设置",
+      "icon": ""
+    }
+  ],
+  "status": {
+    "storage": {
+      "total": 32000000000,
+      "free": 24000000000
+    },
+    "memory": {
+      "total": 2000000000,
+      "available": 1000000000
+    },
+    "network": {
+      "connected": true,
+      "wifi": false,
+      "ethernet": true
+    },
+    "bluetooth": {
+      "known": true,
+      "available": true,
+      "enabled": false
+    }
+  },
+  "saver": {
+    "active": false
+  },
+  "assets": [],
+  "themes": [
+    {
+      "id": "foundation",
+      "name": "极光接口验收预览",
+      "version": "0.1.0",
+      "apiVersion": 1,
+      "available": true
+    },
+    {
+      "id": "legacy",
+      "name": "极简桌面",
+      "available": true,
+      "stage": "已内置",
+      "renderer": "native",
+      "builtin": true,
+      "readOnly": true
+    },
+    {
+      "id": "cards",
+      "name": "简约卡片",
+      "version": "1.0.0",
+      "apiVersion": 1,
+      "components": [
+        "clock",
+        "weather",
+        "media",
+        "apps",
+        "shortcuts",
+        "status"
+      ],
+      "variables": {
+        "--accent": "#77e8ef",
+        "--card-radius": "24px",
+        "--grid-cols": "6"
+      },
+      "icons": {
+        "shape": "rounded",
+        "size": 128
+      },
+      "finalDesign": true,
+      "controls": [
+        {
+          "key": "cardOpacity",
+          "label": "卡片透明度",
+          "min": 0.05,
+          "max": 0.6,
+          "step": 0.01,
+          "default": 0.24,
+          "unit": ""
+        },
+        {
+          "key": "glassBlur",
+          "label": "毛玻璃模糊",
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "default": 18,
+          "unit": "px"
+        },
+        {
+          "key": "backgroundDim",
+          "label": "背景压暗",
+          "min": 0,
+          "max": 0.8,
+          "step": 0.01,
+          "default": 0.2,
+          "unit": ""
+        },
+        {
+          "key": "cardRadius",
+          "label": "卡片圆角",
+          "min": 0,
+          "max": 80,
+          "step": 1,
+          "default": 24,
+          "unit": "px"
+        },
+        {
+          "key": "iconSize",
+          "label": "图标大小",
+          "min": 24,
+          "max": 160,
+          "step": 1,
+          "default": 64,
+          "unit": "px"
+        },
+        {
+          "key": "spacing",
+          "label": "区块间距",
+          "min": 0,
+          "max": 80,
+          "step": 1,
+          "default": 26,
+          "unit": "px"
+        },
+        {
+          "key": "fontScale",
+          "label": "字号缩放",
+          "min": 0.6,
+          "max": 1.8,
+          "step": 0.05,
+          "default": 1,
+          "unit": "倍"
+        }
+      ],
+      "defaultLayout": {
+        "areas": [
+          "clock weather weather",
+          "music apps shortcuts",
+          "music detail info"
+        ],
+        "hidden": [],
+        "columns": 4,
+        "order": [
+          "clock",
+          "weather",
+          "music",
+          "apps",
+          "shortcuts",
+          "detail",
+          "info"
+        ],
+        "neighbors": {}
+      },
+      "layoutLabels": {
+        "clock": "时间日期",
+        "weather": "顶部天气",
+        "music": "播放卡片",
+        "apps": "我的应用",
+        "shortcuts": "快捷功能",
+        "detail": "天气详情",
+        "info": "系统状态"
+      },
+      "layoutPresets": {
+        "default": [
+          "clock weather weather",
+          "music apps shortcuts",
+          "music detail info"
+        ],
+        "right": [
+          "weather weather clock",
+          "shortcuts apps music",
+          "info detail music"
+        ]
+      },
+      "available": true,
+      "stage": "简约卡片"
+    }
+  ],
+  "bgm": {
+    "playing": false,
+    "selected": "",
+    "lyricRows": [],
+    "volume": 15,
+    "enabled": false,
+    "autoplay": false,
+    "fadeMs": 1500,
+    "lyrics": "",
+    "positionMs": 0
+  },
+  "spectrum": {
+    "bins": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "inputs": [],
+  "services": {
+    "config": {
+      "weather": {
+        "provider": "openmeteo",
+        "city": "上海",
+        "lat": 31.2304,
+        "lon": 121.4737,
+        "key": "",
+        "urls": [
+          "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone=Asia%2FShanghai"
+        ],
+        "headers": {},
+        "intervalMinutes": 60,
+        "mapping": {
+          "temperature": "$.current.temperature_2m",
+          "code": "$.current.weather_code",
+          "dates": "$.daily.time",
+          "min": "$.daily.temperature_2m_min",
+          "max": "$.daily.temperature_2m_max",
+          "codes": "$.daily.weather_code"
+        }
+      },
+      "time": {
+        "ntp": [
+          "ntp.aliyun.com",
+          "time.cloudflare.com",
+          "pool.ntp.org"
+        ],
+        "http": [
+          "https://www.baidu.com",
+          "https://www.cloudflare.com"
+        ],
+        "intervalMinutes": 360,
+        "timezone": "Asia/Shanghai",
+        "syncSystem": false
+      }
+    },
+    "weather": {
+      "success": false,
+      "updating": false,
+      "updatedAt": 0,
+      "error": ""
+    },
+    "time": {
+      "canSyncSystem": false,
+      "permissionReason": "Computer preview does not set system time",
+      "updating": false,
+      "updatedAt": 0
+    }
+  },
+  "localMusic": {
+    "available": false,
+    "reason": "Install the Chora USB update on the TV"
+  },
+  "voice": {
+    "config": {
+      "enabled": false,
+      "language": "en-US",
+      "engine": "",
+      "voice": "",
+      "rate": 1,
+      "pitch": 1,
+      "volume": 0.2,
+      "readFocus": true
+    },
+    "engines": [],
+    "voices": [],
+    "ready": false,
+    "reason": "Computer preview"
+  }
+}

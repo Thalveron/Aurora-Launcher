@@ -1,0 +1,170 @@
+
+html[data-console-theme=light]{color-scheme:light;color:#243c48;background:#f3f6f8}
+html[data-console-theme=light] body{background:#f3f6f8;color:#243c48}
+html[data-console-theme=light] #tabs{background:#fff;border-color:#dee7ed}
+html[data-console-theme=light] .console-brand{color:#26766e}
+html[data-console-theme=light] #tabs button{color:#536b79}
+html[data-console-theme=light] #tabs button.active{background:#e0f2ed;color:#1c665a}
+html[data-console-theme=light] .nav-label{color:#80939f}
+html[data-console-theme=light] header small{color:#3a817a}
+html[data-console-theme=light] p,html[data-console-theme=light] .header-tools,html[data-console-theme=light] .fields label{color:#637986}
+html[data-console-theme=light] h1,html[data-console-theme=light] h2,html[data-console-theme=light] h3{color:#203b48}
+html[data-console-theme=light] #settings-main>section,html[data-console-theme=light] #live-preview{background:#fff;border-color:#dee7ed;box-shadow:0 4px 22px #29434e05}
+html[data-console-theme=light] .theme-card{background:#f8fafb;border-color:#dce6ec}
+html[data-console-theme=light] .theme-card.current{background:#edf8f4;border-color:#77b9a6;box-shadow:0 0 0 1px #77b9a6}
+html[data-console-theme=light] a{color:#237e70}
+html[data-console-theme=light] button{background:#287f70;border-color:#287f70;color:#fff}
+html[data-console-theme=light] button.secondary,html[data-console-theme=light] select,html[data-console-theme=light] .file-button{background:#f5f8fa;color:#3b5968;border-color:#cedde5}
+html[data-console-theme=light] input,html[data-console-theme=light] textarea{background:#fff;color:#243c48;border-color:#cbdbe3}
+html[data-console-theme=light] .sample,html[data-console-theme=light] .layout-row,html[data-console-theme=light] .asset{background:#f4f8fa;border-color:#d9e4eb}
+html[data-console-theme=light] .color-button,html[data-console-theme=light] .color-dialog{background:#fff;color:#243c48;border-color:#cbdbe3}
+html[data-console-theme=light] .color-dialog h3{color:#243c48}
+html[data-console-theme=light] pre,html[data-console-theme=light] .input-item small,html[data-console-theme=light] .asset small{color:#627e8a}
+html[data-console-theme=light] .device-block,html[data-console-theme=light] .input-item,html[data-console-theme=light] hr{border-color:#dee7ed}
+html[data-console-theme=light] .device-block .remote button{background:#edf5f6;color:#365b65;border-color:#cedfe4}
+html[data-console-theme=light] #native-category-frame,html[data-console-theme=light] #legacy-settings{background:#fff}
+html.embedded[data-console-theme=light]{--ink:#243c48;--muted:#6e8290;--green:#287f70;--line:#dce6ec;--paper:#fff;--white:#f7fafb}
+html.embedded[data-console-theme=light] .settings-card,html.embedded[data-console-theme=light] .note{background:#f5f9fa;color:#36525f}
+html.embedded[data-console-theme=light] input,html.embedded[data-console-theme=light] select{background:#fff;color:#243c48;border-color:#cbdbe3}
+html.embedded[data-console-theme=light] .setting-row{border-color:#dce6ec}
+html.embedded[data-console-theme=light] button.primary{color:#fff}
+#console-theme-toggle{white-space:nowrap;font-size:12px;padding:9px 13px}
+
+html[data-console-theme=light] #connection{color:#557c78}
+
+/* Navigation is a surface, not a primary action button. */
+html[data-console-theme=light] #tabs button{background:transparent;color:#344f60}
+html[data-console-theme=light] #tabs button.active{background:#d9eee7;color:#164f43}
+html[data-console-theme=light] #tabs button:hover{background:#eaf2f5}
+html[data-console-theme=light] #tabs button.active:hover{background:#d9eee7}
+html[data-console-theme=light] .nav-label{color:#536d7c}
+html[data-console-theme=light] .nav-logout{color:#536d7c!important}
+html[data-console-theme=light] summary{color:#236d60}
+html[data-console-theme=light] option{background:#fff;color:#243c48}
+html[data-console-theme=dark]{color-scheme:dark}
+html.embedded[data-console-theme=dark] .dropzone,
+html.embedded[data-console-theme=dark] .background-card,
+html.embedded[data-console-theme=dark] .app-row,
+html.embedded[data-console-theme=dark] .audio-row,
+html.embedded[data-console-theme=dark] .quick-grid button,
+html.embedded[data-console-theme=dark] #transfer,
+html.embedded[data-console-theme=dark] dialog{background:#192a39;color:#dce8f2;border-color:#3c5365}
+html.embedded[data-console-theme=dark] .dropzone{background:#1b3041;border-color:#648395}
+html.embedded[data-console-theme=dark] .secondary,
+html.embedded[data-console-theme=dark] .move-buttons button,
+html.embedded[data-console-theme=dark] .color-button{background:#23394a;color:#d6e9f1;border-color:#466174}
+html.embedded[data-console-theme=dark] .hero{background:#1b3041}
+html.embedded[data-console-theme=dark] .hero p,
+html.embedded[data-console-theme=dark] .dropzone small,
+html.embedded[data-console-theme=dark] .app-row label,
+html.embedded[data-console-theme=dark] .form-label,
+html.embedded[data-console-theme=dark] .empty,
+html.embedded[data-console-theme=dark] .log-row strong,
+html.embedded[data-console-theme=dark] dialog label{color:#b1c6d3}
+html.embedded[data-console-theme=dark] .app-row,
+html.embedded[data-console-theme=dark] .log-row{border-color:#344b5c}
+html.embedded[data-console-theme=dark] .segmented{background:#122331}
+html.embedded[data-console-theme=dark] .segmented button{background:transparent;color:#b1c6d3}
+html.embedded[data-console-theme=dark] .segmented button.selected{background:#345568;color:#fff}
+html.embedded[data-console-theme=dark] .tag{background:#274e46;color:#b8ecdc}
+html.embedded[data-console-theme=dark] .tag.blue{background:#29445f;color:#c2e0ff}
+html.embedded[data-console-theme=dark] input[type=file]::file-selector-button{background:#2b495b;color:#e0eff6;border:1px solid #527084;border-radius:7px;padding:8px 12px}
+html.embedded[data-console-theme=light] .dropzone{background:#edf5f4;border-color:#93b7b1}
+html.embedded[data-console-theme=light] .secondary,
+html.embedded[data-console-theme=light] .move-buttons button,
+html.embedded[data-console-theme=light] .color-button{background:#f3f7f9;color:#344f60;border-color:#cbdbe3}
+html.embedded[data-console-theme=light] .app-row,
+html.embedded[data-console-theme=light] .audio-row,
+html.embedded[data-console-theme=light] .background-card,
+html.embedded[data-console-theme=light] #transfer,
+html.embedded[data-console-theme=light] dialog{background:#fff;color:#243c48;border-color:#dce6ec}
+
+/* Softer daytime surfaces, with the original console's calmer spacing. */
+html[data-console-theme=light],html[data-console-theme=light] body{background:#f5f7f2;color:#263c34}
+html[data-console-theme=light] #tabs{background:#edf1e9;border-color:#dfe6da}
+html[data-console-theme=light] #tabs button{color:#4b6253}
+html[data-console-theme=light] #tabs button.active{background:#236653;color:#fff}
+html[data-console-theme=light] #tabs button.active:hover{background:#236653}
+html[data-console-theme=light] #tabs button:hover{background:#e0e8da}
+html[data-console-theme=light] #settings-main>section{box-shadow:none;border-color:#e1e7dc}
+html[data-console-theme=light] .theme-card{background:#fff;border-color:#e1e7dc}
+html[data-console-theme=light] .theme-card.current{background:#f0f6eb;border-color:#8cb391;box-shadow:none}
+#settings-main>#native-category{background:transparent;border:0;border-radius:0;padding:0!important}
+#native-category>h2,#native-category>p{display:none}
+#native-category-frame{display:block;border-radius:0;width:100%;min-height:320px}
+html[data-console-theme=light] #native-category-frame{background:#f5f7f2}
+html.embedded[data-console-theme=light],html.embedded[data-console-theme=light] body{background:#f5f7f2}
+html.embedded main{padding:12px 0!important}
+html.embedded[data-console-theme=light] .settings-card{background:#fff;border-color:#e1e7dc}
+html.embedded[data-console-theme=light] .setting-row{border-color:#edf1e9}
+.material-link{display:inline-block;margin:0 0 18px}
+
+/* Form surface rules must not erase toggle tracks and their checked state. */
+html.embedded[data-console-theme=light] input.switch{background:#bdc9bf;border:1px solid #93a496;box-shadow:none}
+html.embedded[data-console-theme=light] input.switch:checked{background:#236653;border-color:#236653}
+html.embedded[data-console-theme=dark] input.switch{background:#43596b;border:1px solid #7c95a7;box-shadow:none}
+html.embedded[data-console-theme=dark] input.switch:checked{background:#74d9c1;border-color:#74d9c1}
+html.embedded[data-console-theme] input.switch:before{background:#fff;box-shadow:0 1px 4px #0004;top:2px;left:2px}
+html.embedded[data-console-theme] input.switch:focus-visible{outline:3px solid #599e87;outline-offset:4px}
+html.embedded[data-console-theme=light] button.primary{background:#236653;border:1px solid #236653;color:#fff}
+html.embedded[data-console-theme=dark] button.primary{background:#86ddd0;border:1px solid #86ddd0;color:#12312f}
+html.embedded[data-console-theme=light] input[type=checkbox]:not(.switch){accent-color:#236653}
+html.embedded[data-console-theme=dark] input[type=checkbox]:not(.switch){accent-color:#86ddd0}
+html[data-console-theme=light] .field-reset{background:#e8f0e8;color:#245f4d;border:1px solid #c5d6c7}
+html[data-console-theme=dark] .field-reset{background:#203c46;color:#a8ebdc;border:1px solid #456771}
+
+html.embedded[data-console-theme] input.switch{-webkit-appearance:none!important;appearance:none!important;display:inline-block!important;width:41px!important;height:24px!important;min-width:41px!important;padding:0!important;border-radius:30px!important;position:relative!important}
+html.embedded[data-console-theme=light] input.switch{background:#bdc9bf!important;border-color:#93a496!important}
+html.embedded[data-console-theme=light] input.switch:checked{background:#236653!important;border-color:#236653!important}
+html.embedded[data-console-theme=dark] input.switch{background:#43596b!important;border-color:#7c95a7!important}
+html.embedded[data-console-theme=dark] input.switch:checked{background:#74d9c1!important;border-color:#74d9c1!important}
+
+/* Native clock settings follow the console palette, including nested placement. */
+#native-clock-settings{background:#141f2d;color:#dce8f2;border:1px solid #2a3748;border-radius:16px;padding:26px;margin:22px 0;gap:20px 26px}
+#native-clock-settings h3{grid-column:1/-1;margin:0 0 4px;color:#e5f0f8}
+#native-clock-settings label{color:#c5d7e8;font-size:15px;line-height:1.6}
+#native-clock-settings>button{justify-self:start;align-self:end}
+html[data-console-theme=light] #native-clock-settings{background:#fff;color:#20332e;border-color:#dfe7dc}
+html[data-console-theme=light] #native-clock-settings h3{color:#203f49}
+html[data-console-theme=light] #native-clock-settings label{color:#345d4c}
+html[data-console-theme=light] #native-clock-settings input,html[data-console-theme=light] #native-clock-settings select{background:#f5f8fa;color:#294b59;border-color:#c8d9e1}
+
+#cards-app-settings{background:#141f2d;color:#dce8f2;border:1px solid #2a3748;border-radius:16px;padding:24px;margin:24px 0}
+#cards-app-settings h3{color:#e5f0f8;margin:0 0 20px}
+#cards-app-settings>label{display:flex;gap:14px;align-items:center;color:#c5d7e8;margin-bottom:20px}
+#cards-app-settings>.layout-row{margin:12px 0}
+html[data-console-theme=light] #cards-app-settings{background:#fff;color:#20332e;border-color:#dfe7dc}
+html[data-console-theme=light] #cards-app-settings h3{color:#203f49}
+html[data-console-theme=light] #cards-app-settings>label{color:#345d4c}
+
+.idle-standby-switch{display:flex;align-items:center;gap:12px;font-weight:600}.idle-standby-switch input{width:20px;height:20px}
+
+#traffic-panel .traffic-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0}
+#traffic-panel .traffic-stat{padding:20px;background:#1b2c3c;border:1px solid #35475a;border-radius:14px}
+#traffic-panel .traffic-stat small{display:block;color:#a9c0cf;margin-bottom:12px}
+#traffic-panel .traffic-stat strong{font-size:25px;color:#f2fbff}
+.traffic-chart{display:block;width:100%;height:180px;margin:18px 0;border-radius:14px;background:rgba(110,140,160,.06)}
+.traffic-scroll{max-width:100%;max-height:620px;overflow:auto;margin:18px 0}
+.traffic-table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.6;text-align:left}
+.traffic-table th{position:sticky;top:0;background:#1b2c3c;z-index:1;white-space:nowrap}
+.traffic-table td,.traffic-table th{padding:13px 12px;border-bottom:1px solid #344959;vertical-align:top}
+.traffic-table td small{display:block;color:#91abba}
+.traffic-table td:not(:first-child){font-variant-numeric:tabular-nums;white-space:nowrap}
+.traffic-app-link{padding:0;border:0;background:transparent;color:#edf3f8;text-align:left}
+.traffic-interface{display:inline-block;margin:5px 12px 5px 0;padding:8px 12px;background:#1b2c3c;border-radius:10px;font-size:13px}
+.traffic-package{color:#d8e2ec;font-family:ui-monospace,monospace;font-size:13px;overflow-wrap:anywhere;padding:8px 0}
+#traffic-detail{margin-top:30px;padding-top:22px;border-top:1px solid #637b8a}
+.traffic-hint{color:#ffc17c;max-width:220px;white-space:normal!important}
+#traffic-panel .actions label{display:flex;gap:8px;align-items:center}
+#traffic-panel input[type=checkbox]{width:18px;height:18px}
+html[data-console-theme=light] #traffic-panel .traffic-stat,html[data-console-theme=light] #traffic-panel .traffic-interface{background:#f0f7f7;border-color:#d5e4e6}
+html[data-console-theme=light] #traffic-panel .traffic-stat strong{color:#183c49}
+html[data-console-theme=light] #traffic-panel .traffic-stat small,html[data-console-theme=light] .traffic-table td small{color:#5b7883}
+html[data-console-theme=light] .traffic-table th{background:#eaf3f3;color:#244c56}
+html[data-console-theme=light] .traffic-table td,html[data-console-theme=light] .traffic-table th{border-color:#dae7e9}
+html[data-console-theme=light] .traffic-app-link{color:#253746}
+html[data-console-theme=light] .traffic-package{color:#384957}
+html[data-console-theme=light] .traffic-hint{color:#905312}
+@media(max-width:900px){#traffic-panel .traffic-totals{grid-template-columns:repeat(2,minmax(0,1fr))}#traffic-panel .traffic-stat{padding:14px}#traffic-panel .traffic-stat strong{font-size:21px}}
+
+#traffic-panel .traffic-app-link{background:none!important;color:#edf3f8!important;box-shadow:none;border:0;font-weight:500}html[data-console-theme=light] #traffic-panel .traffic-app-link{color:#253746!important}#traffic-panel .traffic-app-link:focus-visible{outline:2px solid currentColor;outline-offset:4px}

@@ -1,0 +1,17 @@
+{
+  "id": "legacy",
+  "name": "极简桌面",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "renderer": "native",
+  "builtin": true,
+  "readOnly": true,
+  "components": [
+    "clock",
+    "weather",
+    "media",
+    "apps"
+  ],
+  "variables": {},
+  "controls": []
+}

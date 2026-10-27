@@ -1,0 +1,5 @@
+package org.cleanyourtv.homebridge;
+import android.app.*;import android.os.Bundle;import android.content.*;import android.content.pm.*;
+public class PinShortcutActivity extends Activity{
+ public void onCreate(Bundle b){super.onCreate(b);LauncherApps.PinItemRequest r=getSystemService(LauncherApps.class).getPinItemRequest(getIntent());if(r==null||!r.isValid()||r.getRequestType()!=LauncherApps.PinItemRequest.REQUEST_TYPE_SHORTCUT){finish();return;}ShortcutInfo s=r.getShortcutInfo();if(s==null){finish();return;}new AlertDialog.Builder(this).setTitle("添加桌面快捷方式").setMessage("将「"+s.getShortLabel()+"」添加到 Aurora Launcher？").setNegativeButton("取消",(d,w)->finish()).setOnCancelListener(d->finish()).setPositiveButton("添加",(d,w)->{try{if(!r.accept())throw new Exception("请求已失效");ShortcutStore.save(this,s);sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage("com.gathin.tvhome").putExtra("kind","settings-layout"));android.widget.Toast.makeText(this,"已添加",0).show();}catch(Exception e){android.widget.Toast.makeText(this,"添加失败："+e.getMessage(),1).show();}finish();}).show();}
+}

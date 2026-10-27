@@ -1,0 +1,14 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const source=fs.readFileSync(__dirname+'/../app/src/main/assets/aurora/core/presentation.js','utf8');
+let timers=new Map(),serial=0;
+const box={dataset:{},children:[],append(n){this.children.push(n);n.parent=this;},querySelectorAll(){return this.children.slice();}};
+const sandbox={hidden:false,setTimeout(fn,ms){let id=++serial;timers.set(id,{fn,ms});return id;},clearTimeout(id){timers.delete(id);},node(tag){return {tagName:tag.toUpperCase(),style:{},setAttribute(){},removeAttribute(){},pause(){},load(){},play(){return Promise.resolve();},remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);}};}};
+vm.createContext(sandbox);vm.runInContext(source.slice(source.indexOf('  function slides('),source.indexOf('  function font('))+';this.factory=slides;',sandbox);
+const player=sandbox.factory(box);
+player.update(['a.jpg','b.jpg'],10,true);
+const first=box.children[0];first.onload();assert.equal(first.style.opacity,'1');assert.equal(timers.size,1);
+[...timers.values()][0].fn();const second=box.children[1];assert(box.children.includes(first));assert.equal(second.style.zIndex,'0');second.onload();assert(!box.children.includes(first));assert.equal(box.children.length,1);
+player.update(['a.jpg','b.jpg'],10,true);assert.equal(box.children[0],second);
+player.stop();assert.equal(box.children.length,0);assert.equal(timers.size,0);
+player.update(['clip.mp4'],30,true);const video=box.children[0];video.onplaying();assert.equal(timers.size,0);video.onplaying();assert.equal(box.children[0],video);
+console.log('PASS retain old frame until new frame ready; one video never reloads on interval; stable updates and cleanup');

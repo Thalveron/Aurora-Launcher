@@ -1,0 +1,1 @@
+默认主页桥接组件源码快照。TCL 固件拒绝普通包声明 HOME，因此通过现有 com.alibaba.dingtalk.focus 桥接宿主处理 CONFIRM_PIN_SHORTCUT。实际构建目录 work/home-bridge，使用该目录既有签名更新。签名私钥不入库。仅系统 PinItemRequest.accept 接受的快捷方式可保存；桌面通过限定 UID 的只读 ContentProvider 获取名单，宿主使用 LauncherApps.startShortcut 启动，不接收任意 Intent。\n
