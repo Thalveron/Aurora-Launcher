@@ -12,6 +12,7 @@ final class AuroraActions {
  static {try{
   add("launch_app","{\"package\":\"string\"}","control",(c,p)->{String pkg=p.getString("package");WebApps.valid(c,pkg);AuroraHttp.controls(c).select("launch").launch(pkg);return new JSONObject();});
   add("set_appearance","{\"patch\":\"object\"}","settings",(c,p)->AuroraSettings.save(c,p.getJSONObject("patch")));
+  add("desktop_info","{}","control",(c,p)->{c.startActivity(new android.content.Intent(c,DesktopInformationActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));return new JSONObject();});
   add("open_settings","{\"kind\":\"string\"}","control",(c,p)->{String kind=p.getString("kind");AuroraSettings.choice(kind,"wifi","bluetooth","display");String intent=kind.equals("wifi")?android.provider.Settings.ACTION_WIFI_SETTINGS:kind.equals("bluetooth")?android.provider.Settings.ACTION_BLUETOOTH_SETTINGS:android.provider.Settings.ACTION_DISPLAY_SETTINGS;c.startActivity(SystemSettings.intent(c,intent).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));return new JSONObject().put("opened",kind);});
   add("switch_theme","{\"theme\":\"string\"}","settings",(c,p)->switchTheme(c,p.getString("theme")));
   for(String transport:new String[]{"play","pause","next","prev"})add("media_"+transport,"{}","control",(c,p)->AuroraData.transport(c,transport,p));

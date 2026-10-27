@@ -5,3 +5,5 @@
 
 # Launched by class name from the authorized local ADB helper.
 -keep public class com.gathin.tvhome.NetworkTrafficProbe { public static void main(java.lang.String[]); }
+
+-keep class com.gathin.tvhome.LauncherUpdateAgent { public static void main(java.lang.String[]); }

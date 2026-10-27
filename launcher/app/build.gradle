@@ -10,8 +10,8 @@ android {
         applicationId 'com.gathin.tvhome'
         minSdk 26
         targetSdk 34
-        versionCode 61
-        versionName '0.1.0'
+        versionCode 62
+        versionName '0.1.1'
     }
 
     buildTypes {
@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.google.zxing:core:3.5.3'
     implementation 'androidx.media:media:1.7.0'
     // Compatible with the existing compileSdk 34 / Android 9 device.
     implementation 'androidx.media3:media3-exoplayer:1.3.1'
@@ -40,3 +41,12 @@ dependencies {
     // Test only (never in the APK): plain JVM tests for the module card validators, src/test.
     testImplementation 'junit:junit:4.13.2'
 }
+
+android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/updateAgentAssets'))
+tasks.register('prepareUpdateAgent', Copy) {
+ dependsOn ':updateagent:assembleDebug'
+ from(project(':updateagent').layout.buildDirectory.file('outputs/apk/debug/updateagent-debug.apk'))
+ into(layout.buildDirectory.dir('generated/updateAgentAssets'))
+ rename { 'update-agent.apk' }
+}
+tasks.named('preBuild').configure { dependsOn 'prepareUpdateAgent' }

@@ -59,4 +59,5 @@
     <string name="home_return_off">退出返回与开机启动：关</string>
     <string name="background_management">背景管理与电脑上传</string>
 <string name="background_music_settings">桌面背景音乐：开关、闲置时间、持续播放与本地音乐</string>\n<string name="desktop_lyric_colors">桌面歌词颜色</string>\n<string name="desktop_language">语言 / Language</string>
+    <string name="desktop_information">桌面信息</string>
 </resources>

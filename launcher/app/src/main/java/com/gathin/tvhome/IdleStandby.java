@@ -12,6 +12,7 @@ final class IdleStandby {
  private static StandbyCountdownView overlay;private static int consumedKey=-1;
  static synchronized void start(Context c){if(started)return;started=true;Context app=c.getApplicationContext();worker.scheduleWithFixedDelay(()->poll(app),2,1,java.util.concurrent.TimeUnit.SECONDS);}
  static void desktopResumed(){enabledAt=lastActivity=SystemClock.uptimeMillis();dismiss();}
+ static long idleMillis(){return Math.max(0,SystemClock.uptimeMillis()-Math.max(enabledAt,lastActivity));}
  static boolean enabled(Context c){return c.getSharedPreferences("idle_standby",0).getBoolean("enabled",false);}
  static int minutes(Context c){int m=c.getSharedPreferences("idle_standby",0).getInt("minutes",15);return m==20||m==30?m:15;}
  static JSONObject state(Context c)throws Exception{

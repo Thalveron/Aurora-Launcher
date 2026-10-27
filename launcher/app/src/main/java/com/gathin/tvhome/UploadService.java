@@ -27,12 +27,13 @@ public final class UploadService extends Service {
         else registerReceiver(lyrics,lyricFilter,"com.gathin.tvhome.permission.DESKTOP_LYRICS",null);
 
         new Thread(() -> {
+            try{ManagedWebAssets.sync(this);}catch(Exception e){android.util.Log.w("TvHome","Managed web assets unavailable",e);}
             BridgePreview.sync(this);
             try {
                 BackgroundUploadServer created = new BackgroundUploadServer(this, kind -> {
                     sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(getPackageName()).putExtra("kind", kind));
                 });
-                server = created;
+                server = created;LauncherUpdater.start(this);
                 if (closed) created.close();
             } catch (Exception e) { android.util.Log.w("TvHome", "Upload server unavailable", e); stopSelf(); }
         }, "upload-start").start();

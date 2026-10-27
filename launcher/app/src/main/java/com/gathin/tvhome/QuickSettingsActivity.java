@@ -34,6 +34,7 @@ public final class QuickSettingsActivity extends Activity {
         addRow(rows, R.drawable.ic_wifi, R.string.quick_network, 0, SystemSettings.intent(this, Settings.ACTION_WIFI_SETTINGS));
         addRow(rows, R.drawable.ic_apps, R.string.quick_apps, R.string.quick_apps_hint,
                 SystemSettings.intent(this, Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));
+        addRow(rows,R.drawable.ic_settings,R.string.desktop_information,0,new Intent(this,DesktopInformationActivity.class));
         rows.getChildAt(0).requestFocus();
     }
 

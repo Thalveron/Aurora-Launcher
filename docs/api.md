@@ -370,3 +370,20 @@ GET /api/v1/system/idle-standby 返回 enabled、minutes（15/20/30）、availab
 POST 同路径接受 {enabled,minutes}（均可选，沿用未传值）。修改后重新计时。任意全局遥控按键重置计时；其他应用空闲也计时；检测到外部播放暂停计时，桌面自身背景音乐/视频不豁免。借助已启用的主页辅助服务显示跨应用倒计时，无需额外悬浮窗权限。
 POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不执行待机。上述写操作需登录并记录日志。
 最后一分钟显示计时、剩余进度环，最后10秒橙色，最后2秒淡出。有效按键取消且消耗本次按键，不改变下层应用画面/焦点。真正待机仍需电源键唤醒。
+
+
+### 桌面信息与更新
+- GET /api/v1/console/addresses：当前设备有效局域网管理地址列表，组合实时IP、当前端口和路径。二维码本机离线生成，不包含密码。
+- actions.desktop_info：打开电视原生“桌面信息”，含“桌面设置”“桌面更新”。
+- GET /api/v1/updates：当前版本、自动检测/安装开关、进度、维护权限、最新与上一版本信息。
+- POST /api/v1/updates/config：{autoCheck:boolean,automatic:boolean}。自动安装仅在可维护、桌面空闲且未播放外部媒体时进行。关闭自动检测会同时关闭自动安装。
+- POST /api/v1/updates/check：{}，检查固定GitHub仓库的HTTPS版本信息，原地址与加速源并行，选择有效的最高版本。
+- POST /api/v1/updates/install：{}，下载、SHA-256、包名、SDK及当前签名验证后安装。普通设备可能需要系统确认。
+- POST /api/v1/updates/rollback：{confirmed:true}，恢复上一版本和更新前设置；没有可用恢复包或权限时拒绝。
+- POST /api/v1/updates/clean/confirm：{}，获得60秒、当前会话/IP/清空操作绑定的一次性confirmationToken。
+- POST /api/v1/updates/clean：{confirmationToken,confirmationText:"清空设置"}。必须二次确认；先验证恢复快照空间和权限，再覆盖安装并清空本桌面数据。不删除U盘或其他App。完成后默认8899空路径，需要重新创建账号。
+- GET /api/v1/updates/health：仅127.0.0.1且X-Aurora-Update-Token匹配短期私有握手才可访问，返回versionCode、ready。普通LAN与Web会话不能读取该握手。
+更新接口（健康检查除外）要求主Web登录，写操作记录日志，不记录凭据和恢复快照内容。
+安装或启动健康检查失败可回退，不等于能检测所有功能异常；掉电等系统级中断不能仅靠主APK保证恢复。
+
+独立维护组件 com.gathin.tvhome.updater 没有界面、常驻服务或联网/录音权限；授权ADB按需启动维护进程。APK和设置快照保存在组件私有目录，保留当前回退点并清理不再使用的已完成任务。调试构建允许已授权ADB通过run-as访问恢复数据。实机验证覆盖正常安装、启动检查失败自动回退及账号/ADB密钥一致性；全新清空仅验证确认拦截，未清空生产设备。

@@ -36,6 +36,10 @@ final class AuroraHttp {
             if(!AuroraRules.lan(socket.getInetAddress())){json(output,403,null,"FORBIDDEN","仅允许局域网访问");status=403;return true;}
             if(!AuroraRules.originAllowed(headers.get("origin"),headers.get("host"))){json(output,403,null,"ORIGIN","请求来源不受信任");status=403;return true;}
             boolean loopback=socket.getInetAddress().isLoopbackAddress();
+            if(path.equals("/api/v1/updates/health")&&request[0].equals("GET")){
+                if(!loopback){json(output,403,null,"FORBIDDEN","仅允许本机健康检查");return true;}
+                try{json(output,200,UpdateHealth.sample(c,headers.get("x-aurora-update-token")),null,null);}catch(SecurityException invalid){json(output,403,null,"FORBIDDEN","无效健康检查");}return true;
+            }
             boolean session=loopback&&"127.0.0.1:8899".equals(headers.get("host"))&&cookie(headers.get("cookie"));
             boolean existingWeb=AuroraLogin.valid(c,headers.get("cookie"));
             boolean credentialAttempt=headers.containsKey("authorization")||(path.equals("/api/v1/auth/login")&&request[0].equals("POST"));
@@ -61,6 +65,7 @@ final class AuroraHttp {
                     WebAudit.login(c,peer,true);if(setupAttempt)WebAudit.record(c,peer,"创建控制台账号","首次设置",200);return true;
                 }
             }
+            if(path.startsWith("/api/v1/updates")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             if(path.equals("/api/v1/security")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             if(path.startsWith("/api/v1/system/screenshots")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             boolean sensitive=path.equals("/api/v1/actions")||path.startsWith("/api/v1/system/")||path.startsWith("/api/v1/logs")||path.startsWith("/api/v1/network/")||!request[0].equals("GET")||path.startsWith("/console/")||path.startsWith("/api/v1/services");
@@ -104,6 +109,8 @@ final class AuroraHttp {
                 if(route.equals("media/cover")){binary(output,200,"image/jpeg",AuroraData.cover(c),false);status=200;return true;}
                 Object data;
             switch(route){
+                case "updates":data=LauncherUpdater.state(c);break;
+                case "console/addresses":data=ConsoleAddresses.list(c);break;
                 case "security":data=ConsoleSettings.get(c);break;
                 case "themes/custom-css":data=new JSONObject().put("css",AuroraSettings.css(c));break;
                     case "config/appearance":data=AuroraSettings.get(c);break;
@@ -164,6 +171,12 @@ final class AuroraHttp {
             if(AuroraRoutes.pending(route)){json(output,501,null,"NOT_IMPLEMENTED","接口已预留，尚未实现");status=501;return true;}
                 if(route.startsWith("themes/css/")){AuroraSettings.only(body,"css");data=AuroraCssThemes.saveCss(c,route.substring(11),body.getString("css"));json(output,200,data,null,null);status=200;return true;}
             switch(route){
+                case "updates/config":data=LauncherUpdater.configure(c,body);break;
+                case "updates/check":AuroraSettings.only(body);data=LauncherUpdater.request(c,"check");break;
+                case "updates/install":AuroraSettings.only(body);data=LauncherUpdater.request(c,"install");break;
+                case "updates/rollback":AuroraSettings.only(body,"confirmed");if(!body.optBoolean("confirmed"))throw new IllegalArgumentException("请确认回退");data=LauncherUpdater.request(c,"rollback");break;
+                case "updates/clean/confirm":AuroraSettings.only(body);data=new JSONObject().put("confirmationToken",confirmations.issue(peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())).put("expiresInSeconds",60);break;
+                case "updates/clean":AuroraSettings.only(body,"confirmationToken","confirmationText");if(!"清空设置".equals(body.optString("confirmationText"))||!confirmations.consume(body.optString("confirmationToken"),peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())){json(output,409,null,"CONFIRMATION_REQUIRED","需要两次确认，确认已失效或不匹配");return true;}data=LauncherUpdater.request(c,"clean");break;
                 case "security":data=ConsoleSettings.save(c,body);break;
                 case "themes/custom":data=AuroraCssThemes.create(c,body);break;
                 case "themes/custom/delete":AuroraCssThemes.remove(c,body);break;

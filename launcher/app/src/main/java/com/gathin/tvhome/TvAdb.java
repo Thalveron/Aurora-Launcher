@@ -53,9 +53,13 @@ final class TvAdb {
   return status();
  }
  static byte[] run(Context c,String service,int max)throws Exception {
+  return runQueued(c,service,max,service.equals("exec:screencap -p")?2500:0);
+ }
+ /** Maintenance runs on its own worker and can wait for a current capture/command. */
+ static byte[] runQueued(Context c,String service,int max,long waitMillis)throws Exception {
   boolean capture=service.equals("exec:screencap -p");
   if(authorizationPending)throw new IOException("正在等待电视确认，请在电视弹窗中按确定");
-  boolean locked=capture?connectionLock.tryLock(2500,java.util.concurrent.TimeUnit.MILLISECONDS):connectionLock.tryLock();
+  boolean locked=connectionLock.tryLock(waitMillis,java.util.concurrent.TimeUnit.MILLISECONDS);
   if(!locked)throw new IOException(authorizationPending?"正在等待电视确认，请在电视弹窗中按确定":"电视操作处理中，请稍后重试");
   try {
    connect(c,false);connection.setSoTimeout(service.contains("install")?120000:15000);

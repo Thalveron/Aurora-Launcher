@@ -405,6 +405,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onCreate(Bundle savedInstanceState) {
         createdAt = android.os.SystemClock.elapsedRealtime();
         super.onCreate(savedInstanceState);
+        UpdateHealth.begin(this,getIntent());
         setContentView(R.layout.activity_main);
         showStartupLoading();
         density = getResources().getDisplayMetrics().density;
@@ -747,6 +748,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        UpdateHealth.begin(this,intent);getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
         if(IdleStandby.home(this))return;
         if (openLauncherSettingsIfAsked(intent)) return;
         if(!AuroraThemes.current(this).equals("legacy")){AuroraThemes.open(this);return;}
@@ -774,6 +776,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onResume();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
+        getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
         handler.removeCallbacks(globalClockTick);handler.post(globalClockTick);
         WebPreview.window=getWindow();
         DesktopAppearance.apply(findViewById(R.id.root));
@@ -802,7 +805,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     if (isFinishing() || isDestroyed()) return;
                     tilesReady = true;
                     initialAppsPending = false;
-                    appsReadyAt = android.os.SystemClock.elapsedRealtime(); recordStartup();
+                    appsReadyAt = android.os.SystemClock.elapsedRealtime(); recordStartup();UpdateHealth.uiReady(this);
                     if (visibleHome == this && !initialNavigation) focusTile(0);
                     showCardPrompt();
                     android.util.Log.i("TvHomeStartup", "Apps ready at " + android.os.SystemClock.uptimeMillis());
@@ -2128,6 +2131,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         PopupWindow popup = glassPopup(panel, (int) (200 * density));
+        addSettingsMenuRow(rows,popup,R.string.desktop_information,()->open(new Intent(this,DesktopInformationActivity.class)));
         addSettingsMenuRow(rows,popup,R.string.desktop_language,()->DesktopLanguage.choose(this));
         addSettingsMenuRow(rows, popup, R.string.tv_settings, () -> open(systemIntent(Settings.ACTION_SETTINGS)));
         if (moduleCards) addSettingsMenuRow(rows, popup, R.string.module_cards, this::showModuleCards);

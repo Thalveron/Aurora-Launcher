@@ -91,4 +91,5 @@
     <string name="home_return_off">Return to this home and start at boot: Off</string>
     <string name="background_management">Backgrounds and computer upload</string>
 <string name="background_music_settings">Background music: idle delay, continuous play and local library</string>\n<string name="desktop_lyric_colors">Desktop lyric colors</string>\n<string name="desktop_language">Language</string>
+    <string name="desktop_information">Desktop information</string>
 </resources>

@@ -11,7 +11,7 @@
  window.addEventListener('message',function(e){var frame=el('native-category-frame');if(e.origin===location.origin&&frame&&e.source===frame.contentWindow&&e.data&&e.data.type==='aurora-open-backgrounds')document.querySelector('[data-page="background"]').click();});
  el('menu-toggle').onclick=function(){var open=document.body.classList.toggle('menu-open');this.setAttribute('aria-expanded',String(open));};
  document.querySelectorAll('[data-page]').forEach(function(b){b.addEventListener('click',function(){
-  document.body.classList.remove('menu-open');el('menu-toggle').setAttribute('aria-expanded','false');active=b.dataset.page;el('live-preview').hidden=['background','themes','capture','security','device','traffic','legacy','inputs','services','library','language'].indexOf(active)>=0;
+  document.body.classList.remove('menu-open');el('menu-toggle').setAttribute('aria-expanded','false');active=b.dataset.page;el('live-preview').hidden=['background','themes','capture','security','updates','device','traffic','legacy','inputs','services','library','language'].indexOf(active)>=0;
   document.body.classList.toggle('wide-workspace',el('live-preview').hidden);
   var themeSection=['legacy','style','layout','music','advanced'].indexOf(active)>=0;el('theme-settings-shell').hidden=!themeSection;
   if(active==='legacy'){document.querySelector('[data-page="style"]').click();return;}
