@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "latest": {
+    "version": "0.1.1",
+    "versionCode": 62,
+    "minSdk": 26,
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.1.1/Aurora-Launcher-v0.1.1.apk",
+    "sha256": "808e0160223ea38df9c8dc2ae1dbfc5cb05c3c3e5d73b194686521124f30e89a",
+    "bytes": 10626928,
+    "notes": "Aurora Launcher v0.1.1\n\n- 新增电视“桌面信息”，显示本机完整后台地址和离线二维码。\n- 新增电视与 Web 桌面更新：自动检测、自动安装开关、手动安装和上一版回退。\n- 更新包校验包名、版本、SHA-256 与签名；GitHub 原地址和加速地址测速并自动切换。\n- 独立维护组件保存上一版本及私有设置快照，启动检查失败自动恢复。\n- Web 全新安装需要双重确认，普通更新保留配置。\n- 实机验证：正常覆盖、启动检查失败自动回退、Web 手动回退及原登录配置/调试密钥一致。\n- 全新清空未在生产设备实测；系统断电及所有功能异常不在自动回退保证范围内。\n"
+  },
+  "history": []
+}
