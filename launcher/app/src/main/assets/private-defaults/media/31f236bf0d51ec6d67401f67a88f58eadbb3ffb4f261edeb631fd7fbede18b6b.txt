@@ -1,0 +1,16 @@
+com.kookong.tvplus
+com.limelight
+com.reecedunn.espeak
+com.tcl.MultiScreenInteraction_TV
+com.tcl.appmarket2
+com.tcl.browser
+com.tcl.c2dm.client
+com.tcl.common.weather
+com.tcl.guard
+com.tcl.rewalleve
+com.tcl.settings
+com.tcl.tliveplay
+com.tcl.ui_mediaCenter
+com.tcl.usercenter
+com.tcl.walleve
+com.tcl.wholenetsearch

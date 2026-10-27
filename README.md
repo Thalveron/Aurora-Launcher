@@ -4,7 +4,7 @@
 
 ## 下载
 
-在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v0.1.2 预览版本，主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
+在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v0.1.3 预览版本，主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
 
 ## 已有功能
 
@@ -53,9 +53,11 @@
 基于 [Gathin23/CleanYourTV](https://github.com/Gathin23/cleanyourtv) 继续开发，保留原作者版权声明和 MIT 许可证，详见 [LICENSE](LICENSE)。
 字体许可见 launcher/FONT-LICENSE-OFL.txt。此仓库不包含 Aurora 音乐（Chora 衍生版）源码或安装包；音乐软件将按其自身许可证另行整理。
 
-此公开副本不包含私人开发提交历史、内部测试记录、用户上传的壁纸/音乐、Web凭据或已登录设备数据。
+本版经发布者明确授权，包含默认主题配置、选定背景和屏保音乐；不包含私人开发历史、内部测试记录、Web凭据、位置或已登录设备数据。
 API 文档见 [docs/api.md](docs/api.md)。
 
 ## 发布更新
 
 在源码提交并完成设备测试后，使用 launcher/tools/publish-release.py 发布 APK 与校验文件，再更新 updates/latest.json。需要官方 GitHub CLI 授权；脚本不保存凭据，也不替换已有版本。后续版本必须保持签名一致并递增 versionCode。
+
+本版默认模板会在安装或升级后一次性应用到桌面配置，保留设备的位置和安全设置。之后的用户修改不会在启动时重复覆盖。

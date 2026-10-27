@@ -82,7 +82,7 @@ import java.util.Set;
  */
 public class MainActivity extends Activity implements AppAdapter.TileListener {
     private String desktopLocaleAtCreation;
-    @Override protected void attachBaseContext(android.content.Context base){desktopLocaleAtCreation=DesktopLanguage.code(base);super.attachBaseContext(DesktopLanguage.wrap(base));}
+    @Override protected void attachBaseContext(android.content.Context base){desktopLocaleAtCreation=DesktopLanguage.code(base);super.attachBaseContext(DesktopViewport.wrap(DesktopLanguage.wrap(base)));}
 
 
     private static final int LAUNCHER_SETTINGS_REQUEST = 42;
@@ -135,7 +135,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private static int lastFocused = 0;
     /** App of the last focused tile, so focus follows it when the app list changes. */
     private static String lastFocusedKey;
-    private float density;
+    private float density;private boolean preparingDefaults;
     /** Module cards (res/values/config.xml, module_cards): discovered on resume, shown only after the owner's Show. */
     private boolean moduleCards;
     /** config settings_key_keycodes / settings_key_panel, so the Settings button works on Home without HomeKeyService. */
@@ -401,10 +401,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
     }
 
+    @Override public void onConfigurationChanged(android.content.res.Configuration next){super.onConfigurationChanged(next);if(!preparingDefaults&&DesktopViewport.changed(this))recreate();}
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         createdAt = android.os.SystemClock.elapsedRealtime();
         super.onCreate(savedInstanceState);
+        if(BundledDefaults.showLoading(this)){preparingDefaults=true;return;}
         UpdateHealth.begin(this,getIntent());
         setContentView(R.layout.activity_main);
         showStartupLoading();
@@ -747,7 +749,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      */
     @Override
     protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
+        super.onNewIntent(intent);if(preparingDefaults){setIntent(intent);return;}
         UpdateHealth.begin(this,intent);getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
         if(IdleStandby.home(this))return;
         if (openLauncherSettingsIfAsked(intent)) return;
@@ -761,7 +763,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onStart() {
-        super.onStart();
+        super.onStart();if(preparingDefaults)return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(packageReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED);
             registerReceiver(uploadChanged, new IntentFilter("com.gathin.tvhome.UPLOAD_CHANGED"), Context.RECEIVER_NOT_EXPORTED);
@@ -773,7 +775,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onResume() {
-        super.onResume();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
+        super.onResume();if(preparingDefaults)return;if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
         getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
@@ -919,7 +921,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onPause() {
-        super.onPause();
+        super.onPause();if(preparingDefaults)return;
         if(visibleHome==this)visibleHome=null;
         handler.removeCallbacks(globalClockTick);
         if(WebPreview.window==getWindow())WebPreview.window=null;
@@ -944,7 +946,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onStop() {
-        super.onStop();
+        super.onStop();if(preparingDefaults)return;
         unregisterReceiver(packageReceiver);
         unregisterReceiver(uploadChanged);
         rebuildOnResume = true;
@@ -952,7 +954,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
+        super.onWindowFocusChanged(hasFocus);if(preparingDefaults)return;
         if (hasFocus) {
             if (libraryFocusPending && appLibrary == null) focusLibrary();
             showCardPrompt();
@@ -962,7 +964,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onDestroy() {
         if (ambientMusic != null) ambientMusic.close();
-        super.onDestroy();
+        super.onDestroy();if(preparingDefaults)return;
         if (personalBackground != null) personalBackground.close();
         if (weatherHeader != null) weatherHeader.close();
         if (musicCard != null) musicCard.close();
@@ -1006,7 +1008,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      * Other keys (volume, Home) pass through; leaving the launcher ends the mode and saves.
      */
     @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
+    public boolean dispatchKeyEvent(KeyEvent event) {if(preparingDefaults)return true;
         if(IdleStandby.key(this,event))return true;
         if (initialAppsPending && event.getAction() == KeyEvent.ACTION_DOWN) initialNavigation = true;
         if(event.getKeyCode()==idleWakeKey){if(event.getAction()==KeyEvent.ACTION_UP)idleWakeKey=-1;return true;}

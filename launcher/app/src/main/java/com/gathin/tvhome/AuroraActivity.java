@@ -17,7 +17,7 @@ public class AuroraActivity extends Activity {
     private TextView loading;
     private final Handler main=new Handler(Looper.getMainLooper());
     private long deadline;
-    private boolean ready,closed,triedPackaged;
+    private boolean ready,closed,triedPackaged,preparingDefaults;
     private String theme;private boolean saverOnly;
     private final Runnable check=new Runnable(){public void run(){
         if(closed||ready)return;
@@ -29,8 +29,10 @@ public class AuroraActivity extends Activity {
             else main.postDelayed(this,250);
         });
     }};
+    @Override protected void attachBaseContext(android.content.Context base){super.attachBaseContext(DesktopViewport.wrap(DesktopLanguage.wrap(base)));}
+    @Override public void onConfigurationChanged(android.content.res.Configuration next){super.onConfigurationChanged(next);if(!preparingDefaults&&DesktopViewport.changed(this))recreate();}
     @Override public void onCreate(Bundle state){
-        super.onCreate(state);UpdateHealth.begin(this,getIntent());saverOnly=this instanceof AuroraSaverActivity;if(!saverOnly&&AuroraThemes.current(this).equals("legacy")){AuroraThemes.open(this);finish();return;}current=new java.lang.ref.WeakReference<>(this);getWindow().setFlags(1024,1024);UploadService.ensureStarted(this);
+        super.onCreate(state);if(BundledDefaults.showLoading(this)){preparingDefaults=true;return;}UpdateHealth.begin(this,getIntent());saverOnly=this instanceof AuroraSaverActivity;if(!saverOnly&&AuroraThemes.current(this).equals("legacy")){AuroraThemes.open(this);finish();return;}current=new java.lang.ref.WeakReference<>(this);getWindow().setFlags(1024,1024);UploadService.ensureStarted(this);
         FrameLayout frame=new FrameLayout(this);frame.setBackgroundColor(0xff101419);setContentView(frame);
         try{
             saverLayer=new FrameLayout(this);saverLayer.setBackgroundColor(0xff08121b);android.view.View sky=new android.view.View(this);sky.setId(R.id.sky);saverLayer.addView(sky,new FrameLayout.LayoutParams(-1,-1));frame.addView(saverLayer,new FrameLayout.LayoutParams(-1,-1));saverLayer.setVisibility(android.view.View.GONE);web=new WebView(this);web.setBackgroundColor(android.graphics.Color.TRANSPARENT);frame.addView(web,new FrameLayout.LayoutParams(-1,-1));
@@ -95,14 +97,14 @@ public class AuroraActivity extends Activity {
         closed=true;main.removeCallbacksAndMessages(null);android.widget.Toast.makeText(this,message,android.widget.Toast.LENGTH_LONG).show();
         startActivity(new Intent(this,MainActivity.class).putExtra("aurora_recovery",true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();
     }
-    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);UpdateHealth.begin(this,intent);if(ready)UpdateHealth.uiReady(this);if(IdleStandby.home(this))return;setIntent(intent);if(!java.util.Objects.equals(theme,AuroraThemes.current(this)))recreate();else focusHome();}
-    @Override protected void onResume(){super.onResume();visible=true;if(!saverOnly){lastUserInput=android.os.SystemClock.elapsedRealtime();}current=new java.lang.ref.WeakReference<>(this);if(!saverOnly)AuroraPlayback.warm(this);if(ready){nativeSaver(AuroraSaver.active);UpdateHealth.uiReady(this);}AuroraBgm.foreground(this,true);if(web!=null){web.onResume();web.evaluateJavascript("window.dispatchEvent(new Event('aurora-visible'))",null);}}
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);if(preparingDefaults){setIntent(intent);return;}UpdateHealth.begin(this,intent);if(ready)UpdateHealth.uiReady(this);if(IdleStandby.home(this))return;setIntent(intent);if(!java.util.Objects.equals(theme,AuroraThemes.current(this)))recreate();else focusHome();}
+    @Override protected void onResume(){super.onResume();if(preparingDefaults)return;visible=true;if(!saverOnly){lastUserInput=android.os.SystemClock.elapsedRealtime();}current=new java.lang.ref.WeakReference<>(this);if(!saverOnly)AuroraPlayback.warm(this);if(ready){nativeSaver(AuroraSaver.active);UpdateHealth.uiReady(this);}AuroraBgm.foreground(this,true);if(web!=null){web.onResume();web.evaluateJavascript("window.dispatchEvent(new Event('aurora-visible'))",null);}}
     @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(IdleStandby.key(this,event))return true;if(event.getAction()==android.view.KeyEvent.ACTION_DOWN)lastRemoteInput=android.os.SystemClock.elapsedRealtime();if(AuroraSaver.active){AuroraSaver.exit(this);if(web!=null)web.evaluateJavascript("window.dispatchEvent(new Event('aurora-saver-exit'))",null);consumeUntil=android.os.SystemClock.elapsedRealtime()+350;return true;}if(android.os.SystemClock.elapsedRealtime()<consumeUntil)return true;return super.dispatchKeyEvent(event);}
     static volatile long lastRemoteInput;private static volatile long lastUserInput=android.os.SystemClock.elapsedRealtime();
     static String saverError="";static long idleMillis(){return android.os.SystemClock.elapsedRealtime()-lastUserInput;}
     @Override public void onUserInteraction(){super.onUserInteraction();lastUserInput=android.os.SystemClock.elapsedRealtime();if(web!=null)web.evaluateJavascript("window.dispatchEvent(new Event('aurora-user-input'))",null);}
     private long consumeUntil;
-    @Override protected void onPause(){if(!saverOnly)AuroraPlayback.cool();if(saverOnly&&AuroraSaver.active)AuroraSaver.exit(this);visible=false;if(saverBackground!=null)saverBackground.pause();AuroraBgm.foreground(this,false);if(web!=null){web.evaluateJavascript("window.dispatchEvent(new Event('aurora-hidden'))",null);web.onPause();}super.onPause();}
+    @Override protected void onPause(){if(preparingDefaults){super.onPause();return;}if(!saverOnly)AuroraPlayback.cool();if(saverOnly&&AuroraSaver.active)AuroraSaver.exit(this);visible=false;if(saverBackground!=null)saverBackground.pause();AuroraBgm.foreground(this,false);if(web!=null){web.evaluateJavascript("window.dispatchEvent(new Event('aurora-hidden'))",null);web.onPause();}super.onPause();}
     @Override protected void onDestroy(){closed=true;main.removeCallbacksAndMessages(null);if(saverBackground!=null){saverBackground.close();saverBackground=null;}if(web!=null){((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();}super.onDestroy();}
     @Override public void onBackPressed(){if(web!=null)web.evaluateJavascript("(function(){var overlay=!!document.querySelector('.queue-overlay');document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));if(!overlay&&window.AuroraFocus)AuroraFocus.first();})()",null);}
 }

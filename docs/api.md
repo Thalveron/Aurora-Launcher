@@ -392,3 +392,6 @@ POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不�
 - POST /api/v1/updates/upload：主控制台登录后上传APK原始字节，Content-Length必填，1KB～512MB。私有目录保存，校验同包名、同签名、系统要求与版本不低于当前；返回version/versionCode/bytes/sha256/uploadToken。不自动安装。
 - POST /api/v1/updates/install-upload：{uploadToken,confirmed:true}。再次校验文件后保留设置安装；有维护权限时沿用独立回退，否则打开系统安装确认。
 - POST /api/v1/updates/online：在线更新；原 /updates/install 保留兼容。
+
+### 可选的本地默认模板
+本地分发包可包含 private-defaults/bundle.json 和经SHA-256校验的选定背景/屏保音乐素材。默认仅在全新安装首次启动后台线程初始化；模板显式声明 applyOnUpgrade 时，也可按发布者授权在升级时一次性套用。位置和安全配置始终不导入。初始化标记完成后不会重复覆盖用户修改。禁止导入安全、位置、天气缓存、ADB密钥或恢复任务。路径相对于应用私有/外部专属目录，首次启动根据实际音量范围换算背景音乐默认档位。原生桌面按运行时可用画面生成逻辑密度；不修改系统输出模式和字体设置。

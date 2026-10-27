@@ -270,7 +270,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         }
         fresh.addAll(PinnedShortcuts.entries(ctx));
-        fresh.add(new Entry(Entry.INPUTS, ctx.getString(R.string.inputs), new ComponentName(ctx, "aurora-inputs-shortcut"), null, ctx.getDrawable(R.drawable.ic_input), null, 0));
+        if(WebInputs.supported(ctx))fresh.add(new Entry(Entry.INPUTS, ctx.getString(R.string.inputs), new ComponentName(ctx, "aurora-inputs-shortcut"), null, ctx.getDrawable(R.drawable.ic_input), null, 0));
         Collections.sort(fresh, (a, b) -> {
             // The owner's own order first; tiles it does not know (new installs) follow by the rule below.
             int saved = Order.compare(savedRanks, a.component.flattenToShortString(), b.component.flattenToShortString());
