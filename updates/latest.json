@@ -1,15 +1,24 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.1.2",
-    "versionCode": 63,
+    "version": "0.1.3",
+    "versionCode": 64,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.1.2/Aurora-Launcher-v0.1.2.apk",
-    "sha256": "792f4f4b2d90b46c9a150e870f8d8eb27d862b919ac1e657a37a07b22ca137cf",
-    "bytes": 10629828,
-    "notes": "Aurora Launcher v0.1.2\n\n- 修复电视“桌面信息／桌面更新”页面在英伟达盒子上的字号和布局过大问题，按可用屏幕空间适配，不修改系统分辨率。\n- 更新操作明确分为“在线更新”和“手动更新（上传 APK）”。\n- 网页支持上传 APK，校验包名、签名和版本后再次确认安装；普通更新保留设置。\n- 电视上传更新入口显示后台地址和二维码，方便电脑或手机上传。\n- 不接受上传降级包；已有上一版本仍使用独立回退入口。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.1.3/Aurora-Launcher-v0.1.3.apk",
+    "sha256": "0b70e67ba222a4663f5bc06667f187d1f0fd9be68248f8b2854b44cb16fa3ed1",
+    "bytes": 20946738,
+    "notes": "Aurora Launcher v0.1.3\n\n- 原生桌面根据实际可用画面计算逻辑密度，修复不同电视/盒子上的文字和布局放大问题；不修改系统分辨率或系统字体。\n- 内置发布者授权的默认桌面配置、两张选定背景和当前屏保音乐。\n- 本版安装后一次性套用默认桌面模板，随后用户修改不会在每次开机被覆盖。\n- 始终保留本设备的位置、后台账号密码、端口和访问路径；不携带原设备的安全配置、ADB密钥或播放历史。\n- 输入源优先使用真实设备接口，没有输入能力的盒子不再生成虚假TCL输入源。\n- 背景音乐默认音量按本设备实际档位范围换算。\n- 校验默认素材SHA-256；新增显示适配检查，自动检查共120项通过。\n"
   },
   "history": [
+    {
+      "version": "0.1.2",
+      "versionCode": 63,
+      "minSdk": 26,
+      "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.1.2/Aurora-Launcher-v0.1.2.apk",
+      "sha256": "792f4f4b2d90b46c9a150e870f8d8eb27d862b919ac1e657a37a07b22ca137cf",
+      "bytes": 10629828,
+      "notes": "Aurora Launcher v0.1.2\n\n- 修复电视“桌面信息／桌面更新”页面在英伟达盒子上的字号和布局过大问题，按可用屏幕空间适配，不修改系统分辨率。\n- 更新操作明确分为“在线更新”和“手动更新（上传 APK）”。\n- 网页支持上传 APK，校验包名、签名和版本后再次确认安装；普通更新保留设置。\n- 电视上传更新入口显示后台地址和二维码，方便电脑或手机上传。\n- 不接受上传降级包；已有上一版本仍使用独立回退入口。\n"
+    },
     {
       "version": "0.1.1",
       "versionCode": 62,
