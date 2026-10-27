@@ -48,7 +48,13 @@ final class AuroraHttp {
             boolean loginAsset=path.equals("/console/login.html")||path.equals("/console/login.js")||path.equals("/console/login.css")||path.equals("/console/aurora.svg");
             boolean loginAttempt=path.equals("/api/v1/auth/login")&&request[0].equals("POST");
             boolean setupAttempt=path.equals("/api/v1/auth/setup")&&request[0].equals("POST");
-            if(path.equals("/api/v1/auth/status")&&request[0].equals("GET")){json(output,200,new JSONObject().put("initialized",UploadSecurity.initialized(c)),null,null);return true;}
+            if(path.equals("/api/v1/auth/status")&&request[0].equals("GET")){json(output,200,new JSONObject().put("initialized",UploadSecurity.initialized(c)).put("requireAuth",UploadSecurity.required(c)),null,null);return true;}
+            if(path.equals("/api/v1/auth/setup-open")&&request[0].equals("POST")){
+                if(UploadSecurity.initialized(c)){json(output,409,null,"ALREADY_INITIALIZED","请登录后在安全设置修改");return true;}
+                JSONObject choice=body(input,headers);if(!choice.optBoolean("confirmed"))throw new IllegalArgumentException("请确认免登录使用");
+                UploadSecurity.prefs(c).edit().putBoolean("require_auth",false).commit();AuroraLogin.revokeAll();
+                WebAudit.record(c,peer,"启用免登录访问","首次设置",200);json(output,200,new JSONObject().put("requireAuth",false),null,null);return true;
+            }
             if(setupAttempt||loginAttempt){
                 JSONObject credentials=body(input,headers);
                 if(setupAttempt){
@@ -178,6 +184,7 @@ final class AuroraHttp {
                 if(route.startsWith("themes/css/")){AuroraSettings.only(body,"css");data=AuroraCssThemes.saveCss(c,route.substring(11),body.getString("css"));json(output,200,data,null,null);status=200;return true;}
             switch(route){
                 case "updates/install-upload":data=LauncherUpdater.requestUploaded(c,body);break;
+                case "updates/version":AuroraSettings.only(body,"version","confirmed");if(!body.optBoolean("confirmed"))throw new IllegalArgumentException("请确认指定版本安装");data=LauncherUpdater.requestVersion(c,body.getString("version"));break;
                 case "updates/config":data=LauncherUpdater.configure(c,body);break;
                 case "updates/check":AuroraSettings.only(body);data=LauncherUpdater.request(c,"check");break;
                 case "updates/online":case "updates/install":AuroraSettings.only(body);data=LauncherUpdater.request(c,"install");break;

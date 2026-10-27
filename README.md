@@ -4,7 +4,7 @@
 
 ## 下载
 
-在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v0.1.3 预览版本，主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
+在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v0.1.4 预览版本，主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
 
 ## 已有功能
 
@@ -60,4 +60,6 @@ API 文档见 [docs/api.md](docs/api.md)。
 
 在源码提交并完成设备测试后，使用 launcher/tools/publish-release.py 发布 APK 与校验文件，再更新 updates/latest.json。需要官方 GitHub CLI 授权；脚本不保存凭据，也不替换已有版本。后续版本必须保持签名一致并递增 versionCode。
 
-本版默认模板会在安装或升级后一次性应用到桌面配置，保留设备的位置和安全设置。之后的用户修改不会在启动时重复覆盖。
+默认模板只在首次应用时一次性导入桌面配置，保留设备的位置和安全设置。之后的用户修改不会在启动时重复覆盖。
+
+v0.1.4：屏保音量统一为播放器百分比；免登录为可选安全设置；桌面信息为右侧面板；检查新版后下载并交给系统安装确认；支持精确版本号。受支持的维护设备保留恢复包。已初始化的v0.1.3模板不重复覆盖用户修改。

@@ -10,13 +10,14 @@
   el('update-capability').textContent=s.maintenanceReason;
   el('update-previous').textContent=s.previous?'上一版本：v'+s.previous.version:'尚未保留上一版本，完成一次受管更新后可回退。';
   el('update-rollback').disabled=s.busy||!s.rollbackAvailable;el('update-clean').disabled=s.busy||!s.maintenanceAvailable;
-  el('update-upload').disabled=s.busy;el('update-check').disabled=s.busy;el('update-install').disabled=s.busy;
+  el('update-version-install').disabled=s.busy;el('update-upload').disabled=s.busy;el('update-check').disabled=s.busy;el('update-install').disabled=s.busy;
   el('update-progress').hidden=s.phase!=='downloading';el('update-progress').value=s.progress||0;
   note(s.message+(s.phase==='downloading'?' '+s.progress+'%':''));
   el('update-routes').textContent=(s.routes||[]).map(function(r){return r.name+'：'+(r.ok?r.ms+' ms / '+r.sampleBytes+' B':r.reason);}).join('\n');
  }
  async function refresh(){try{render(await api.request('updates'));}catch(e){if(resetPending&&e.code==='PATH_REJECTED'){location.replace('http://'+location.hostname+':8899/');return;}note(e.message);}}
  async function request(action,body){try{render(await api.request('updates/'+action,body||{}));}catch(e){note(e.message);}}
+ el('update-version-install').onclick=function(){var version=el('update-version').value.trim();if(!version){note('请填写版本号');return;}if(confirm('下载指定版本 v'+version+'？新版/同版交给系统确认安装；低版本仅在维护权限可用时执行，并保留恢复包。'))request('version',{version:version,confirmed:true});};
  el('update-check').onclick=function(){request('check');};
  el('update-install').onclick=function(){if(confirm('更新将重新打开桌面，并保留现有设置。是否继续？'))request('online');};
  el('update-upload').onclick=function(){el('update-apk-file').click();};

@@ -933,5 +933,11 @@
   "地址会跟随本机 IP、后台端口和访问路径变化；二维码不包含密码。": "The address follows this device's IP, port and console path. No password is included in the QR code.",
   "将下载并校验新版，保留现有设置。若系统要求确认，请按安装提示操作。": "Download and verify the new version, keeping your settings. Follow any system installation prompt.",
   "将恢复更新前的安装包和设置。更新后修改的设置将被覆盖。": "Restore the previous APK and its settings snapshot. Changes made after that update will be overwritten.",
-  "自动回退保护：安装失败、无法启动或启动健康检查失败时恢复上一版。任意功能性异常并不一定能自动识别。": "Recovery handles failed installation or startup health checks. It cannot detect every functional problem."
+  "自动回退保护：安装失败、无法启动或启动健康检查失败时恢复上一版。任意功能性异常并不一定能自动识别。": "Recovery handles failed installation or startup health checks. It cannot detect every functional problem.",
+  "检查新版本": "Check for updates",
+  "指定版本更新": "Install a specific version",
+  "下载并安装": "Download and install",
+  "手动更新（上传 APK）": "Upload an APK update",
+  "手机扫码打开完整管理地址。登录保护可在安全设置中开关。": "Scan to open the control center. Login protection can be changed in Security.",
+  "请扫码进入网页的桌面更新，上传 APK 后确认安装。": "Scan the code, open Launcher Updates, and upload your APK."
 }

@@ -1,0 +1,6 @@
+<resources>
+<style name="Theme.TvHome.SideSheet" parent="Theme.TvHome">
+<item name="android:windowIsTranslucent">true</item><item name="android:windowBackground">@android:color/transparent</item><item name="android:windowIsFloating">false</item><item name="android:backgroundDimEnabled">true</item><item name="android:windowAnimationStyle">@style/AuroraSideSheetAnimation</item><item name="android:windowDisablePreview">true</item>
+</style>
+<style name="AuroraSideSheetAnimation"><item name="android:activityOpenEnterAnimation">@anim/aurora_sheet_in</item><item name="android:activityCloseExitAnimation">@anim/aurora_sheet_out</item></style>
+</resources>

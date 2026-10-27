@@ -5,8 +5,8 @@
   var reasons = {stopped: '已停止', desktop_hidden: '桌面不在前台，已暂停', playing: '正在播放', preparing: '正在准备音频',
     manual_pause: '已手动暂停', other_media: '其他音乐正在播放，已让出声音', focus_lost: '音频焦点已让出', ducked: '其他应用暂时使用声音', focus_denied: '暂时无法获得音频焦点'};
   function show(state, form) {
-    el('bgm-status').textContent = (reasons[state.reason] || state.reason) + ' · 单曲循环 · 电视音量 ' + state.volume + ' 档（上限 '+state.volumeMax+'）';
-    if (form) {el('bgm-volume').max=state.volumeMax||100;el('bgm-volume').value = state.volume; el('bgm-volume-value').textContent = state.volume + ' 档';
+    el('bgm-status').textContent = (reasons[state.reason] || state.reason) + ' · 单曲循环 · 屏保独立音量 ' + state.volume + '%';
+    if (form) {el('bgm-volume').max=state.volumeMax||100;el('bgm-volume').value = state.volume; el('bgm-volume-value').textContent = state.volume + '%';
       el('bgm-enabled').checked = state.enabled; el('bgm-autoplay').checked = state.autoplay; el('bgm-fade').value = String(state.fadeMs);
       if (state.selected) el('bgm-library').value = state.selected;}
   }
@@ -20,7 +20,7 @@
   el('bgm-play').onclick = function () {var id = el('bgm-library').value; if (!id) {el('bgm-status').textContent = '请先选择音乐'; return;} command('play', {id: id});};
   el('bgm-pause').onclick = function () {command('pause');}; el('bgm-stop').onclick = function () {command('stop');};
   function sendVolume(){if(volumeTask)return volumeTask;volumeTask=(async function(){while(volumePending!==null){var target=volumePending;volumePending=null;try{show(await api.request('bgm/volume',{volume:target}),false);}catch(error){el('bgm-status').textContent='音量未保存：'+error.message;}}})();return volumeTask.finally(function(){volumeTask=null;if(volumePending!==null)sendVolume();});}
-  el('bgm-volume').oninput=function(){el('bgm-volume-value').textContent=this.value+' 档';volumePending=Number(this.value);clearTimeout(volumeTimer);volumeTimer=setTimeout(sendVolume,100);};
+  el('bgm-volume').oninput=function(){el('bgm-volume-value').textContent=this.value+'%';volumePending=Number(this.value);clearTimeout(volumeTimer);volumeTimer=setTimeout(sendVolume,100);};
   el('bgm-volume').onchange=function(){volumePending=Number(this.value);clearTimeout(volumeTimer);sendVolume();};
   el('bgm-save').onclick = async function () {volumePending=Number(el('bgm-volume').value);clearTimeout(volumeTimer);await sendVolume();command('settings', {enabled: el('bgm-enabled').checked, autoplay: el('bgm-autoplay').checked, fadeMs: Number(el('bgm-fade').value)});};
   el('bgm-upload').onchange = async function () {

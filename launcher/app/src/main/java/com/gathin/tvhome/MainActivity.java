@@ -775,7 +775,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onResume() {
-        super.onResume();if(preparingDefaults)return;if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
+        super.onResume();if(preparingDefaults)return;LauncherUpdater.resumeInstaller(this);if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
         getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
