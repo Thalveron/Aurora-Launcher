@@ -75,7 +75,7 @@ final class WebSettings {
     static JSONObject state(Context c)throws Exception{
         android.content.SharedPreferences b=c.getSharedPreferences("background",0);
         return new JSONObject().put("fields",schema(c)).put("uploadPath",BackgroundUploadServer.path(c)).put("themeId",AuroraThemes.current(c)).put("desktopBackground",b.getString("selected","")).put("desktopMode",BackgroundStore.mode(c))
-            .put("ambientBackground",b.getString("ambient_selected","")).put("ambientMode",b.getString("ambient_mode","follow")).put("slideshow",AmbientSlideshow.state(c)).put("version","2.6.1 · 网页控制中心");
+            .put("ambientBackground",b.getString("ambient_selected","")).put("ambientMode",b.getString("ambient_mode","follow")).put("slideshow",AmbientSlideshow.state(c)).put("version","Aurora Launcher v"+c.getPackageManager().getPackageInfo(c.getPackageName(),0).versionName);
     }
     static synchronized boolean apply(Context c,JSONObject changes)throws Exception{
         if(changes.length()==0||changes.length()>80)throw new IllegalArgumentException("请选择要修改的设置");

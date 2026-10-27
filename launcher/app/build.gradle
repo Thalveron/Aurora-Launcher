@@ -10,8 +10,8 @@ android {
         applicationId 'com.gathin.tvhome'
         minSdk 26
         targetSdk 34
-        versionCode 60
-        versionName '4.31-pinned-shortcuts'
+        versionCode 61
+        versionName '0.1.0'
     }
 
     buildTypes {
@@ -20,7 +20,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // Sideloaded over ADB, never published: sign with the debug key so it installs over a debug build.
+            // Local builds use this machine\u0027s debug key; distributors must configure and protect their own release signing key.
             signingConfig signingConfigs.debug
         }
     }

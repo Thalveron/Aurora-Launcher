@@ -4,7 +4,7 @@
 
 ## 下载
 
-在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为预览版本，主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
+在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v0.1.0 预览版本，主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
 
 ## 已有功能
 
