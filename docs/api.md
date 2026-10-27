@@ -387,3 +387,8 @@ POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不�
 安装或启动健康检查失败可回退，不等于能检测所有功能异常；掉电等系统级中断不能仅靠主APK保证恢复。
 
 独立维护组件 com.gathin.tvhome.updater 没有界面、常驻服务或联网/录音权限；授权ADB按需启动维护进程。APK和设置快照保存在组件私有目录，保留当前回退点并清理不再使用的已完成任务。调试构建允许已授权ADB通过run-as访问恢复数据。实机验证覆盖正常安装、启动检查失败自动回退及账号/ADB密钥一致性；全新清空仅验证确认拦截，未清空生产设备。
+
+### 手动上传更新
+- POST /api/v1/updates/upload：主控制台登录后上传APK原始字节，Content-Length必填，1KB～512MB。私有目录保存，校验同包名、同签名、系统要求与版本不低于当前；返回version/versionCode/bytes/sha256/uploadToken。不自动安装。
+- POST /api/v1/updates/install-upload：{uploadToken,confirmed:true}。再次校验文件后保留设置安装；有维护权限时沿用独立回退，否则打开系统安装确认。
+- POST /api/v1/updates/online：在线更新；原 /updates/install 保留兼容。

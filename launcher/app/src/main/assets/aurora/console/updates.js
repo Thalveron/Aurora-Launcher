@@ -10,7 +10,7 @@
   el('update-capability').textContent=s.maintenanceReason;
   el('update-previous').textContent=s.previous?'上一版本：v'+s.previous.version:'尚未保留上一版本，完成一次受管更新后可回退。';
   el('update-rollback').disabled=s.busy||!s.rollbackAvailable;el('update-clean').disabled=s.busy||!s.maintenanceAvailable;
-  el('update-check').disabled=s.busy;el('update-install').disabled=s.busy;
+  el('update-upload').disabled=s.busy;el('update-check').disabled=s.busy;el('update-install').disabled=s.busy;
   el('update-progress').hidden=s.phase!=='downloading';el('update-progress').value=s.progress||0;
   note(s.message+(s.phase==='downloading'?' '+s.progress+'%':''));
   el('update-routes').textContent=(s.routes||[]).map(function(r){return r.name+'：'+(r.ok?r.ms+' ms / '+r.sampleBytes+' B':r.reason);}).join('\n');
@@ -18,7 +18,20 @@
  async function refresh(){try{render(await api.request('updates'));}catch(e){if(resetPending&&e.code==='PATH_REJECTED'){location.replace('http://'+location.hostname+':8899/');return;}note(e.message);}}
  async function request(action,body){try{render(await api.request('updates/'+action,body||{}));}catch(e){note(e.message);}}
  el('update-check').onclick=function(){request('check');};
- el('update-install').onclick=function(){if(confirm('更新将重新打开桌面，并保留现有设置。是否继续？'))request('install');};
+ el('update-install').onclick=function(){if(confirm('更新将重新打开桌面，并保留现有设置。是否继续？'))request('online');};
+ el('update-upload').onclick=function(){el('update-apk-file').click();};
+ el('update-apk-file').onchange=async function(){
+  var file=this.files[0];if(!file)return;
+  el('update-upload').disabled=true;note('正在上传并校验安装包…');
+  try{
+   if(!/\.apk$/i.test(file.name))throw Error('请选择 APK 文件');
+   var response=await fetch('/api/v1/updates/upload',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/vnd.android.package-archive'},body:file}),result=await response.json();
+   if(!response.ok||!result.ok)throw Error(result.error&&result.error.message||'上传失败');
+   var uploaded=result.data;
+   if(confirm('已校验 Aurora Launcher v'+uploaded.version+'（'+(uploaded.bytes/1048576).toFixed(1)+' MB）。安装后保留设置，是否继续？'))await request('install-upload',{uploadToken:uploaded.uploadToken,confirmed:true});
+   else note('已取消安装；电视版本未改变。');
+  }catch(e){note(e.message);}finally{this.value='';el('update-upload').disabled=false;}
+ };
  el('update-rollback').onclick=function(){if(confirm('将恢复上一版本及更新前的设置，更新后修改的设置会被覆盖。是否确认回退？'))request('rollback',{confirmed:true});};
  el('update-auto-check').onchange=function(){request('config',{autoCheck:this.checked});};
  el('update-automatic').onchange=function(){request('config',{automatic:this.checked});};

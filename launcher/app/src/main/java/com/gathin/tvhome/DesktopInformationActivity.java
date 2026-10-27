@@ -3,11 +3,11 @@ import android.app.*;import android.os.*;import android.content.*;import android
 import com.google.zxing.*;import com.google.zxing.common.BitMatrix;
 /** Native address/QR and shared update controls, available from every theme. */
 public final class DesktopInformationActivity extends Activity {
- private LinearLayout content;private TextView status;private final Handler main=new Handler(Looper.getMainLooper());private boolean updatePage;private String addresses="";
+ private LinearLayout content;private TextView status;private final Handler main=new Handler(Looper.getMainLooper());private boolean updatePage;private String addresses="";private float layoutUnit=1f;
  private final Runnable refresh=new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;try{if(updatePage)refreshUpdate();else if(!ConsoleAddresses.list(DesktopInformationActivity.this).toString().equals(addresses))settings();}catch(Exception ignored){}main.postDelayed(this,2000);}};
- private String t(String text){return DesktopLanguage.t(this,text);}private int dp(int n){return (int)(n*getResources().getDisplayMetrics().density);}
+ private String t(String text){return DesktopLanguage.t(this,text);}private int dp(int n){return Math.round(n*layoutUnit);}
  @Override public void onCreate(Bundle state){
-  super.onCreate(state);getWindow().setFlags(1024,1024);getWindow().getDecorView().setBackgroundColor(0xff101925);
+  super.onCreate(state);Point screen=new Point();getWindowManager().getDefaultDisplay().getSize(screen);layoutUnit=Math.min(screen.x/1280f,screen.y/720f);getWindow().setFlags(1024,1024);getWindow().getDecorView().setBackgroundColor(0xff101925);
   LinearLayout root=new LinearLayout(this);root.setPadding(dp(28),dp(24),dp(28),dp(24));root.setOrientation(LinearLayout.HORIZONTAL);setContentView(root);
   LinearLayout sidebar=new LinearLayout(this);sidebar.setOrientation(LinearLayout.VERTICAL);root.addView(sidebar,new LinearLayout.LayoutParams(dp(235),-1));
   title(sidebar,t("桌面信息"),28);button(sidebar,t("桌面设置"),()->{updatePage=false;settings();});button(sidebar,t("桌面更新"),()->{updatePage=true;updates();});button(sidebar,t("返回"),this::finish);
@@ -16,8 +16,8 @@ public final class DesktopInformationActivity extends Activity {
   LauncherUpdater.start(this);if("updates".equals(getIntent().getStringExtra("page"))){updatePage=true;updates();}else settings();main.postDelayed(refresh,2000);sidebar.getChildAt(1).requestFocus();
  }
  @Override protected void onDestroy(){main.removeCallbacksAndMessages(null);super.onDestroy();}
- private TextView title(LinearLayout parent,String value,int size){TextView v=new TextView(this);v.setText(value);v.setTextSize(size);v.setTextColor(Color.WHITE);v.setPadding(0,dp(10),0,dp(12));parent.addView(v);return v;}
- private Button button(LinearLayout parent,String text,Runnable action){Button b=new Button(this);b.setText(text);b.setAllCaps(false);b.setTextSize(20);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(58));p.bottomMargin=dp(12);parent.addView(b,p);b.setOnClickListener(v->action.run());return b;}
+ private TextView title(LinearLayout parent,String value,int size){TextView v=new TextView(this);v.setText(value);v.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,dp(size));v.setTextColor(Color.WHITE);v.setPadding(0,dp(10),0,dp(12));parent.addView(v);return v;}
+ private Button button(LinearLayout parent,String text,Runnable action){Button b=new Button(this);b.setText(text);b.setAllCaps(false);b.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,dp(20));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(58));p.bottomMargin=dp(12);parent.addView(b,p);b.setOnClickListener(v->action.run());return b;}
  private void settings(){
   content.removeAllViews();title(content,t("桌面设置"),30);title(content,t("手机扫码，在浏览器打开完整管理地址。首次使用请自行设置账号和密码。"),18);
   try{JSONArray list=ConsoleAddresses.list(this);addresses=list.toString();if(list.length()==0){title(content,t("未检测到局域网地址，请先连接网络。"),22);return;}
@@ -30,8 +30,9 @@ public final class DesktopInformationActivity extends Activity {
   content.removeAllViews();title(content,t("桌面更新"),30);status=title(content,t("正在读取更新状态…"),19);
   Switch check=new Switch(this);check.setText(t("自动检测新版"));Switch automatic=new Switch(this);automatic.setText(t("自动更新（空闲时安装）"));
   try{JSONObject s=LauncherUpdater.state(this);check.setChecked(s.optBoolean("autoCheck"));automatic.setChecked(s.optBoolean("automatic"));}catch(Exception ignored){}
-  content.addView(check);content.addView(automatic);check.setOnCheckedChangeListener((v,on)->configure("autoCheck",on,check));automatic.setOnCheckedChangeListener((v,on)->configure("automatic",on,automatic));
-  button(content,t("检查新版"),()->request("check"));button(content,t("手动更新"),()->new AlertDialog.Builder(this).setTitle(t("手动更新")).setMessage(t("将下载并校验新版，保留现有设置。若系统要求确认，请按安装提示操作。")).setNegativeButton(t("取消"),null).setPositiveButton(t("继续"),(d,w)->request("install")).show());
+  for(Switch toggle:new Switch[]{check,automatic}){toggle.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,dp(18));toggle.setMinHeight(dp(38));content.addView(toggle);}check.setOnCheckedChangeListener((v,on)->configure("autoCheck",on,check));automatic.setOnCheckedChangeListener((v,on)->configure("automatic",on,automatic));
+  button(content,t("检查新版"),()->request("check"));button(content,t("在线更新"),()->new AlertDialog.Builder(this).setTitle(t("在线更新")).setMessage(t("将下载并校验新版，保留现有设置。若系统要求确认，请按安装提示操作。")).setNegativeButton(t("取消"),null).setPositiveButton(t("继续"),(d,w)->request("install")).show());
+  button(content,t("手动更新（上传 APK）"),()->{updatePage=false;settings();Toast.makeText(this,t("请扫码进入网页的桌面更新，上传 APK 后确认安装。"),Toast.LENGTH_LONG).show();});
   button(content,t("回退上一个版本"),()->new AlertDialog.Builder(this).setTitle(t("回退上一个版本")).setMessage(t("将恢复更新前的安装包和设置。更新后修改的设置将被覆盖。")).setNegativeButton(t("取消"),null).setPositiveButton(t("确认回退"),(d,w)->request("rollback")).show());
   title(content,t("自动回退保护：安装失败、无法启动或启动健康检查失败时恢复上一版。任意功能性异常并不一定能自动识别。"),16);refreshUpdate();
  }

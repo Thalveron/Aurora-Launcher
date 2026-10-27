@@ -76,13 +76,44 @@ final class LauncherUpdater {
    phase="testing";message="正在测试原始和加速下载线路";lines=UpdateNetwork.rank(release.getString("url"));
    phase="downloading";message="正在下载更新";String route=UpdateNetwork.download(release,target,lines,(n,total)->percent=(int)(n*100/total));message="下载完成："+route;
   }
-  validate(c,target,release);if(automatic&&!load(c).optBoolean("automatic")){phase="idle";message="已停止自动安装";return;}
-  probe(c);if(!maintenance){if(automatic||mode.equals("clean"))throw new IOException(capabilityReason);openInstaller(c,target);phase="user_confirmation";message="请在电视上确认安装；此设备不支持自动回退";return;}
+  installPrepared(c,target,release,mode,automatic);
+ }
+ private static void installPrepared(Context c,File target,JSONObject release,String mode,boolean automatic)throws Exception{
+  probe(c);validate(c,target,release);if(automatic&&!load(c).optBoolean("automatic")){phase="idle";message="已停止自动安装";return;}
+  if(!maintenance){if(automatic||mode.equals("clean"))throw new IOException(capabilityReason);openInstaller(c,target);phase="user_confirmation";message="请在电视上确认安装；此设备不支持自动回退";return;}
   phase="backing_up";message=mode.equals("clean")?"正在备份全部桌面数据，确认可恢复后才清空":"正在保存上一版本和设置";
   File backup=UpdateBackup.create(c,mode.equals("clean"));if(c.getFilesDir().getUsableSpace()<backup.length()+target.length()+new File(c.getApplicationInfo().sourceDir).length()+128L*1024*1024)throw new IOException("独立恢复包和安装所需空间不足，未清空数据");Map<String,File> files=new HashMap<>();files.put("/target",target);files.put("/previous",new File(c.getApplicationInfo().sourceDir));files.put("/backup",backup);
   UpdateTransfer transfer=new UpdateTransfer(files);
   JSONObject plan=basePlan(c,mode).put("transferPort",transfer.port()).put("transferToken",transfer.token).put("targetCode",release.getLong("versionCode")).put("targetSha",release.getString("sha256")).put("previousCode",code(c)).put("previousVersion",version(c)).put("previousSha",UpdatePolicy.sha(files.get("/previous"))).put("backupSha",UpdatePolicy.sha(backup));
   try{launch(c,plan);}catch(Exception e){transfer.close();throw e;}
+ }
+ static JSONObject upload(Context c,InputStream input,long length)throws Exception{
+  synchronized(LauncherUpdater.class){if(isBusy(c))throw new IllegalArgumentException("已有更新任务正在运行");
+  if(length<1024||length>512L*1024*1024)throw new IllegalArgumentException("APK大小须在1KB至512MB之间");
+  busy=true;}File part=new File(directory(c),"uploaded.part.apk"),target=new File(directory(c),"uploaded.apk");
+  try{
+   if(c.getFilesDir().getUsableSpace()<length+64L*1024*1024)throw new IOException("上传空间不足");
+   try(OutputStream out=new FileOutputStream(part)){byte[] b=new byte[65536];long remaining=length;while(remaining>0){int n=input.read(b,0,(int)Math.min(b.length,remaining));if(n<0)throw new EOFException("安装包未上传完整");out.write(b,0,n);remaining-=n;}}
+   PackageInfo archive=c.getPackageManager().getPackageArchiveInfo(part.getPath(),0);
+   if(archive==null)throw new IOException("无法识别APK");
+   JSONObject release=new JSONObject().put("version",archive.versionName).put("versionCode",UpdatePackages.code(archive)).put("sha256",UpdatePolicy.sha(part)).put("bytes",length);
+   validate(c,part,release);
+   if(UpdatePackages.code(archive)<code(c))throw new IllegalArgumentException("不能上传降级包，请使用上一版本回退");
+   if(target.exists()&&!target.delete()||!part.renameTo(target))throw new IOException("无法保存上传包");
+   release.put("uploadToken",AuroraRules.token());synchronized(LauncherUpdater.class){load(c).put("uploaded",release);persist(c);}
+   return new JSONObject(release.toString());
+  }finally{part.delete();synchronized(LauncherUpdater.class){busy=false;}}
+ }
+ static synchronized JSONObject requestUploaded(Context c,JSONObject input)throws Exception{
+  AuroraSettings.only(input,"uploadToken","confirmed");
+  if(!input.optBoolean("confirmed"))throw new IllegalArgumentException("请先确认上传包信息");
+  if(isBusy(c))throw new IllegalArgumentException("已有更新任务正在运行");
+  JSONObject release=load(c).optJSONObject("uploaded");
+  if(release==null||!MessageDigest.isEqual(release.optString("uploadToken").getBytes("UTF-8"),input.optString("uploadToken").getBytes("UTF-8")))throw new IllegalArgumentException("上传包已失效，请重新上传");
+  File target=new File(directory(c),"uploaded.apk");validate(c,target,release);
+  Context app=c.getApplicationContext();busy=true;phase="queued";message="正在准备上传包更新";
+  worker.execute(()->{try{installPrepared(app,target,release,"update",false);}catch(Exception e){phase="failed";message=String.valueOf(e.getMessage());WebAudit.record(app,"127.0.0.1","上传包更新失败",message,503);}finally{synchronized(LauncherUpdater.class){busy=false;}}});
+  return state(c);
  }
  private static void validate(Context c,File apk,JSONObject release)throws Exception{
   PackageManager pm=c.getPackageManager();int flags=android.os.Build.VERSION.SDK_INT>=28?PackageManager.GET_SIGNING_CERTIFICATES:PackageManager.GET_SIGNATURES;

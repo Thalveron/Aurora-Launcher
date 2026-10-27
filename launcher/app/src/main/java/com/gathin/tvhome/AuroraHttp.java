@@ -157,6 +157,12 @@ final class AuroraHttp {
                 JSONObject uploaded=AuroraLibrary.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")),name);
                 json(output,200,uploaded,null,null);status=200;return true;
             }
+            if(path.equals("/api/v1/updates/upload")){
+                if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
+                JSONObject uploaded=LauncherUpdater.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")));
+                WebAudit.record(c,peer,"上传桌面更新包","v"+uploaded.optString("version")+" · "+uploaded.optLong("bytes")+" bytes",200);
+                json(output,200,uploaded,null,null);status=200;return true;
+            }
             if(path.equals("/api/v1/bgm/upload")){
                 if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
                 String name=java.net.URLDecoder.decode(headers.getOrDefault("x-file-name",""),"UTF-8");
@@ -171,9 +177,10 @@ final class AuroraHttp {
             if(AuroraRoutes.pending(route)){json(output,501,null,"NOT_IMPLEMENTED","接口已预留，尚未实现");status=501;return true;}
                 if(route.startsWith("themes/css/")){AuroraSettings.only(body,"css");data=AuroraCssThemes.saveCss(c,route.substring(11),body.getString("css"));json(output,200,data,null,null);status=200;return true;}
             switch(route){
+                case "updates/install-upload":data=LauncherUpdater.requestUploaded(c,body);break;
                 case "updates/config":data=LauncherUpdater.configure(c,body);break;
                 case "updates/check":AuroraSettings.only(body);data=LauncherUpdater.request(c,"check");break;
-                case "updates/install":AuroraSettings.only(body);data=LauncherUpdater.request(c,"install");break;
+                case "updates/online":case "updates/install":AuroraSettings.only(body);data=LauncherUpdater.request(c,"install");break;
                 case "updates/rollback":AuroraSettings.only(body,"confirmed");if(!body.optBoolean("confirmed"))throw new IllegalArgumentException("请确认回退");data=LauncherUpdater.request(c,"rollback");break;
                 case "updates/clean/confirm":AuroraSettings.only(body);data=new JSONObject().put("confirmationToken",confirmations.issue(peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())).put("expiresInSeconds",60);break;
                 case "updates/clean":AuroraSettings.only(body,"confirmationToken","confirmationText");if(!"清空设置".equals(body.optString("confirmationText"))||!confirmations.consume(body.optString("confirmationToken"),peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())){json(output,409,null,"CONFIRMATION_REQUIRED","需要两次确认，确认已失效或不匹配");return true;}data=LauncherUpdater.request(c,"clean");break;
