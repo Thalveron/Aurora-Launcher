@@ -45,7 +45,7 @@ def main():
         run(command,root)
     latest={"version":version,"versionCode":code,"minSdk":26,"url":"https://github.com/"+args.repo+"/releases/download/"+tag+"/"+name,"sha256":digest,"bytes":apk.stat().st_size,"notes":notes.read_text()[:12000]}
     history=([existing["latest"]] if existing.get("latest") else [])+existing.get("history",[])
-    document={"schema":1,"latest":latest,"history":history[:5]}
+    document={"schema":1,"latest":latest,"history":history}
     manifest.parent.mkdir(exist_ok=True);manifest.write_text(json.dumps(document,ensure_ascii=False,indent=2)+"\n")
     run(["git","add","updates/latest.json"],root)
     run(["git","commit","-m","Publish update metadata for "+tag],root)

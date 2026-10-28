@@ -217,6 +217,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private final BroadcastReceiver uploadChanged = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent intent) {
             String kind=intent.getStringExtra("kind");
+            if("input-shortcut".equals(kind)){reloadApps(false);return;}
             if("settings-language".equals(kind)){if(visibleHome==MainActivity.this)recreate();return;}
             if("settings-layout".equals(kind)){if(visibleHome==MainActivity.this)recreate();return;}
             if("settings".equals(kind)||"settings-ambient".equals(kind)){

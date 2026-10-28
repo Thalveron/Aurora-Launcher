@@ -296,9 +296,10 @@ POST /api/v1/saver/preview（需登录）从任意主题打开内部 AuroraSaver
 BGM 音量由 PCM 处理器在送入音频输出前应用（16位PCM，不支持的格式停止播放，不绕过处理器）。ExoPlayer 音量仅用于淡入淡出包络，不再叠乘同一音量值。0 会产生全零采样；非零调节带约10ms平滑。bgm 状态附加 softwareGain、inputRms、outputRms、renderedSamples，便于验证实际采样数据。控制台拖动滑杆节流发送，串行合并到最后一个目标；保存音乐设置会等待音量更新。
 
 
-## 屏保音量改为电视真实档位（覆盖之前百分比音量说明）
-bgm.volume 表示电视 STREAM_MUSIC 的实际档位，上限读取 AudioManager 并通过 volumeMax 返回，volumeMode 为 tv_index。systemVolume 返回电视当前真实档位，desktopVolume 返回进入屏保前保存的档位。音乐数据不再叠加一个独立百分比音量（softwareGain 固定为1，仅保留正常淡入淡出包络）。
-未播放时调节只保存屏保档位，不修改桌面音量；播放/试听时暂时接管电视音量。退出时先静音并释放音频输出，等待1200ms下游缓冲安静后恢复原档位。保存恢复值供进程意外退出后恢复。短时间重新播放会等恢复完成后再进入，不重复覆盖原音量。
+## 屏保音量百分比（0.2.6）
+bgm.volume 为 0～100 的整数百分比，volumeMax 固定为100，volumeUnit 为 percent，volumeMode 保持 software。softwareGain=volume/100，只衰减播放器 PCM 数据，不写入系统音量。systemVolume 保留真实电视音量用于诊断。
+旧 volume_index 首次迁移为 round(index/原设备最大档位*100)，保存到 volume_percent 后不再随设备最大档位变化；新安装内置5%。电视静音时不会绕过静音。旧版遗留的系统音量恢复记录只做一次清理恢复。控制台支持滑杆及直接输入数字。
+
 
 
 ### Shared screensaver clock (v1 additive fields)
@@ -351,7 +352,7 @@ GET /api/v1/system/idle-standby：登录后读取 enabled、minutes（固定15�
 监控记录每小时自动按 retentionDays 清理（采集运行时），手动清理同时清空本次连接观测与域名缓存，不清空操作日志。采样使用带随机令牌的本机只读辅助进程，闲置60秒退出。DNS查询不参与采样关键路径。公网IP是快照去重值，短连接可能漏过；共享UID不能据此识别具体子进程。
 
 ### 原生输入源快捷方式
-GET /api/v1/inputs/shortcut 返回 {id,remoteHint}，默认 EN_TCL_HDMI1、true。POST 同路径接受部分更新，id 限已注册直通输入或 TCL HDMI1–4/AV1–2，remoteHint 为布尔值；需登录并写操作日志。保存不切换输入，下次点击原生应用区“输入源”一键切换；右上角选择菜单独立保留。切换在工作线程进行，成功后显示系统 Toast 遥控器图片提示（无需悬浮窗权限），可关闭；电视端成功/失败切换也记录日志。不同固件可能限制 HDMI 上的 Toast 显示。
+GET /api/v1/inputs/shortcut 返回 {id,remoteHint,visible}，默认 EN_TCL_HDMI1、true、false。visible 为布尔值，仅控制应用区快捷方式，默认隐藏，不影响右上角菜单。POST 同路径接受部分更新，id 限已注册直通输入或 TCL HDMI1–4/AV1–2，remoteHint 为布尔值；需登录并写操作日志。保存不切换输入，下次点击原生应用区“输入源”一键切换；右上角选择菜单独立保留。切换在工作线程进行，成功后显示系统 Toast 遥控器图片提示（无需悬浮窗权限），可关闭；电视端成功/失败切换也记录日志。不同固件可能限制 HDMI 上的 Toast 显示。
 
 
 ### 控制台首次设置与安全设置
@@ -360,8 +361,8 @@ GET /api/v1/inputs/shortcut 返回 {id,remoteHint}，默认 EN_TCL_HDMI1、true�
 - GET /api/v1/auth/status（公开）：data.initialized。
 - POST /api/v1/auth/setup（仅首次）：{username,password,passwordConfirm}，成功设置 HttpOnly 会话，data.needsPath 提示补充路径；已初始化返回 ALREADY_INITIALIZED。
 - POST /api/v1/auth/login：{username,password}，data.needsPath。
-- GET /api/v1/security（需网页登录）：{username,port,path,initialized}，不返回密码。
-- POST /api/v1/security（需网页登录）：{username,port,path,password,passwordConfirm}；密码留空保留，路径留空使用根路径；端口1024～65535，排除5555。返回 loginRequired、restartPending、loginPath。修改登录信息立即撤销旧会话，端口延迟重绑定；失败回退旧端口。
+- GET /api/v1/security（需网页登录或已开启免登录）：{username,port,path,initialized,openAccess}，不返回密码。
+- POST /api/v1/security（需网页登录）：{username,port,path,password,passwordConfirm,openAccess}；密码留空保留，路径留空使用根路径；端口1024～65535，排除5555。返回 loginRequired、restartPending、loginPath。修改登录信息立即撤销旧会话，端口延迟重绑定；失败回退旧端口。
 内部 WebView 固定使用 127.0.0.1:8899；自定义 LAN 端口后8899只监听回环。写操作记录操作日志，不记录密码。
 
 
@@ -378,10 +379,12 @@ POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不�
 - GET /api/v1/updates：当前版本、自动检测/安装开关、进度、维护权限、最新与上一版本信息。
 - POST /api/v1/updates/config：{autoCheck:boolean,automatic:boolean}。自动安装仅在可维护、桌面空闲且未播放外部媒体时进行。关闭自动检测会同时关闭自动安装。
 - POST /api/v1/updates/check：{}，检查固定GitHub仓库的HTTPS版本信息，原地址与加速源并行，选择有效的最高版本。
-- POST /api/v1/updates/install：{}，下载、SHA-256、包名、SDK及当前签名验证后安装。普通设备可能需要系统确认。
+- POST /api/v1/updates/download：{}，下载并校验新版；phase=ready 后等待用户选择安装或取消，不直接安装。
+- POST /api/v1/updates/cancel：{}，取消待安装版本，同时防止该版本被自动更新策略立即安装。
+- POST /api/v1/updates/install：{}，确认安装已下载版本；没有待安装文件时兼容旧流程。再次验证 SHA-256、包名、SDK及签名，普通设备可能需要系统确认。
 - POST /api/v1/updates/rollback：{confirmed:true}，恢复上一版本和更新前设置；没有可用恢复包或权限时拒绝。
 - POST /api/v1/updates/clean/confirm：{}，获得60秒、当前会话/IP/清空操作绑定的一次性confirmationToken。
-- POST /api/v1/updates/clean：{confirmationToken,confirmationText:"清空设置"}。必须二次确认；先验证恢复快照空间和权限，再覆盖安装并清空本桌面数据。不删除U盘或其他App。完成后默认8899空路径，需要重新创建账号。
+- POST /api/v1/updates/clean：{confirmationToken}。网页显示一次警告确认后获取并消费一次性票据；兼容旧 confirmationText 字段，不要求输入文字。先验证恢复快照空间和权限，再覆盖安装并清空本桌面数据。不删除U盘或其他App。完成后默认8899空路径，需要重新创建账号。
 - GET /api/v1/updates/health：仅127.0.0.1且X-Aurora-Update-Token匹配短期私有握手才可访问，返回versionCode、ready。普通LAN与Web会话不能读取该握手。
 更新接口（健康检查除外）要求主Web登录，写操作记录日志，不记录凭据和恢复快照内容。
 安装或启动健康检查失败可回退，不等于能检测所有功能异常；掉电等系统级中断不能仅靠主APK保证恢复。
@@ -392,3 +395,9 @@ POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不�
 ## 0.2.1 内置配置迁移
 
 首次启动按templateId应用一次内置桌面模板，新安装和旧版升级使用同一路径；旧done标记不会跳过新模板。初始化期间桌面显示准备提示，后台等待素材和设置初始化完成。账号密码、后台地址、城市经纬度、服务密钥和既有时区保留。之后配置读写仍使用本文档已有路由，无新增原生直连入口。
+
+安全设置 openAccess 默认 false；主动开启后局域网免账号密码，但仍校验访问路径和来源。原账号保留，关闭开关恢复密码保护。
+
+### 手动上传桌面更新（0.2.6）
+POST /api/v1/updates/upload：已登录（或主动开启免登录）的局域网请求；原始 APK 请求体，必须有 Content-Length，1KB～512MB。验证包名、系统要求、签名、文件完整性和版本，允许同版本重装，拒绝降级。返回 {version,versionCode,sha256,bytes,uploadToken,expiresAt}，有效期15分钟。上传本身不安装。
+POST /api/v1/updates/install-upload：{uploadToken,confirmed:true}，再次校验并消费上传票据，以普通 update 模式保留数据安装，不执行 clean。无维护权限时打开电视系统安装确认，有权限时沿用独立备份回退流程。POST updates/cancel 可取消待安装上传包。待确认上传包不被自动更新任务抢占。上传、安装和取消均记录日志。

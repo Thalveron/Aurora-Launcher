@@ -37,7 +37,7 @@ public class AuroraActivity extends Activity {
         try{
             saverLayer=new FrameLayout(this);saverLayer.setBackgroundColor(0xff08121b);android.view.View sky=new android.view.View(this);sky.setId(R.id.sky);saverLayer.addView(sky,new FrameLayout.LayoutParams(-1,-1));frame.addView(saverLayer,new FrameLayout.LayoutParams(-1,-1));saverLayer.setVisibility(android.view.View.GONE);web=new WebView(this);web.setBackgroundColor(android.graphics.Color.TRANSPARENT);frame.addView(web,new FrameLayout.LayoutParams(-1,-1));
             loading=new TextView(this);loading.setText(saverOnly?"正在进入屏保…":"正在启动 Aurora Launcher…");loading.setTextColor(-1);loading.setTextSize(24);loading.setGravity(17);loading.setBackgroundColor(0xff101419);frame.addView(loading,new FrameLayout.LayoutParams(-1,-1));
-            android.webkit.WebSettings settings=web.getSettings();settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);
+            android.webkit.WebSettings settings=web.getSettings();settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);if(saverOnly){settings.setTextZoom(100);settings.setUseWideViewPort(true);settings.setLoadWithOverviewMode(true);}
             settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);settings.setJavaScriptCanOpenWindowsAutomatically(false);
             settings.setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW);settings.setMediaPlaybackRequiresUserGesture(false);
             settings.setSupportMultipleWindows(false);

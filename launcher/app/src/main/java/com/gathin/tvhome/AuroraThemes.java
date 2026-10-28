@@ -49,6 +49,12 @@ final class AuroraThemes {
         if(path.startsWith("themes/user_"))return AuroraCssThemes.asset(c,path);
         if(!path.startsWith("themes/")&&!path.startsWith("core/")&&!path.startsWith("console/"))throw new FileNotFoundException();
         File external=AuroraRules.inside(root(c),path);
+        // Pre-upgrade hotfix files must not shadow the console/API shipped in the new APK.
+        // Keep the files and accept subsequent hot updates; user theme/CSS/media remain untouched.
+        if(external.isFile()&&(path.startsWith("console/")||path.startsWith("core/")||path.equals("themes/saver/index.html"))){
+            long installed=c.getPackageManager().getPackageInfo(c.getPackageName(),0).lastUpdateTime;
+            if(external.lastModified()<installed)try(InputStream in=c.getAssets().open("aurora/"+path)){return read(in,4*1024*1024);}catch(FileNotFoundException absent){}
+        }
         if(external.isFile())try(InputStream in=new FileInputStream(external)){return read(in,4*1024*1024);}
         try(InputStream in=c.getAssets().open("aurora/"+path)){return read(in,4*1024*1024);}
     }

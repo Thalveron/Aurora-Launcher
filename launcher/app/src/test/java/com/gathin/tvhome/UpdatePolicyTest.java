@@ -1,6 +1,8 @@
 package com.gathin.tvhome;
 import org.junit.Test;import static org.junit.Assert.*;import java.io.*;import java.net.*;import java.util.*;
 public class UpdatePolicyTest{
+ @Test public void manualUploadSizeIsBounded(){UpdatePolicy.uploadLength(1024);UpdatePolicy.uploadLength(512L*1024*1024);reject(()->UpdatePolicy.uploadLength(0));reject(()->UpdatePolicy.uploadLength(512L*1024*1024+1));}
+ @Test public void manualUploadKeepsSameVersionReinstallButRejectsDowngrade(){UpdatePolicy.uploadVersion(71,71);UpdatePolicy.uploadVersion(71,72);reject(()->UpdatePolicy.uploadVersion(71,70));}
  @Test public void onlyPublisherApksAndHttpsTransports(){
   String original="https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.1.1/Aurora-Launcher-v0.1.1.apk";
   assertEquals(original,UpdatePolicy.downloadSources(original)[0]);assertEquals(UpdatePolicy.PROXY+original,UpdatePolicy.downloadSources(original)[1]);

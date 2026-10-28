@@ -4,6 +4,8 @@ import java.net.URI;import java.security.MessageDigest;import java.io.*;
 final class UpdatePolicy {
  static final String REPO="Thalveron/Aurora-Launcher",RAW="https://raw.githubusercontent.com/"+REPO+"/main/updates/latest.json",PROXY="https://gh-proxy.com/";
  static String[] manifestSources(){return new String[]{RAW,PROXY+RAW};}
+ static void uploadLength(long bytes){if(bytes<1024||bytes>512L*1024*1024)throw new IllegalArgumentException("APK大小须在1KB至512MB之间");}
+ static void uploadVersion(long installed,long incoming){if(incoming<installed)throw new IllegalArgumentException("不能上传降级包，请使用上一版本回退");}
  static String[] downloadSources(String original){validateArtifact(original);return new String[]{original,PROXY+original};}
  static void validateArtifact(String url){URI u=URI.create(url);if(!"https".equals(u.getScheme())||!"github.com".equals(u.getHost())||u.getUserInfo()!=null||u.getPort()!=-1||u.getQuery()!=null||u.getFragment()!=null||!u.getRawPath().matches("/"+REPO+"/releases/download/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\\.apk")||u.getRawPath().contains(".."))throw new IllegalArgumentException("更新包必须来自指定 GitHub 仓库");}
  static boolean transport(String url){try{URI u=URI.create(url);String h=u.getHost();return "https".equals(u.getScheme())&&u.getUserInfo()==null&&u.getPort()==-1&&h!=null&&(h.equals("github.com")||h.equals("raw.githubusercontent.com")||h.equals("release-assets.githubusercontent.com")||h.equals("objects.githubusercontent.com")||h.equals("gh-proxy.com"));}catch(Exception e){return false;}}

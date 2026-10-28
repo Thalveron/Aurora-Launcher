@@ -3,6 +3,7 @@ import android.content.Context;import android.content.SharedPreferences;import j
 /** Existing credentials migrate in place; fresh installs never generate a hidden password. */
 final class UploadSecurity {
  static SharedPreferences prefs(Context c){return c.getSharedPreferences("upload_security",0);}
+ static boolean openAccess(Context c){return prefs(c).getBoolean("openAccess",false);}
  static boolean initialized(Context c){return !password(c).isEmpty();}
  static String password(Context c){return prefs(c).getString("password","");}
  static String username(Context c){return prefs(c).getString("username",initialized(c)?"tv":"");}

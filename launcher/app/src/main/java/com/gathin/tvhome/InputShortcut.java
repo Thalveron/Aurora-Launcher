@@ -5,7 +5,8 @@ final class InputShortcut {
  private static final java.util.concurrent.ExecutorService worker=java.util.concurrent.Executors.newSingleThreadExecutor();
  private static final java.util.concurrent.atomic.AtomicBoolean opening=new java.util.concurrent.atomic.AtomicBoolean();
  private static SharedPreferences prefs(Context c){return c.getSharedPreferences("input_shortcut",0);}
- static JSONObject get(Context c)throws Exception{return new JSONObject().put("id",prefs(c).getString("id","EN_TCL_HDMI1")).put("remoteHint",prefs(c).getBoolean("remoteHint",true));}
+ static boolean visible(Context c){return prefs(c).getBoolean("visible",false);}
+ static JSONObject get(Context c)throws Exception{return new JSONObject().put("id",prefs(c).getString("id","EN_TCL_HDMI1")).put("visible",visible(c)).put("remoteHint",prefs(c).getBoolean("remoteHint",true));}
  private static void validate(Context c,String id){
   if(id.matches("EN_TCL_(HDMI[1-4]|AV[12])"))return;
   TvInputManager tm=(TvInputManager)c.getSystemService(Context.TV_INPUT_SERVICE);
@@ -13,10 +14,11 @@ final class InputShortcut {
   throw new IllegalArgumentException("请选择有效的输入源");
  }
  static JSONObject save(Context c,JSONObject body)throws Exception{
-  AuroraSettings.only(body,"id","remoteHint");SharedPreferences.Editor e=prefs(c).edit();
+  AuroraSettings.only(body,"id","remoteHint","visible");SharedPreferences.Editor e=prefs(c).edit();
   if(body.has("id")){String id=body.getString("id");validate(c,id);e.putString("id",id);}
+  if(body.has("visible")){if(!(body.get("visible") instanceof Boolean))throw new IllegalArgumentException("visible 必须为布尔值");e.putBoolean("visible",body.getBoolean("visible"));}
   if(body.has("remoteHint")){if(!(body.get("remoteHint") instanceof Boolean))throw new IllegalArgumentException("remoteHint 必须为布尔值");e.putBoolean("remoteHint",body.getBoolean("remoteHint"));}
-  if(!e.commit())throw new IllegalStateException("保存输入源快捷方式失败");return get(c);
+  if(!e.commit())throw new IllegalStateException("保存输入源快捷方式失败");c.sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(c.getPackageName()).putExtra("kind","input-shortcut"));return get(c);
  }
  static void launch(Context context){
   if(!opening.compareAndSet(false,true))return;Context c=context.getApplicationContext();

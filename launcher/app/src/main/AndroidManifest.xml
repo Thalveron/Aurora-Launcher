@@ -86,7 +86,7 @@
 
         <activity android:name=".BootInputActivity" android:exported="true" android:excludeFromRecents="true" android:launchMode="singleTask" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
         <service android:name=".UploadService" android:exported="false" />
-        <activity android:name=".DesktopInformationActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".DesktopInformationActivity" android:exported="false" android:screenOrientation="landscape" android:theme="@style/Theme.TvHome.InfoDrawer" />
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.updates" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/updater_paths" /></provider>
         <activity android:name=".BackgroundActivity" android:exported="false" android:screenOrientation="landscape" />
         <activity android:name=".AmbientMusicActivity" android:exported="false" android:screenOrientation="landscape" />

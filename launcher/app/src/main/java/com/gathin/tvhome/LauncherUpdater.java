@@ -3,6 +3,7 @@ import android.content.*;import android.content.pm.*;import android.net.Uri;impo
 /** One updater owns TV/Web controls, persistent policy, verified downloads and recovery bookkeeping. */
 final class LauncherUpdater {
  private static final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor(r->{Thread t=new Thread(r,"aurora-updater");t.setDaemon(true);return t;});
+ private static volatile JSONObject preparedRelease;
  private static JSONObject saved;private static boolean started,busy;private static volatile String message="尚未检查更新",phase="idle",capabilityReason="正在检查维护权限";
  private static volatile boolean maintenance,useRunAs;private static volatile int percent;private static volatile JSONArray lines=new JSONArray();
  private static File stateFile(Context c){return new File(c.getFilesDir(),"updater-state.json");}
@@ -12,8 +13,8 @@ final class LauncherUpdater {
  static String version(Context c)throws Exception{return c.getPackageManager().getPackageInfo(c.getPackageName(),0).versionName;}
  static synchronized void start(Context c){
   if(started)return;started=true;Context app=c.getApplicationContext();
-  worker.scheduleWithFixedDelay(()->{try{refreshResult(app);probe(app);JSONObject config=load(app);if(!isBusy(app)&&config.optBoolean("autoCheck",true)&&System.currentTimeMillis()-config.optLong("lastAttempt")>12*3600000L)checkNow(app);
-   if(!isBusy(app)&&config.optBoolean("automatic")&&maintenance&&config.has("latest")&&config.getJSONObject("latest").optLong("versionCode")>code(app)&&config.getJSONObject("latest").optLong("versionCode")!=config.optLong("blockedVersionCode")&&(MainActivity.isHomeVisible()||AuroraActivity.visible)&&IdleStandby.idleMillis()>120000&&!StandbyPlayback.protectedNow(app)){busy=true;try{installNow(app,"update",true);}finally{busy=false;}}
+  worker.scheduleWithFixedDelay(()->{try{if(preparedRelease!=null)return;refreshResult(app);probe(app);JSONObject config=load(app);JSONObject uploaded=config.optJSONObject("uploaded");if(uploaded!=null&&uploaded.optLong("expiresAt")<System.currentTimeMillis()){config.remove("uploaded");persist(app);}if(!isBusy(app)&&config.optBoolean("autoCheck",true)&&System.currentTimeMillis()-config.optLong("lastAttempt")>12*3600000L)checkNow(app);
+   if(!isBusy(app)&&!config.has("uploaded")&&config.optBoolean("automatic")&&maintenance&&config.has("latest")&&config.getJSONObject("latest").optLong("versionCode")>code(app)&&config.getJSONObject("latest").optLong("versionCode")!=config.optLong("blockedVersionCode")&&(MainActivity.isHomeVisible()||AuroraActivity.visible)&&IdleStandby.idleMillis()>120000&&!StandbyPlayback.protectedNow(app)){busy=true;try{installNow(app,"update",true);}finally{busy=false;}}
   }catch(Exception error){message="检查更新失败："+String.valueOf(error.getMessage());}},15,60,TimeUnit.SECONDS);
  }
  private static void probe(Context c){
@@ -49,12 +50,13 @@ final class LauncherUpdater {
   persist(c);return state(c);
  }
  static synchronized JSONObject request(Context c,String action)throws Exception{
-  if(!Arrays.asList("check","install","rollback","clean").contains(action))throw new IllegalArgumentException("未知更新操作");
+  if(!Arrays.asList("check","download","cancel","install","rollback","clean").contains(action))throw new IllegalArgumentException("未知更新操作");
   if(isBusy(c))throw new IllegalArgumentException("已有桌面更新操作正在运行");
   if((action.equals("rollback")||action.equals("clean"))&&!maintenance)throw new IllegalArgumentException(capabilityReason);
   if(action.equals("rollback")&&load(c).optJSONObject("previous")==null)throw new IllegalArgumentException("尚未保存上一版本；完成一次受管更新后可回退");
+  if(action.equals("cancel")){if(preparedRelease!=null){load(c).put("blockedVersionCode",preparedRelease.optLong("versionCode"));persist(c);}preparedRelease=null;load(c).remove("uploaded");persist(c);phase="idle";message="已取消安装";return state(c);}
   Context app=c.getApplicationContext();busy=true;phase="queued";message="正在准备";percent=0;
-  worker.execute(()->{try{if(action.equals("check"))checkNow(app);else if(action.equals("rollback"))rollback(app);else installNow(app,action.equals("clean")?"clean":"update",false);}
+  worker.execute(()->{try{if(action.equals("check"))checkNow(app);else if(action.equals("rollback"))rollback(app);else installNow(app,action.equals("clean")?"clean":action.equals("download")?"download":"update",false);}
    catch(Exception e){phase="failed";message=String.valueOf(e.getMessage());WebAudit.record(app,"127.0.0.1","桌面更新失败",message,503);}finally{synchronized(LauncherUpdater.class){busy=false;}}});
   return state(c);
  }
@@ -66,9 +68,11 @@ final class LauncherUpdater {
  private static File directory(Context c){File d=new File(c.getFilesDir(),"updater");d.mkdirs();return d;}
  private static void installNow(Context c,String mode,boolean automatic)throws Exception{
   JSONObject release; synchronized(LauncherUpdater.class){release=load(c).optJSONObject("latest");}
-  if(!mode.equals("clean")&&(release==null||System.currentTimeMillis()-load(c).optLong("lastChecked")>3600000)){checkNow(c);synchronized(LauncherUpdater.class){release=load(c).optJSONObject("latest");}}
+  if(!automatic&&mode.equals("update")&&preparedRelease!=null)release=preparedRelease;
+  if(!mode.equals("clean")&&preparedRelease==null&&(release==null||System.currentTimeMillis()-load(c).optLong("lastChecked")>3600000)){checkNow(c);synchronized(LauncherUpdater.class){release=load(c).optJSONObject("latest");}}
   File target=new File(directory(c),"download.apk");
-  if(mode.equals("clean")&&(release==null||release.optLong("versionCode")<=code(c))){copy(new File(c.getApplicationInfo().sourceDir),target);release=new JSONObject().put("version",version(c)).put("versionCode",code(c)).put("sha256",UpdatePolicy.sha(target)).put("minSdk",26);}
+  if(!automatic&&mode.equals("update")&&preparedRelease!=null){validate(c,target,preparedRelease);release=preparedRelease;preparedRelease=null;}
+  else if(mode.equals("clean")&&(release==null||release.optLong("versionCode")<=code(c))){copy(new File(c.getApplicationInfo().sourceDir),target);release=new JSONObject().put("version",version(c)).put("versionCode",code(c)).put("sha256",UpdatePolicy.sha(target)).put("minSdk",26);}
   else{
    if(release==null)throw new IOException("没有可用的更新信息");
    if(release.getLong("versionCode")<=code(c)){phase="idle";message="当前已是最新版本";return;}
@@ -76,13 +80,42 @@ final class LauncherUpdater {
    phase="testing";message="正在测试原始和加速下载线路";lines=UpdateNetwork.rank(release.getString("url"));
    phase="downloading";message="正在下载更新";String route=UpdateNetwork.download(release,target,lines,(n,total)->percent=(int)(n*100/total));message="下载完成："+route;
   }
-  validate(c,target,release);if(automatic&&!load(c).optBoolean("automatic")){phase="idle";message="已停止自动安装";return;}
+  validate(c,target,release);if(mode.equals("download")){preparedRelease=new JSONObject(release.toString());phase="ready";message="下载并校验完成，请选择安装或取消";return;}if(automatic&&!load(c).optBoolean("automatic")){phase="idle";message="已停止自动安装";return;}
+  installPrepared(c,target,release,mode,automatic);
+ }
+ private static void installPrepared(Context c,File target,JSONObject release,String mode,boolean automatic)throws Exception{
+  validate(c,target,release);
   probe(c);if(!maintenance){if(automatic||mode.equals("clean"))throw new IOException(capabilityReason);openInstaller(c,target);phase="user_confirmation";message="请在电视上确认安装；此设备不支持自动回退";return;}
   phase="backing_up";message=mode.equals("clean")?"正在备份全部桌面数据，确认可恢复后才清空":"正在保存上一版本和设置";
   File backup=UpdateBackup.create(c,mode.equals("clean"));if(c.getFilesDir().getUsableSpace()<backup.length()+target.length()+new File(c.getApplicationInfo().sourceDir).length()+128L*1024*1024)throw new IOException("独立恢复包和安装所需空间不足，未清空数据");Map<String,File> files=new HashMap<>();files.put("/target",target);files.put("/previous",new File(c.getApplicationInfo().sourceDir));files.put("/backup",backup);
   UpdateTransfer transfer=new UpdateTransfer(files);
   JSONObject plan=basePlan(c,mode).put("transferPort",transfer.port()).put("transferToken",transfer.token).put("targetCode",release.getLong("versionCode")).put("targetSha",release.getString("sha256")).put("previousCode",code(c)).put("previousVersion",version(c)).put("previousSha",UpdatePolicy.sha(files.get("/previous"))).put("backupSha",UpdatePolicy.sha(backup));
   try{launch(c,plan);}catch(Exception e){transfer.close();throw e;}
+ }
+ static JSONObject upload(Context c,InputStream input,long length)throws Exception{
+  UpdatePolicy.uploadLength(length);
+  synchronized(LauncherUpdater.class){if(isBusy(c))throw new IllegalArgumentException("已有更新任务正在运行");preparedRelease=null;load(c).remove("uploaded");persist(c);busy=true;phase="uploading";message="正在接收并校验手动更新包";}
+  File part=new File(directory(c),"uploaded.part.apk"),target=new File(directory(c),"uploaded.apk");
+  try{
+   if(c.getFilesDir().getUsableSpace()<length+64L*1024*1024)throw new IOException("上传空间不足");
+   try(OutputStream out=new FileOutputStream(part)){byte[] buffer=new byte[65536];long remaining=length;while(remaining>0){int n=input.read(buffer,0,(int)Math.min(buffer.length,remaining));if(n<0)throw new EOFException("安装包未上传完整");out.write(buffer,0,n);remaining-=n;}}
+   PackageInfo archive=c.getPackageManager().getPackageArchiveInfo(part.getPath(),0);if(archive==null)throw new IOException("无法识别APK");
+   JSONObject release=new JSONObject().put("version",archive.versionName).put("versionCode",UpdatePackages.code(archive)).put("sha256",UpdatePolicy.sha(part)).put("bytes",length);
+   validate(c,part,release);UpdatePolicy.uploadVersion(code(c),UpdatePackages.code(archive));
+   if((target.exists()&&!target.delete())||!part.renameTo(target))throw new IOException("无法保存上传包");
+   release.put("uploadToken",AuroraRules.token()).put("expiresAt",System.currentTimeMillis()+15*60*1000);
+   synchronized(LauncherUpdater.class){load(c).put("uploaded",release);persist(c);phase="uploaded";message="上传校验通过，等待确认安装（保留设置）";}
+   return new JSONObject(release.toString());
+  }catch(Exception error){phase="failed";message=String.valueOf(error.getMessage());throw error;}
+  finally{part.delete();synchronized(LauncherUpdater.class){busy=false;}}
+ }
+ static synchronized JSONObject requestUploaded(Context c,JSONObject input)throws Exception{
+  AuroraSettings.only(input,"uploadToken","confirmed");if(!input.optBoolean("confirmed"))throw new IllegalArgumentException("请先确认上传包信息");
+  if(isBusy(c))throw new IllegalArgumentException("已有更新任务正在运行");JSONObject release=load(c).optJSONObject("uploaded");
+  if(release==null||release.optLong("expiresAt")<System.currentTimeMillis()||!MessageDigest.isEqual(release.optString("uploadToken").getBytes("UTF-8"),input.optString("uploadToken").getBytes("UTF-8")))throw new IllegalArgumentException("上传包已失效，请重新上传");
+  File target=new File(directory(c),"uploaded.apk");validate(c,target,release);UpdatePolicy.uploadVersion(code(c),release.getLong("versionCode"));
+  load(c).remove("uploaded");persist(c);Context app=c.getApplicationContext();busy=true;phase="queued";message="正在准备手动更新，保留现有设置";
+  worker.execute(()->{try{installPrepared(app,target,release,"update",false);}catch(Exception e){phase="failed";message=String.valueOf(e.getMessage());WebAudit.record(app,"127.0.0.1","上传包更新失败",message,503);}finally{synchronized(LauncherUpdater.class){busy=false;}}});return state(c);
  }
  private static void validate(Context c,File apk,JSONObject release)throws Exception{
   PackageManager pm=c.getPackageManager();int flags=android.os.Build.VERSION.SDK_INT>=28?(PackageManager.GET_SIGNING_CERTIFICATES|PackageManager.GET_SIGNATURES):PackageManager.GET_SIGNATURES;

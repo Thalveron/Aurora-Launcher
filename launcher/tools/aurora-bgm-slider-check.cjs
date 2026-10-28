@@ -10,5 +10,8 @@ for(const level of [2,6,0]){node('bgm-volume').value=String(level);node('bgm-vol
 assert.deepEqual(calls,[2]);pending.shift()();for(let i=0;i<8;i++)await Promise.resolve();
 assert.deepEqual(calls,[2,0]);assert.equal(node('bgm-volume').value,'0');pending.shift()();for(let i=0;i<8;i++)await Promise.resolve();
 assert.equal(saved,0);assert.equal(node('bgm-volume').value,'0');
-console.log('PASS rapid slider changes serialize to latest target; stale response does not move slider back');
+assert.equal(node('bgm-volume-value').textContent,'0%');assert.equal(String(node('bgm-volume-number').value),'0');
+for(const bad of ['-1','101','','oops']){node('bgm-volume-number').value=bad;node('bgm-volume-number').onchange();assert.equal(calls.length,2);}
+node('bgm-volume-number').value='53';node('bgm-volume-number').onchange();assert.equal(calls[2],53);pending.shift()();for(let i=0;i<8;i++)await Promise.resolve();assert.equal(saved,53);assert.equal(node('bgm-volume-value').textContent,'53%');
+console.log('PASS numeric percentage validation, percentage units and rapid slider changes serialize to latest target; stale response does not move slider back');
 })().catch(e=>{console.error(e);process.exitCode=1;});

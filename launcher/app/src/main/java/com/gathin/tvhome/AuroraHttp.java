@@ -48,7 +48,7 @@ final class AuroraHttp {
             boolean loginAsset=path.equals("/console/login.html")||path.equals("/console/login.js")||path.equals("/console/login.css")||path.equals("/console/aurora.svg");
             boolean loginAttempt=path.equals("/api/v1/auth/login")&&request[0].equals("POST");
             boolean setupAttempt=path.equals("/api/v1/auth/setup")&&request[0].equals("POST");
-            if(path.equals("/api/v1/auth/status")&&request[0].equals("GET")){json(output,200,new JSONObject().put("initialized",UploadSecurity.initialized(c)),null,null);return true;}
+            if(path.equals("/api/v1/auth/status")&&request[0].equals("GET")){json(output,200,new JSONObject().put("initialized",UploadSecurity.initialized(c)).put("openAccess",UploadSecurity.openAccess(c)),null,null);return true;}
             if(setupAttempt||loginAttempt){
                 JSONObject credentials=body(input,headers);
                 if(setupAttempt){
@@ -150,6 +150,12 @@ final class AuroraHttp {
                 json(output,200,data,null,null);status=200;return true;
             }
             if(!request[0].equals("POST")){json(output,405,null,"METHOD","此接口仅支持GET或POST");status=405;return true;}
+            if(path.equals("/api/v1/updates/upload")){
+                if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
+                JSONObject uploaded=LauncherUpdater.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")));
+                WebAudit.record(c,peer,"上传桌面更新包","v"+uploaded.optString("version")+" · "+uploaded.optLong("bytes")+" bytes",200);
+                json(output,200,uploaded,null,null);status=200;return true;
+            }
             if(AuroraRoutes.canonical(path.substring(8)).equals("assets/upload")||path.equals("/api/v1/backgrounds/upload")){
                 if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要文件长度");
                 String name=java.net.URLDecoder.decode(headers.getOrDefault("x-file-name",""),"UTF-8");
@@ -173,10 +179,13 @@ final class AuroraHttp {
             switch(route){
                 case "updates/config":data=LauncherUpdater.configure(c,body);break;
                 case "updates/check":AuroraSettings.only(body);data=LauncherUpdater.request(c,"check");break;
+                case "updates/download":AuroraSettings.only(body);data=LauncherUpdater.request(c,"download");break;
+                case "updates/cancel":AuroraSettings.only(body);data=LauncherUpdater.request(c,"cancel");break;
                 case "updates/install":AuroraSettings.only(body);data=LauncherUpdater.request(c,"install");break;
+                case "updates/install-upload":data=LauncherUpdater.requestUploaded(c,body);break;
                 case "updates/rollback":AuroraSettings.only(body,"confirmed");if(!body.optBoolean("confirmed"))throw new IllegalArgumentException("请确认回退");data=LauncherUpdater.request(c,"rollback");break;
                 case "updates/clean/confirm":AuroraSettings.only(body);data=new JSONObject().put("confirmationToken",confirmations.issue(peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())).put("expiresInSeconds",60);break;
-                case "updates/clean":AuroraSettings.only(body,"confirmationToken","confirmationText");if(!"清空设置".equals(body.optString("confirmationText"))||!confirmations.consume(body.optString("confirmationToken"),peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())){json(output,409,null,"CONFIRMATION_REQUIRED","需要两次确认，确认已失效或不匹配");return true;}data=LauncherUpdater.request(c,"clean");break;
+                case "updates/clean":AuroraSettings.only(body,"confirmationToken","confirmationText");if(!confirmations.consume(body.optString("confirmationToken"),peer+"|updates-clean|"+headers.get("cookie"),android.os.SystemClock.elapsedRealtime())){json(output,409,null,"CONFIRMATION_REQUIRED","确认已失效或不匹配，请重新确认");return true;}data=LauncherUpdater.request(c,"clean");break;
                 case "security":data=ConsoleSettings.save(c,body);break;
                 case "themes/custom":data=AuroraCssThemes.create(c,body);break;
                 case "themes/custom/delete":AuroraCssThemes.remove(c,body);break;

@@ -6,9 +6,11 @@ final class ConsoleSettings {
  static String path(Context c){return UploadSecurity.prefs(c).getString("path",c.getSharedPreferences("background",0).getString("upload_path",""));}
  static int port(Context c){return UploadSecurity.prefs(c).getInt("port",INTERNAL_PORT);}
  static String base(Context c){String path=path(c);return path.isEmpty()?"/":"/"+path+"/";}
- static JSONObject get(Context c)throws Exception{return new JSONObject().put("username",UploadSecurity.username(c)).put("port",port(c)).put("path",path(c)).put("initialized",UploadSecurity.initialized(c));}
+ static JSONObject get(Context c)throws Exception{return new JSONObject().put("username",UploadSecurity.username(c)).put("port",port(c)).put("path",path(c)).put("initialized",UploadSecurity.initialized(c)).put("openAccess",UploadSecurity.openAccess(c));}
  static synchronized JSONObject save(Context c,JSONObject body)throws Exception{
-  AuroraSettings.only(body,"username","password","passwordConfirm","port","path");
+  AuroraSettings.only(body,"username","password","passwordConfirm","port","path","openAccess");
+  if(body.has("openAccess")&&!(body.get("openAccess") instanceof Boolean))throw new IllegalArgumentException("openAccess 必须为布尔值");
+  boolean open=body.optBoolean("openAccess",UploadSecurity.openAccess(c));
   String name=ConsoleAccessRules.username(body.optString("username",UploadSecurity.username(c)));
   String path=ConsoleAccessRules.path(body.optString("path",path(c)));
   int oldPort=port(c),port=oldPort;
@@ -16,8 +18,8 @@ final class ConsoleSettings {
   String password=body.optString("password","");if(!password.isEmpty())ConsoleAccessRules.password(password,body.optString("passwordConfirm",""));
   if(!UploadSecurity.initialized(c))throw new IllegalStateException("请先初始化账号");
   if(port!=oldPort&&port!=INTERNAL_PORT)try(ServerSocket probe=new ServerSocket()){probe.setReuseAddress(true);probe.bind(new InetSocketAddress(port));}catch(java.io.IOException busy){throw new IllegalArgumentException("该端口已被占用，设置未保存");}
-  boolean changed=!name.equals(UploadSecurity.username(c))||!path.equals(path(c))||port!=oldPort||!password.isEmpty();
-  SharedPreferences.Editor e=UploadSecurity.prefs(c).edit().putString("username",name).putString("path",path).putInt("port",port);
+  boolean changed=open!=UploadSecurity.openAccess(c)||!name.equals(UploadSecurity.username(c))||!path.equals(path(c))||port!=oldPort||!password.isEmpty();
+  SharedPreferences.Editor e=UploadSecurity.prefs(c).edit().putString("username",name).putString("path",path).putInt("port",port).putBoolean("openAccess",open);
   if(!password.isEmpty())e.putString("password",password);
   if(!e.commit())throw new IllegalStateException("安全设置保存失败");
   if(changed)AuroraLogin.revokeAll();

@@ -203,6 +203,10 @@
       "id": {
         "type": "string",
         "value": "EN_TCL_HDMI1"
+      },
+      "visible": {
+        "type": "boolean",
+        "value": false
       }
     },
     "aurora_bgm_shared_saver": {
@@ -237,6 +241,10 @@
       "_initialized": {
         "type": "boolean",
         "value": true
+      },
+      "volume_percent": {
+        "type": "int",
+        "value": 5
       }
     },
     "aurora_bgm_theme_cards": {

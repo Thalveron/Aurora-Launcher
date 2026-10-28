@@ -1,15 +1,24 @@
 {
   "schema": 1,
   "latest": {
-  "version": "0.2.2",
-  "versionCode": 67,
-  "minSdk": 26,
-  "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.2.2/Aurora-Launcher-v0.2.2.apk",
-  "sha256": "c841ef0686f9e26c93506b44cc53cee0dcebd9dab24f2a029f666c624374cf8d",
-  "bytes": 20554422,
-  "notes": "修复屏保音量与字体适配，增加输入源隐藏和免登录开关，优化更新确认及应用管理。"
-},
+    "version": "0.2.2",
+    "versionCode": 67,
+    "minSdk": 26,
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.2.2/Aurora-Launcher-v0.2.2.apk",
+    "sha256": "c841ef0686f9e26c93506b44cc53cee0dcebd9dab24f2a029f666c624374cf8d",
+    "bytes": 20554422,
+    "notes": "修复屏保音量与字体适配，增加输入源隐藏和免登录开关，优化更新确认及应用管理。"
+  },
   "history": [
+    {
+      "version": "0.2.1",
+      "versionCode": 66,
+      "minSdk": 26,
+      "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.2.1/Aurora-Launcher-v0.2.1.apk",
+      "sha256": "f946d764edb1fd8fa133205c63feebdf3d6e0c76adf1f4614b9b5a38158c639d",
+      "bytes": 20553338,
+      "notes": "Aurora Launcher v0.2.1\n\n- 以0.1.1签名修复版为基线，重新提取电视最新完整桌面配置，同时保存显式设置与实际生效的默认值。\n- 内置两张图片及预览、一首屏保音乐；校验素材、主题布局、原生卡片/歌词、全局屏保、待机、朗读与监控设置。\n- 新安装及从旧版升级后一次性套用电视配置；后续修改不会在每次开机被覆盖。\n- 保留各设备自己的账号密码、后台地址、密钥、位置和既有时区。不携带恢复快照、播放记录和流量历史。\n- 保留部分电视缺少SigningInfo时的签名读取兼容处理；屏幕按实际可用画面适配，不修改系统显示。\n- 检查：120项单元测试，54项原生设置保存/读取、150个主题参数校验，新安装、旧标记升级覆盖、身份保留、后续修改保留；网页控件、焦点导航、轮播与滑杆检查通过。\n- Android验证在独立临时目录执行，未安装到正式桌面；硬件待机、语音引擎和第三方播放器仍取决于设备权限与已安装应用。\n"
+    },
     {
       "version": "0.1.4",
       "versionCode": 65,
