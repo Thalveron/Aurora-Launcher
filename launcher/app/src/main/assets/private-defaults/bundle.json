@@ -1,9 +1,382 @@
 {
   "schema": 1,
+  "templateId": "tv-v021-current",
+  "applyOnUpgrade": true,
+  "preferences": {
+    "launcher_settings": {
+      "desktop_card_visible": {
+        "type": "boolean",
+        "value": false
+      },
+      "columns": {
+        "type": "int",
+        "value": 5
+      },
+      "app_ambient": {
+        "type": "boolean",
+        "value": false
+      },
+      "desktop_info_mode": {
+        "type": "int",
+        "value": 1
+      },
+      "desktop_lyrics_visible": {
+        "type": "boolean",
+        "value": false
+      },
+      "web_layout_revision": {
+        "type": "long",
+        "value": 1793157647308
+      },
+      "web_config": {
+        "type": "string",
+        "value": "{\"reorder_button\":false,\"app_library\":false,\"fill_dock\":true,\"reduced_motion\":false,\"dock_title\":true,\"dock_row\":true,\"module_cards\":true,\"show_stats\":false,\"show_home_settings_shortcut\":false,\"rows_below_dock\":0,\"greeting_name\":\"\",\"background_color\":\"#000000\",\"sky_intensity\":0,\"settings_key_panel\":false,\"settings_key_keycodes\":[],\"vpn_app\":\"\",\"live_tv_package\":\"com.tcl.tv\",\"live_tv_action\":\"\",\"source_panel_service\":\"com.tcl.settings/com.tcl.insrc.ShowWindowService\",\"source_panel_action\":\"com.tcl.insrc.SHOW_WINDOW\",\"input_action\":\"\",\"shamsi_date\":false}"
+      },
+      "animations": {
+        "type": "boolean",
+        "value": true
+      },
+      "advanced_effects": {
+        "type": "boolean",
+        "value": false
+      },
+      "music_card_position": {
+        "type": "int",
+        "value": 0
+      },
+      "lyrics_color": {
+        "type": "int",
+        "value": -8787713
+      },
+      "lyrics_highlight": {
+        "type": "int",
+        "value": -11930
+      }
+    },
+    "desktop_appearance": {
+      "card_style": {
+        "type": "int",
+        "value": 0
+      },
+      "card_size": {
+        "type": "int",
+        "value": 100
+      },
+      "card_angle": {
+        "type": "int",
+        "value": 315
+      },
+      "card_color": {
+        "type": "int",
+        "value": -9836545
+      },
+      "text": {
+        "type": "int",
+        "value": -1
+      },
+      "card_color2": {
+        "type": "int",
+        "value": -10390785
+      },
+      "card_opacity": {
+        "type": "int",
+        "value": 65
+      },
+      "spectrum": {
+        "type": "int",
+        "value": -9836545
+      },
+      "opacity": {
+        "type": "int",
+        "value": 50
+      },
+      "brightness": {
+        "type": "int",
+        "value": 70
+      }
+    },
+    "desktop_language": {
+      "locale": {
+        "type": "string",
+        "value": "zh-CN"
+      }
+    },
+    "background": {
+      "mode": {
+        "type": "string",
+        "value": "default"
+      },
+      "slides": {
+        "type": "string",
+        "value": "[]"
+      },
+      "slides_enabled": {
+        "type": "boolean",
+        "value": false
+      },
+      "ambient_mode": {
+        "type": "string",
+        "value": "default"
+      },
+      "slides_seconds": {
+        "type": "int",
+        "value": 8
+      },
+      "unified_library": {
+        "type": "boolean",
+        "value": true
+      }
+    },
+    "ambient_music": {
+      "minutes": {
+        "type": "int",
+        "value": 5
+      },
+      "greeting": {
+        "type": "string",
+        "value": ""
+      },
+      "lyrics_visible": {
+        "type": "boolean",
+        "value": true
+      },
+      "greeting_y": {
+        "type": "int",
+        "value": 32
+      },
+      "greeting_x": {
+        "type": "int",
+        "value": 50
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      },
+      "crossfade": {
+        "type": "boolean",
+        "value": true
+      },
+      "info_mode": {
+        "type": "int",
+        "value": 1
+      },
+      "volume_index": {
+        "type": "int",
+        "value": 8
+      },
+      "continuous": {
+        "type": "boolean",
+        "value": false
+      },
+      "lyrics_": {
+        "type": "string",
+        "value": ""
+      },
+      "spectrum_visible": {
+        "type": "boolean",
+        "value": true
+      },
+      "selected": {
+        "type": "string",
+        "value": "8931b280-eec9-4623-bb94-620360406001.flac"
+      },
+      "lyrics_8931b280-eec9-4623-bb94-620360406001.flac": {
+        "type": "string",
+        "value": ""
+      }
+    },
+    "idle_standby": {
+      "minutes": {
+        "type": "int",
+        "value": 30
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      }
+    },
+    "input_shortcut": {
+      "remoteHint": {
+        "type": "boolean",
+        "value": true
+      },
+      "id": {
+        "type": "string",
+        "value": "EN_TCL_HDMI1"
+      }
+    },
+    "aurora_bgm_shared_saver": {
+      "volume": {
+        "type": "int",
+        "value": 8
+      },
+      "fadeMs": {
+        "type": "int",
+        "value": 1500
+      },
+      "volume_index": {
+        "type": "int",
+        "value": 5
+      },
+      "lyrics": {
+        "type": "string",
+        "value": ""
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      },
+      "autoplay": {
+        "type": "boolean",
+        "value": false
+      },
+      "selected": {
+        "type": "string",
+        "value": "8931b280-eec9-4623-bb94-620360406001.flac"
+      },
+      "_initialized": {
+        "type": "boolean",
+        "value": true
+      }
+    },
+    "aurora_bgm_theme_cards": {
+      "volume": {
+        "type": "int",
+        "value": 6
+      },
+      "fadeMs": {
+        "type": "int",
+        "value": 1500
+      },
+      "lyrics": {
+        "type": "string",
+        "value": ""
+      },
+      "themeSelected": {
+        "type": "string",
+        "value": ""
+      },
+      "themeAutoplay": {
+        "type": "boolean",
+        "value": false
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      },
+      "autoplay": {
+        "type": "boolean",
+        "value": false
+      },
+      "_initialized": {
+        "type": "boolean",
+        "value": true
+      }
+    },
+    "aurora_bgm_theme_foundation": {
+      "volume": {
+        "type": "int",
+        "value": 6
+      },
+      "fadeMs": {
+        "type": "int",
+        "value": 1500
+      },
+      "lyrics": {
+        "type": "string",
+        "value": ""
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      },
+      "autoplay": {
+        "type": "boolean",
+        "value": false
+      },
+      "_initialized": {
+        "type": "boolean",
+        "value": true
+      }
+    },
+    "aurora_voice": {
+      "config": {
+        "type": "string",
+        "value": "{\"enabled\":false,\"language\":\"en-US\",\"engine\":\"com.reecedunn.espeak\",\"voice\":\"yue\",\"rate\":1,\"pitch\":2,\"volume\":1,\"readFocus\":false}"
+      }
+    },
+    "aurora_library": {
+      "native-background-imported": {
+        "type": "boolean",
+        "value": true
+      },
+      "4449f5a8-4c49-47b1-ae92-17fbd581b316.png": {
+        "type": "string",
+        "value": "wallpaper.png"
+      },
+      "986d78a4-185f-438a-8e77-13b13ebd3f34.png": {
+        "type": "string",
+        "value": "wallpaper.png"
+      }
+    },
+    "aurora_bgm": {
+      "volume": {
+        "type": "int",
+        "value": 6
+      },
+      "name:8931b280-eec9-4623-bb94-620360406001.flac": {
+        "type": "string",
+        "value": "雨帆 - 荒 (46秒竹笛纯享版片段).flac"
+      },
+      "fadeMs": {
+        "type": "int",
+        "value": 1500
+      },
+      "themeSelected": {
+        "type": "string",
+        "value": ""
+      },
+      "themeAutoplay": {
+        "type": "boolean",
+        "value": false
+      },
+      "lyrics": {
+        "type": "string",
+        "value": ""
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      },
+      "autoplay": {
+        "type": "boolean",
+        "value": false
+      }
+    },
+    "network_monitor": {
+      "dns": {
+        "type": "boolean",
+        "value": true
+      },
+      "interval": {
+        "type": "int",
+        "value": 5
+      },
+      "history": {
+        "type": "boolean",
+        "value": true
+      },
+      "enabled": {
+        "type": "boolean",
+        "value": true
+      }
+    }
+  },
   "themeConfig": {
     "theme": "legacy",
-    "lastGood": "legacy",
+    "lastGood": "cards",
     "icon_fallback": "app",
+    "customCssUpdatedAt": 1792896700317,
     "appearance": {
       "fontZh": "system",
       "fontEn": "system",
@@ -45,9 +418,7 @@
       "desktopSlides": [
         "986d78a4-185f-438a-8e77-13b13ebd3f34.png"
       ],
-      "saverSlides": [
-        "4449f5a8-4c49-47b1-ae92-17fbd581b316.png"
-      ],
+      "saverSlides": [],
       "slideSeconds": 20,
       "saverSlideSeconds": 30,
       "saverEnabled": true,
@@ -87,6 +458,7 @@
     },
     "presets": [],
     "locale": "zh-CN",
+    "consoleLocale": "zh-CN",
     "themeProfiles": {
       "cards": {
         "appearance": {
@@ -219,10 +591,7 @@
           "cardRadius": 37,
           "iconSize": 64,
           "spacing": 26,
-          "fontScale": 0.8,
-          "saverSlides": [
-            "4449f5a8-4c49-47b1-ae92-17fbd581b316.png"
-          ]
+          "fontScale": 0.8
         },
         "presets": []
       },
@@ -268,9 +637,7 @@
           "desktopSlides": [
             "986d78a4-185f-438a-8e77-13b13ebd3f34.png"
           ],
-          "saverSlides": [
-            "4449f5a8-4c49-47b1-ae92-17fbd581b316.png"
-          ],
+          "saverSlides": [],
           "slideSeconds": 20,
           "saverSlideSeconds": 30,
           "saverEnabled": true,
@@ -375,10 +742,7 @@
           "cardRadius": 24,
           "iconSize": 64,
           "spacing": 26,
-          "fontScale": 1,
-          "saverSlides": [
-            "4449f5a8-4c49-47b1-ae92-17fbd581b316.png"
-          ]
+          "fontScale": 1
         },
         "presets": []
       }
@@ -408,219 +772,98 @@
       "saverMode": "idle",
       "greeting": "",
       "greetingStyle": "airy",
+      "saverClockFont": "audiowide",
+      "saverClockColor": "#1493f5ff",
+      "saverClockSize": 64,
       "greetingSize": 30,
       "greetingX": 50,
       "greetingY": 32,
-      "saverLyricsLayout": "bottom",
-      "saverClockFont": "audiowide",
-      "saverClockColor": "#1493f5ff",
-      "saverClockSize": 64
+      "saverLyricsLayout": "bottom"
     }
   },
-  "preferences": {
-    "launcher_settings": {
-      "desktop_card_visible": {
-        "type": "boolean",
-        "value": false
-      },
-      "music_card_position": {
-        "type": "int",
-        "value": 0
-      },
-      "columns": {
-        "type": "int",
-        "value": 5
-      },
-      "app_ambient": {
-        "type": "boolean",
-        "value": false
-      },
-      "desktop_lyrics_visible": {
-        "type": "boolean",
-        "value": true
-      },
-      "web_config": {
-        "type": "string",
-        "value": "{\"show_stats\":false,\"show_home_settings_shortcut\":false,\"shamsi_date\":false,\"dock_apps\":[\"com.exxammpea.a1\",\"com.craftworks.music.tvcustom\",\"com.dangbeimarket\"],\"hidden_apps\":[\"com.mitv.gallery\",\"com.tcl.tv\"],\"settings_key_panel\":true,\"reorder_button\":false,\"module_cards\":true,\"app_library\":false,\"rows_below_dock\":0}"
-      },
-      "advanced_effects": {
-        "type": "boolean",
-        "value": false
-      },
-      "animations": {
-        "type": "boolean",
-        "value": true
-      },
-      "desktop_info_mode": {
-        "type": "int",
-        "value": 1
-      },
-      "desktop_lyrics": {
-        "type": "boolean",
-        "value": true
-      },
-      "lyrics_highlight": {
-        "type": "int",
-        "value": -7379201
+  "serviceDefaults": {
+    "weather": {
+      "provider": "openmeteo",
+      "urls": [
+        "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone=Asia%2FShanghai"
+      ],
+      "intervalMinutes": 60,
+      "mapping": {
+        "temperature": "$.current.temperature_2m",
+        "code": "$.current.weather_code",
+        "dates": "$.daily.time",
+        "min": "$.daily.temperature_2m_min",
+        "max": "$.daily.temperature_2m_max",
+        "codes": "$.daily.weather_code"
       }
     },
-    "desktop_appearance": {
-      "card_style": {
-        "type": "int",
-        "value": 0
-      },
-      "card_size": {
-        "type": "int",
-        "value": 100
-      },
-      "card_angle": {
-        "type": "int",
-        "value": 315
-      },
-      "card_color": {
-        "type": "int",
-        "value": -9836545
-      },
-      "text": {
-        "type": "int",
-        "value": -1
-      },
-      "card_color2": {
-        "type": "int",
-        "value": -10390785
-      },
-      "card_opacity": {
-        "type": "int",
-        "value": 65
-      }
-    },
-    "desktop_language": {
-      "locale": {
-        "type": "string",
-        "value": "zh-CN"
-      }
-    },
-    "background": {
-      "slides_seconds": {
-        "type": "int",
-        "value": 8
-      },
-      "unified_library": {
-        "type": "boolean",
-        "value": true
-      }
-    },
-    "idle_standby": {
-      "minutes": {
-        "type": "int",
-        "value": 30
-      },
-      "enabled": {
-        "type": "boolean",
-        "value": true
-      }
-    },
-    "input_shortcut": {
-      "remoteHint": {
-        "type": "boolean",
-        "value": true
-      }
-    },
-    "aurora_bgm_shared_saver": {
-      "volume": {
-        "type": "int",
-        "value": 8
-      },
-      "fadeMs": {
-        "type": "int",
-        "value": 1500
-      },
-      "lyrics": {
-        "type": "string",
-        "value": null
-      },
-      "enabled": {
-        "type": "boolean",
-        "value": true
-      },
-      "autoplay": {
-        "type": "boolean",
-        "value": false
-      },
-      "selected": {
-        "type": "string",
-        "value": "8931b280-eec9-4623-bb94-620360406001.flac"
-      },
-      "_initialized": {
-        "type": "boolean",
-        "value": true
-      }
-    },
-    "aurora_voice": {
-      "config": {
-        "type": "string",
-        "value": "{\"enabled\": false, \"language\": \"en-US\", \"engine\": \"\", \"voice\": \"\", \"rate\": 1, \"pitch\": 2, \"volume\": 1, \"readFocus\": false}"
-      }
-    },
-    "aurora_library": {
-      "4449f5a8-4c49-47b1-ae92-17fbd581b316.png": {
-        "type": "string",
-        "value": "wallpaper.png"
-      },
-      "986d78a4-185f-438a-8e77-13b13ebd3f34.png": {
-        "type": "string",
-        "value": "wallpaper.png"
-      },
-      "native-background-imported": {
-        "type": "boolean",
-        "value": true
-      }
-    },
-    "aurora_bgm": {
-      "name:8931b280-eec9-4623-bb94-620360406001.flac": {
-        "type": "string",
-        "value": "雨帆 - 荒 (46秒竹笛纯享版片段).flac"
-      }
+    "time": {
+      "ntp": [
+        "ntp.aliyun.com",
+        "time.cloudflare.com",
+        "pool.ntp.org"
+      ],
+      "http": [
+        "https://www.baidu.com",
+        "https://www.cloudflare.com"
+      ],
+      "intervalMinutes": 360,
+      "timezone": "Asia/Shanghai",
+      "syncSystem": true
     }
   },
+  "timeFormat": {
+    "hour24": true
+  },
+  "homeHelperEnabled": true,
   "files": [
     {
-      "asset": "media/54fe7e0fd18dc35cf169e2e3ff8365f6b54281a247d04a9f8f96461362c470a2.png",
       "target": "external/aurora/library/4449f5a8-4c49-47b1-ae92-17fbd581b316.png",
+      "asset": "media/54fe7e0fd18dc35cf169e2e3ff8365f6b54281a247d04a9f8f96461362c470a2.png",
       "sha256": "54fe7e0fd18dc35cf169e2e3ff8365f6b54281a247d04a9f8f96461362c470a2",
       "bytes": 2252644
     },
     {
-      "asset": "media/952525538d0ee6f15097883071d5dd4896d80974257a32655233b3ba96afa3ca.png",
+      "target": "external/aurora/library/4449f5a8-4c49-47b1-ae92-17fbd581b316.png.jpg",
+      "asset": "media/ad8b493e38de21dc095bc74563b0e8faeb4abea91c37941e4d5de21d11064051.jpg",
+      "sha256": "ad8b493e38de21dc095bc74563b0e8faeb4abea91c37941e4d5de21d11064051",
+      "bytes": 16891
+    },
+    {
       "target": "external/aurora/library/986d78a4-185f-438a-8e77-13b13ebd3f34.png",
+      "asset": "media/952525538d0ee6f15097883071d5dd4896d80974257a32655233b3ba96afa3ca.png",
       "sha256": "952525538d0ee6f15097883071d5dd4896d80974257a32655233b3ba96afa3ca",
       "bytes": 2140332
     },
     {
-      "asset": "media/b51a1e5afa608103f171a472e732090bfaeebcaf5f1a85cd0825a740f222e5a4.flac",
+      "target": "external/aurora/library/986d78a4-185f-438a-8e77-13b13ebd3f34.png.jpg",
+      "asset": "media/5aed1560e7b6f474c0e2bef091277b8d3834ddbb75a43d158ad5c0fac710b0d9.jpg",
+      "sha256": "5aed1560e7b6f474c0e2bef091277b8d3834ddbb75a43d158ad5c0fac710b0d9",
+      "bytes": 18848
+    },
+    {
       "target": "external/aurora/bgm/8931b280-eec9-4623-bb94-620360406001.flac",
+      "asset": "media/b51a1e5afa608103f171a472e732090bfaeebcaf5f1a85cd0825a740f222e5a4.flac",
       "sha256": "b51a1e5afa608103f171a472e732090bfaeebcaf5f1a85cd0825a740f222e5a4",
       "bytes": 5492346
     },
     {
-      "asset": "media/0288a5f565421ef729214599253e2d949e5e408c944eef779f4c058433c8add4.txt",
       "target": "private/order.txt",
-      "sha256": "0288a5f565421ef729214599253e2d949e5e408c944eef779f4c058433c8add4",
-      "bytes": 302
+      "asset": "media/cb5b4be07856949c6f626992ae8bae4bf21f278aeb3eab4deedf9fd0359d90aa.txt",
+      "sha256": "cb5b4be07856949c6f626992ae8bae4bf21f278aeb3eab4deedf9fd0359d90aa",
+      "bytes": 358
     },
     {
-      "asset": "media/060da62abd817cf1bfc5b3351972569c4d6b829e7877480e3bb03c95d0deff84.txt",
       "target": "private/library_apps.txt",
+      "asset": "media/060da62abd817cf1bfc5b3351972569c4d6b829e7877480e3bb03c95d0deff84.txt",
       "sha256": "060da62abd817cf1bfc5b3351972569c4d6b829e7877480e3bb03c95d0deff84",
       "bytes": 65
     },
     {
-      "asset": "media/31f236bf0d51ec6d67401f67a88f58eadbb3ffb4f261edeb631fd7fbede18b6b.txt",
       "target": "private/library_home_removed.txt",
+      "asset": "media/31f236bf0d51ec6d67401f67a88f58eadbb3ffb4f261edeb631fd7fbede18b6b.txt",
       "sha256": "31f236bf0d51ec6d67401f67a88f58eadbb3ffb4f261edeb631fd7fbede18b6b",
       "bytes": 314
     }
-  ],
-  "bgmLevelRatio": 0.06,
-  "applyOnUpgrade": true
+  ]
 }

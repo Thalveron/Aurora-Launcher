@@ -1,0 +1,72 @@
+{
+  "templateId": "tv-v021-current",
+  "theme": "legacy",
+  "preferences": {
+    "launcher_settings": 12,
+    "desktop_appearance": 10,
+    "desktop_language": 1,
+    "background": 6,
+    "ambient_music": 14,
+    "idle_standby": 2,
+    "input_shortcut": 2,
+    "aurora_bgm_shared_saver": 8,
+    "aurora_bgm_theme_cards": 8,
+    "aurora_bgm_theme_foundation": 6,
+    "aurora_voice": 1,
+    "aurora_library": 3,
+    "aurora_bgm": 8,
+    "network_monitor": 4
+  },
+  "mediaFiles": 8,
+  "mediaBytes": 9921798,
+  "originalApkSha256": "b9614960258dbaba3ee3318d570ad2ef860932e3057122630b6af39d698e6bf0",
+  "excluded": [
+    "launcher_settings.music_last_artist",
+    "launcher_settings.music_last_duration",
+    "launcher_settings.theme_signature",
+    "launcher_settings.music_last_position",
+    "launcher_settings.music_last_title",
+    "background.upload_path",
+    "background.revision",
+    "network_monitor.lastCleanup"
+  ],
+  "excludedNamespaces": [
+    "upload_security",
+    "desktop_location",
+    "aurora_weather",
+    "weather_leiyang",
+    "local-adb-key",
+    "updater-state",
+    "web-audit"
+  ],
+  "serviceIdentityExcluded": [
+    "weather.city",
+    "weather.lat",
+    "weather.lon",
+    "weather.key",
+    "weather.headers"
+  ],
+  "version": "0.2.1",
+  "versionCode": 66,
+  "preferenceValues": 85,
+  "nativeConfigFields": 22,
+  "imageCount": 2,
+  "songCount": 1,
+  "apkBytes": 20553338,
+  "apkSha256": "f946d764edb1fd8fa133205c63feebdf3d6e0c76adf1f4614b9b5a38158c639d",
+  "unitTests": {
+    "tests": 120,
+    "failures": 0,
+    "errors": 0
+  },
+  "androidIsolatedSettingsTested": true,
+  "nativeControlsTested": 54,
+  "themeValuesTested": 150,
+  "formalInstallationTested": false,
+  "checks": [
+    "PASS upgrade overwrites desktop once, preserves account/location/service key, then preserves later edits",
+    "PASS native control save/read/load: 54 fields; theme appearance validators/readers: 150 values; active backgrounds resolve",
+    "PASS real TV archive package/version/signature validation for v0.2.1",
+    "PASS fresh extraction: 85 preferences; exact theme config; 8 media hashes; identity excluded; user edits preserved; upgrade template applied once; existing identity preserved; controls round-trip checked"
+  ]
+}

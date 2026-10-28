@@ -26,8 +26,7 @@ final class PcmLoopPlayer {
     private volatile long introFrames,cycleFrames;
     long positionMs(){AudioTrack t=track;if(t==null||rate<=0||cycleFrames<=0)return 0;try{long played=Integer.toUnsignedLong(t.getPlaybackHeadPosition());long frame=played<introFrames?played:introFrames+(played-introFrames)%cycleFrames;return frame*1000/rate;}catch(Exception e){return 0;}}
     private Thread worker;
-    private boolean playbackStarted;private volatile float targetGain=0.15f;private float appliedGain;
-    void gain(float gain){targetGain=Math.max(0,Math.min(1,gain));}
+    private boolean playbackStarted;
     PcmLoopPlayer(Context c,String id,boolean fade,Runnable ready,Runnable failed){context=c;selected=id;overlap=fade;this.ready=ready;this.failed=failed;}
     void start(){worker=new Thread(this::run,"DesktopPcmLoop");worker.start();}
     void stop(Runnable completion){
@@ -79,8 +78,7 @@ final class PcmLoopPlayer {
     }
     private void pump(RandomAccessFile in,long remaining,byte[] buffer,AudioTrack out)throws IOException{
         long last=0;
-        while(remaining>0){check();int n=in.read(buffer,0,(int)Math.min(buffer.length,remaining));if(n<0)throw new EOFException();
-            float target=targetGain;for(int k=0;k+1<n;k+=2){if((k/2)%channels==0)appliedGain=target==0?0:appliedGain+(target-appliedGain)/Math.max(1,rate*.01f);int sample=(short)((buffer[k]&255)|(buffer[k+1]<<8));short scaled=(short)Math.round(sample*appliedGain);buffer[k]=(byte)scaled;buffer[k+1]=(byte)(scaled>>8);}int at=0;
+        while(remaining>0){check();int n=in.read(buffer,0,(int)Math.min(buffer.length,remaining));if(n<0)throw new EOFException();int at=0;
             while(at<n){check();int count=out.write(buffer,at,n-at,AudioTrack.WRITE_BLOCKING);if(count<=0)throw new IOException("Audio write "+count);at+=count;written+=count;
                 if(!playbackStarted){synchronized(playbackLock){check();out.play();playbackStarted=true;}main.post(()->{if(!cancelled.get())ready.run();});}
             }

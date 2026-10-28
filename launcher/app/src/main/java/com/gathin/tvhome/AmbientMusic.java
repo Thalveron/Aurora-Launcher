@@ -55,8 +55,10 @@ final class AmbientMusic {
     private String playingId;
     private String configuration;
     private boolean heldAfterKey;
+    private int priorVolume=-1,appliedVolume=-1;
     private boolean stopping;
     private static long outputSettlingUntil;
+    private static AmbientMusic volumeOwner;
     private static final String RESTORE_VOLUME="pending_desktop_volume";
     private long lastInput=SystemClock.elapsedRealtime(),retryAt;
     private final Runnable suspend=()->{if(!this.visible)stop();};
@@ -64,11 +66,14 @@ final class AmbientMusic {
         if(change<0){stop();lastInput=SystemClock.elapsedRealtime();retryAt=lastInput+3000;}
     };
     AmbientMusic(Context context,java.util.function.Consumer<Boolean> idleChanged){this.context=context;this.idleChanged=idleChanged;audio=(AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-        prefs(context).edit().remove(RESTORE_VOLUME).apply();
+        if(volumeOwner==null&&prefs(context).contains(RESTORE_VOLUME)){
+            stopping=true;outputSettlingUntil=SystemClock.elapsedRealtime()+AmbientVolume.OUTPUT_SETTLE_MS;
+            handler.postDelayed(()->{if(volumeOwner==null&&prefs(context).contains(RESTORE_VOLUME)){int value=prefs(context).getInt(RESTORE_VOLUME,-1);if(value>=0)audio.setStreamVolume(AudioManager.STREAM_MUSIC,Math.min(value,audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)),0);prefs(context).edit().remove(RESTORE_VOLUME).commit();}stopping=false;},AmbientVolume.OUTPUT_SETTLE_MS);
+        }
     }
     void resume(){
         SharedPreferences p=prefs(context);
-        String next=p.getBoolean("enabled",false)+":"+p.getBoolean("continuous",false)+":"+p.getString("selected","")+":"+BgmVolume.percent(context)+":"+p.getLong("play_request",0);
+        String next=p.getBoolean("enabled",false)+":"+p.getBoolean("continuous",false)+":"+p.getString("selected","")+":"+p.getInt("volume_index",-1)+":"+p.getLong("play_request",0);
         if(!next.equals(configuration)){configuration=next;heldAfterKey=false;retryAt=0;}
         visible=true;handler.removeCallbacks(suspend);lastInput=SystemClock.elapsedRealtime();handler.removeCallbacks(tick);handler.post(tick);
     }
@@ -88,7 +93,7 @@ final class AmbientMusic {
     void settingsChanged(){
         configuration=null;heldAfterKey=false;
         if(!prefs(context).getBoolean("enabled",false)){stop();return;}
-        if(player!=null)player.gain(BgmVolume.gain(context));
+        if(player!=null&&started){int next=Math.max(0,Math.min(audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC),prefs(context).getInt("volume_index",appliedVolume)));if(next!=appliedVolume){appliedVolume=next;audio.setStreamVolume(AudioManager.STREAM_MUSIC,next,0);}}
     }
     boolean interaction(){
         boolean waking=idlePresentation;
@@ -121,10 +126,15 @@ final class AmbientMusic {
         handler.postDelayed(this,1000);
     }};
     private void start(String selected){
-        if(SystemClock.elapsedRealtime()<outputSettlingUntil)return;
+        if(SystemClock.elapsedRealtime()<outputSettlingUntil||volumeOwner!=null&&volumeOwner!=this)return;
         if(audio.isMusicActive())return;
         if(audio.requestAudioFocus(focusChange,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED)return;
         focus=true;playingId=selected;
+        priorVolume=prefs(context).getInt(RESTORE_VOLUME,audio.getStreamVolume(AudioManager.STREAM_MUSIC));
+        if(!prefs(context).edit().putInt(RESTORE_VOLUME,priorVolume).commit()){focus=false;audio.abandonAudioFocus(focusChange);return;}
+        volumeOwner=this;
+        appliedVolume=Math.max(0,Math.min(audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC),prefs(context).getInt("volume_index",Math.min(priorVolume,3))));
+        audio.setStreamVolume(AudioManager.STREAM_MUSIC,appliedVolume,0);
         PcmLoopPlayer[] reference=new PcmLoopPlayer[1];
         reference[0]=new PcmLoopPlayer(context,selected,prefs(context).getBoolean("crossfade",true),()->{
             if(player!=reference[0])return;
@@ -132,22 +142,30 @@ final class AmbientMusic {
             if(!visible||(!p.getBoolean("continuous",false)&&SystemClock.elapsedRealtime()-lastInput<p.getInt("minutes",5)*60_000L)){stop();return;}
             started=true;heldAfterKey=false;idlePresentation=true;idleChanged.accept(true);
         },()->{if(player==reference[0]){stop();retryAt=SystemClock.elapsedRealtime()+60_000;android.widget.Toast.makeText(context,"背景音乐处理失败，请更换本地音频",android.widget.Toast.LENGTH_LONG).show();}});
-        player=reference[0];player.gain(BgmVolume.gain(context));player.start();
+        player=reference[0];player.start();
     }
     private void stop(){
         started=false;
         if(idlePresentation){idlePresentation=false;idleChanged.accept(false);}
         if(stopping)return;
         PcmLoopPlayer old=player;player=null;
-        if(old==null&&!focus)return;
+        if(old==null&&priorVolume<0&&!focus)return;
         stopping=true;
         outputSettlingUntil=SystemClock.elapsedRealtime()+AmbientVolume.OUTPUT_SETTLE_MS;
         Runnable restore=()->{
+            if(priorVolume>=0){
+                int current=audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+                int restored=AmbientVolume.afterStop(priorVolume,appliedVolume,current);
+                if(restored!=current)audio.setStreamVolume(AudioManager.STREAM_MUSIC,restored,0);
+                prefs(context).edit().remove(RESTORE_VOLUME).commit();
+                priorVolume=-1;appliedVolume=-1;
+                if(volumeOwner==this)volumeOwner=null;
+            }
             if(focus){focus=false;audio.abandonAudioFocus(focusChange);}
             stopping=false;
         };
         // Releasing AudioTrack does not empty the TV's downstream output buffer.
-        // Keep a quiet guard after output release; system volume is never modified.
+        // Keep its low volume through a quiet guard before restoring the shared gain.
         Runnable released=()->{
             long releasedAt=SystemClock.elapsedRealtime();
             outputSettlingUntil=releasedAt+AmbientVolume.OUTPUT_SETTLE_MS;

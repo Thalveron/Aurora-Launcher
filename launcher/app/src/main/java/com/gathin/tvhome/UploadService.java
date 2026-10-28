@@ -19,14 +19,14 @@ public final class UploadService extends Service {
     @Override public void onCreate() {
         super.onCreate();
         foreground();running=this;
-        AuroraHttp.initialize(getApplicationContext());
-        IdleStandby.start(this);
-        NetworkTraffic.start(this);
         IntentFilter lyricFilter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");
         if(Build.VERSION.SDK_INT>=33)registerReceiver(lyrics,lyricFilter,"com.gathin.tvhome.permission.DESKTOP_LYRICS",null,Context.RECEIVER_EXPORTED);
         else registerReceiver(lyrics,lyricFilter,"com.gathin.tvhome.permission.DESKTOP_LYRICS",null);
 
         new Thread(() -> {
+            try{BundledDefaults.awaitReady();}catch(Exception error){android.util.Log.e("TvHome","Default settings unavailable",error);stopSelf();return;}
+            if(closed)return;
+            AuroraHttp.initialize(getApplicationContext());IdleStandby.start(this);NetworkTraffic.start(this);
             try{ManagedWebAssets.sync(this);}catch(Exception e){android.util.Log.w("TvHome","Managed web assets unavailable",e);}
             BridgePreview.sync(this);
             try {

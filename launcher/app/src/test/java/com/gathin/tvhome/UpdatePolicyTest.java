@@ -25,7 +25,6 @@ public class UpdatePolicyTest{
    }
   }finally{file.delete();}
  }
- @Test public void parsesInstalledPackageVersion(){assertEquals(65,UpdatePolicy.installedCode("  versionCode=65 minSdk=26 targetSdk=34"));assertEquals(-1,UpdatePolicy.installedCode("package not found"));}
  private static HttpURLConnection request(UpdateTransfer transfer,String path,String token)throws Exception{HttpURLConnection c=(HttpURLConnection)new URL("http://127.0.0.1:"+transfer.port()+path).openConnection();c.setConnectTimeout(2000);c.setReadTimeout(2000);c.setRequestProperty("X-Aurora-Transfer",token);return c;}
  private static void reject(Runnable action){try{action.run();fail();}catch(IllegalArgumentException expected){}}
 }

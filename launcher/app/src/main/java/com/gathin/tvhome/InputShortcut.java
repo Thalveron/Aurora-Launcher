@@ -5,15 +5,9 @@ final class InputShortcut {
  private static final java.util.concurrent.ExecutorService worker=java.util.concurrent.Executors.newSingleThreadExecutor();
  private static final java.util.concurrent.atomic.AtomicBoolean opening=new java.util.concurrent.atomic.AtomicBoolean();
  private static SharedPreferences prefs(Context c){return c.getSharedPreferences("input_shortcut",0);}
- static JSONObject get(Context c)throws Exception{return new JSONObject().put("id",selected(c)).put("remoteHint",prefs(c).getBoolean("remoteHint",true));}
- private static String selected(Context c){
-  String saved=prefs(c).getString("id","");if(!saved.isEmpty())return saved;
-  TvInputManager tm=(TvInputManager)c.getSystemService(Context.TV_INPUT_SERVICE);String first="";
-  if(tm!=null)for(TvInputInfo input:tm.getTvInputList())if(input.isPassthroughInput()){if(tm.getInputState(input.getId())==TvInputManager.INPUT_STATE_CONNECTED)return input.getId();if(first.isEmpty())first=input.getId();}
-  return !first.isEmpty()?first:WebInputs.legacySupported(c)?"EN_TCL_HDMI1":"";
- }
+ static JSONObject get(Context c)throws Exception{return new JSONObject().put("id",prefs(c).getString("id","EN_TCL_HDMI1")).put("remoteHint",prefs(c).getBoolean("remoteHint",true));}
  private static void validate(Context c,String id){
-  if(WebInputs.legacySupported(c)&&id.matches("EN_TCL_(HDMI[1-4]|AV[12])"))return;
+  if(id.matches("EN_TCL_(HDMI[1-4]|AV[12])"))return;
   TvInputManager tm=(TvInputManager)c.getSystemService(Context.TV_INPUT_SERVICE);
   if(tm!=null)for(TvInputInfo v:tm.getTvInputList())if(v.isPassthroughInput()&&v.getId().equals(id))return;
   throw new IllegalArgumentException("请选择有效的输入源");
@@ -27,7 +21,7 @@ final class InputShortcut {
  static void launch(Context context){
   if(!opening.compareAndSet(false,true))return;Context c=context.getApplicationContext();
   worker.execute(()->{Handler main=new Handler(Looper.getMainLooper());try{
-   String id=selected(c);validate(c,id);AuroraInputs.open(c,id);
+   String id=prefs(c).getString("id","EN_TCL_HDMI1");validate(c,id);AuroraInputs.open(c,id);
    WebAudit.record(c,"电视遥控器","输入源快捷方式",id,200);
    if(prefs(c).getBoolean("remoteHint",true))main.postDelayed(()->hint(c,id),400);
   }catch(Exception e){WebAudit.record(c,"电视遥控器","输入源快捷方式失败",String.valueOf(e.getMessage()),500);main.post(()->Toast.makeText(c,"切换失败，请检查电视调试连接或在右上角选择输入源",Toast.LENGTH_LONG).show());}

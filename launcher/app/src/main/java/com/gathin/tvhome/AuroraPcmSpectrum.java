@@ -5,9 +5,6 @@ import androidx.media3.common.audio.AudioProcessor;
 import java.nio.ByteBuffer;
 /** PCM gain is applied before vendor audio output. Spectrum observes the original decoded samples. */
 final class AuroraPcmSpectrum extends BaseAudioProcessor {
-    private final java.util.function.LongSupplier clock;
-    AuroraPcmSpectrum(){this(android.os.SystemClock::elapsedRealtime);}
-    AuroraPcmSpectrum(java.util.function.LongSupplier clock){this.clock=clock;}
     private final double[] window=new double[1024];private int count,rate,channels;private long measured;
     private static final double[] HANN=new double[1024];static{for(int i=0;i<HANN.length;i++)HANN[i]=.5-.5*Math.cos(2*Math.PI*i/(HANN.length-1));}
     private volatile float targetGain;private float appliedGain;
@@ -17,7 +14,7 @@ final class AuroraPcmSpectrum extends BaseAudioProcessor {
     volatile double[] bands=new double[32];volatile long updated;
     @Override protected AudioProcessor.AudioFormat onConfigure(AudioProcessor.AudioFormat f)throws AudioProcessor.UnhandledAudioFormatException{rate=f.sampleRate;channels=f.channelCount;if(f.encoding!=C.ENCODING_PCM_16BIT)throw new AudioProcessor.UnhandledAudioFormatException(f);return f;}
     @Override public void queueInput(ByteBuffer input){int length=input.remaining();if(length==0)return;ByteBuffer view=input.duplicate().order(java.nio.ByteOrder.LITTLE_ENDIAN);int stride=Math.max(1,channels)*2;
-        long now=clock.getAsLong();if(now-measured>=100){for(int p=view.position();p+stride<=view.limit();p+=stride){double sample=0;for(int ch=0;ch<channels;ch++)sample+=view.getShort(p+ch*2)/32768.0;window[count++]=sample/Math.max(1,channels);if(count==window.length){measure();count=0;measured=now;updated=now;break;}}}
+        long now=android.os.SystemClock.elapsedRealtime();if(now-measured>=100){for(int p=view.position();p+stride<=view.limit();p+=stride){double sample=0;for(int ch=0;ch<channels;ch++)sample+=view.getShort(p+ch*2)/32768.0;window[count++]=sample/Math.max(1,channels);if(count==window.length){measure();count=0;measured=now;updated=now;break;}}}
         ByteBuffer out=replaceOutputBuffer(length).order(java.nio.ByteOrder.LITTLE_ENDIAN);float target=targetGain;double before=0,after=0;int samples=0;float smoothing=1f/Math.max(1,rate*.01f);
         input.order(java.nio.ByteOrder.LITTLE_ENDIAN);while(input.remaining()>=2){if(samples%Math.max(1,channels)==0){if(target==0)appliedGain=0;else appliedGain+=(target-appliedGain)*smoothing;}
             short sample=input.getShort();short scaled=(short)Math.max(Short.MIN_VALUE,Math.min(Short.MAX_VALUE,Math.round(sample*appliedGain)));

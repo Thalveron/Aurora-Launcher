@@ -82,7 +82,7 @@ import java.util.Set;
  */
 public class MainActivity extends Activity implements AppAdapter.TileListener {
     private String desktopLocaleAtCreation;
-    @Override protected void attachBaseContext(android.content.Context base){desktopLocaleAtCreation=DesktopLanguage.code(base);super.attachBaseContext(DesktopViewport.wrap(DesktopLanguage.wrap(base)));}
+    @Override protected void attachBaseContext(android.content.Context base){desktopLocaleAtCreation=DesktopLanguage.code(base);super.attachBaseContext(DesktopLanguage.wrap(DesktopViewport.wrap(base)));}
 
 
     private static final int LAUNCHER_SETTINGS_REQUEST = 42;
@@ -401,7 +401,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
     }
 
-    @Override public void onConfigurationChanged(android.content.res.Configuration next){super.onConfigurationChanged(next);if(!preparingDefaults&&DesktopViewport.changed(this))recreate();}
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         createdAt = android.os.SystemClock.elapsedRealtime();
@@ -775,7 +774,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onResume() {
-        super.onResume();if(preparingDefaults)return;LauncherUpdater.resumeInstaller(this);if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
+        super.onResume();if(preparingDefaults)return;if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
         getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);

@@ -388,19 +388,7 @@ POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不�
 
 独立维护组件 com.gathin.tvhome.updater 没有界面、常驻服务或联网/录音权限；授权ADB按需启动维护进程。APK和设置快照保存在组件私有目录，保留当前回退点并清理不再使用的已完成任务。调试构建允许已授权ADB通过run-as访问恢复数据。实机验证覆盖正常安装、启动检查失败自动回退及账号/ADB密钥一致性；全新清空仅验证确认拦截，未清空生产设备。
 
-### 手动上传更新
-- POST /api/v1/updates/upload：主控制台登录后上传APK原始字节，Content-Length必填，1KB～512MB。私有目录保存，校验同包名、同签名、系统要求与版本不低于当前；返回version/versionCode/bytes/sha256/uploadToken。不自动安装。
-- POST /api/v1/updates/install-upload：{uploadToken,confirmed:true}。再次校验文件后保留设置安装；有维护权限时沿用独立回退，否则打开系统安装确认。
-- POST /api/v1/updates/online：在线更新；原 /updates/install 保留兼容。
 
-### 可选的本地默认模板
-本地分发包可包含 private-defaults/bundle.json 和经SHA-256校验的选定背景/屏保音乐素材。默认仅在全新安装首次启动后台线程初始化；模板显式声明 applyOnUpgrade 时，也可按发布者授权在升级时一次性套用。位置和安全配置始终不导入。初始化标记完成后不会重复覆盖用户修改。禁止导入安全、位置、天气缓存、ADB密钥或恢复任务。路径相对于应用私有/外部专属目录，首次启动根据实际音量范围换算背景音乐默认档位。原生桌面按运行时可用画面生成逻辑密度；不修改系统输出模式和字体设置。
+## 0.2.1 内置配置迁移
 
-### v0.1.4 控制台与播放
-- GET /api/v1/auth/status 附加 requireAuth；默认true。关闭保护时仍执行局域网、来源和路径校验。
-- POST /api/v1/auth/setup-open：首次未设置账号时，{confirmed:true} 可选免登录；已有账号需在安全设置修改。
-- GET/POST /api/v1/security 附加 requireAuth；重新开启保护前必须已有密码或同时设置有效密码。切换撤销旧会话，保留操作日志。
-- BGM volume 改为0～100的播放器独立百分比，volumeMax=100、volumeMode=player_percent。不再调整或恢复系统 STREAM_MUSIC；普通音乐不受影响。
-- POST /api/v1/updates/check：检查到新版后直接下载、校验，再打开系统安装确认；后台定时检测仍仅查版本。
-- POST /api/v1/updates/version：{version:"0.1.3",confirmed:true}，仅查发布仓库的精确版本、校验清单和同签名APK。低版本须具有独立维护权限；不支持时明确拒绝，不自动卸载数据。
-- 桌面信息使用右侧面板；上传APK入口、回退和兼容在线路由保留。
+首次启动按templateId应用一次内置桌面模板，新安装和旧版升级使用同一路径；旧done标记不会跳过新模板。初始化期间桌面显示准备提示，后台等待素材和设置初始化完成。账号密码、后台地址、城市经纬度、服务密钥和既有时区保留。之后配置读写仍使用本文档已有路由，无新增原生直连入口。

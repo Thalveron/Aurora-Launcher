@@ -13,7 +13,7 @@ public final class LauncherUpdateAgent {
   if(args.length!=1||!args[0].matches(java.util.regex.Pattern.quote(ROOT)+"[a-f0-9]{24}"))throw new IllegalArgumentException("Invalid update workspace");
   run=new File(args[0]);plan=read(new File(run,"plan.json"));root=android.os.Process.myUid()==0;
   if(!plan.getString("dataDir").matches("/data/(?:user/0|data)/com\\.gathin\\.tvhome")||!plan.getString("externalDir").matches("/(?:storage/emulated/0|sdcard)/Android/data/com\\.gathin\\.tvhome/files")||!plan.getString("id").equals(run.getName()))throw new IllegalArgumentException("Invalid app workspace");
-  String mode=plan.getString("mode");if(!Arrays.asList("update","clean","rollback","confirm").contains(mode))throw new IllegalArgumentException("Invalid mode");
+  String mode=plan.getString("mode");if(!Arrays.asList("update","clean","rollback").contains(mode))throw new IllegalArgumentException("Invalid mode");
   try{
    if(mode.equals("rollback")){
     File previousRun=new File(plan.getString("previousRun"));if(!previousRun.getPath().matches(java.util.regex.Pattern.quote(ROOT)+"[a-f0-9]{24}"))throw new IOException("Invalid rollback workspace");
@@ -22,16 +22,8 @@ public final class LauncherUpdateAgent {
    }
    status("preparing","正在保存独立恢复包");
    receive("/target",new File(run,"target.apk"),plan.getString("targetSha"));receive("/previous",new File(run,"previous.apk"),plan.getString("previousSha"));receive("/backup",new File(run,"backup.zip"),plan.getString("backupSha"));
-   if(mode.equals("confirm")){
-    status("awaiting_confirmation","已保存上一版，等待系统安装确认");long deadline=System.nanoTime()+600_000_000_000L;boolean installed=false;
-    while(System.nanoTime()<deadline){
-     if(installedCode()==plan.getInt("targetCode")){installed=true;break;}
-     if(command("run-as",GUARD,"sh","-c","test -f "+UpdatePolicy.quote(new File(run,"cancel").getPath())+" && echo CANCELLED || true").contains("CANCELLED")){status("cancelled","用户取消安装，当前版本和设置未改变");return;}Thread.sleep(2000);
-    }
-    if(!installed){status("cancelled","等待安装确认已超时，未自动安装");return;}
-   }
-   status("installing",mode.equals("confirm")?"系统已安装，正在验证新版":"正在覆盖安装，原设置已保存");
-   try{if(!mode.equals("confirm"))install(new File(run,"target.apk"));if(mode.equals("clean")){String clear=command("pm","clear",PKG);if(!clear.contains("Success"))throw new IOException("清空设置失败");}syncAssets(new File(run,"target.apk"));launch(true);status("verifying","新版已安装，正在观察启动状态");
+   status("installing","正在覆盖安装，原设置已保存");
+   try{install(new File(run,"target.apk"));if(mode.equals("clean")){String clear=command("pm","clear",PKG);if(!clear.contains("Success"))throw new IOException("清空设置失败");}syncAssets(new File(run,"target.apk"));launch(true);status("verifying","新版已安装，正在观察启动状态");
     if(!healthy())throw new IOException("新版未通过启动健康检查");
     status("success",mode.equals("clean")?"全新安装完成":"更新成功，设置已保留");
    }catch(Exception failed){
@@ -40,7 +32,6 @@ public final class LauncherUpdateAgent {
    }
   }catch(Throwable failure){status("failed","维护失败："+safe(failure));}
  }
- private static int installedCode()throws Exception{return UpdatePolicy.installedCode(command("dumpsys","package",PKG));}
  private static String safe(Throwable e){while(e.getCause()!=null)e=e.getCause();String s=e.toString();return s.length()>500?s.substring(0,500):s;}
  private static JSONObject read(File f)throws Exception{return new JSONObject(command("run-as",GUARD,"cat",f.getPath()));}
  private static void verify(File f,String sha)throws Exception{UpdatePolicy.digest(sha);if(!command("run-as",GUARD,"sha256sum",f.getPath()).trim().startsWith(sha+" "))throw new IOException("恢复文件校验失败");}

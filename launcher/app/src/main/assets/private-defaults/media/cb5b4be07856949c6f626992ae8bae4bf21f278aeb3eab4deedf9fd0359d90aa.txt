@@ -1,6 +1,7 @@
 tvhome-order 1
-dock com.exxammpea.a1,com.craftworks.music.tvcustom,com.dangbeimarket
+dock com.ktcp.csvideo,com.oumi.utility.media.hub,tv.huan.livewallpaper,com.tcl.guard
 com.exxammpea.a1/com.maxapp.tv.SplashActivity
+com.gathin.tvhome/aurora-inputs-shortcut
 com.craftworks.music.tvcustom/com.craftworks.music.MainActivity
 com.limelight/aurora.shortcut.f59effdddbce3fe2812b5a97b7ff9ee8
 com.dangbeimarket/.activity.WelcomeActivity

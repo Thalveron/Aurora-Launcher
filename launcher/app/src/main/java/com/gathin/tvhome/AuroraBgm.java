@@ -18,12 +18,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-/** Main-thread-owned, local-only audio; uses independent PCM gain without touching system volume. */
+/** Main-thread-owned, local-only audio; temporarily owns the actual TV media-volume index. */
 final class AuroraBgm {
     private static final Handler main=new Handler(Looper.getMainLooper());
     private static AuroraBgm instance;
     private final Context context;
-    private final AudioManager audio;
+    private final AudioManager audio;private final AuroraTvVolume tvVolume;
     private final AudioFocusRequest request;
     private SharedPreferences prefs;private String boundTheme;
     private ExoPlayer current,outgoing,preparedLoop;private AuroraPcmSpectrum pcm,outgoingPcm,preparedPcm;
@@ -51,7 +51,7 @@ final class AuroraBgm {
     }};
     private AuroraBgm(Context c) {
         context=c.getApplicationContext();boundTheme=AuroraThemes.current(c);prefs=themePrefs(c,boundTheme);audio=(AudioManager)c.getSystemService(Context.AUDIO_SERVICE);
-        BgmVolume.percent(c);
+        tvVolume=new AuroraTvVolume(c);if(!prefs.contains("volume_index"))prefs.edit().putInt("volume_index",Math.min(tvVolume.max(),prefs.getInt("volume",Math.min(3,tvVolume.current())))).commit();
         request=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA)
                         .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC).build())
@@ -63,8 +63,7 @@ final class AuroraBgm {
         main.postDelayed(loopWatch,50);
     }
     static SharedPreferences themePrefs(Context c,String id){SharedPreferences p=c.getSharedPreferences("aurora_bgm_shared_saver",0);if(!p.getBoolean("_initialized",false)){SharedPreferences.Editor e=p.edit();SharedPreferences old=c.getSharedPreferences("aurora_bgm_theme_"+id,0);if(!old.getBoolean("_initialized",false))old=c.getSharedPreferences("aurora_bgm",0);for(String key:new String[]{"enabled","autoplay","volume","fadeMs","selected","lyrics"}){Object v=old.getAll().get(key);if(v instanceof String)e.putString(key,(String)v);else if(v instanceof Integer)e.putInt(key,(Integer)v);else if(v instanceof Boolean)e.putBoolean(key,(Boolean)v);}if(old.getString("selected","").isEmpty())try{SharedPreferences nativePrefs=c.getSharedPreferences("ambient_music",0);String nativeId=nativePrefs.getString("selected","");if(nativeId.matches("[a-f0-9-]+[.]audio")){File source=new File(c.getFilesDir(),"ambient-music/"+nativeId);if(source.isFile()){String imported=java.util.UUID.randomUUID()+".mp3";java.nio.file.Files.copy(source.toPath(),new File(directory(c),imported).toPath());e.putString("selected",imported);c.getSharedPreferences("aurora_bgm",0).edit().putString("name:"+imported,nativePrefs.getString("name_"+nativeId,"屏保音乐")).commit();}}}catch(Exception ignored){}e.putBoolean("_initialized",true).commit();}return p;}
-    private void applyGain(){float value=BgmVolume.gain(context);for(AuroraPcmSpectrum p:new AuroraPcmSpectrum[]{pcm,outgoingPcm,preparedPcm})if(p!=null)p.gain(value);}
-    private void releaseOutputs(){discardPrepared();if(current!=null){current.setVolume(0);current.pause();current.release();current=null;}if(outgoing!=null){outgoing.setVolume(0);outgoing.release();outgoing=null;outgoingPcm=null;}selected="";pcm=null;outgoingPcm=null;}
+    private void releaseOutputs(){discardPrepared();if(current!=null){current.setVolume(0);current.pause();current.release();current=null;}if(outgoing!=null){outgoing.setVolume(0);outgoing.release();outgoing=null;outgoingPcm=null;}selected="";pcm=null;outgoingPcm=null;tvVolume.restoreAfterRelease();}
     private void bindTheme(String id){if(id.equals(boundTheme))return;operation++;releaseOutputs();audio.abandonAudioFocusRequest(request);focused=false;wanted=false;manualStop=false;reason="stopped";boundTheme=id;prefs=themePrefs(context,id);}
 
     static <T> T onMain(Context c,Callable<T> action)throws Exception {
@@ -136,7 +135,8 @@ final class AuroraBgm {
                 case "pause":self.manualStop=true;self.wanted=false;self.pauseInternal("manual_pause",true);break;
                 case "stop":self.manualStop=true;self.wanted=false;self.stop();break;
                 case "volume":
-                    BgmVolume.set(c,body.getInt("volume"));self.applyGain();break;
+                    int volume=body.getInt("volume");if(volume<0||volume>self.tvVolume.max())throw new IllegalArgumentException("电视音量范围0～"+self.tvVolume.max());
+                    self.prefs.edit().putInt("volume_index",volume).commit();if(self.foreground)self.tvVolume.adjust(volume);break;
                 case "settings":
                     SharedPreferences.Editor edit=self.prefs.edit();
                     for(java.util.Iterator<String> keys=body.keys();keys.hasNext();){String key=keys.next();
@@ -163,10 +163,11 @@ final class AuroraBgm {
         if(!focused){focused=audio.requestAudioFocus(request)==AudioManager.AUDIOFOCUS_REQUEST_GRANTED;if(!focused){reason="focus_denied";return;}}
         if(current!=null&&current.isPlaying()&&source.getName().equals(selected)&&reason.equals("playing"))return;
         final int revision=++operation;reason="preparing";
+        if(!tvVolume.begin(prefs.getInt("volume_index",3))){reason="volume_restoring";main.postDelayed(()->{if(operation==revision&&wanted&&foreground)try{play();}catch(Exception e){reason=e.getMessage();}},tvVolume.waitMs()+20);return;}
         if(current==null||!source.getName().equals(selected)){
             if(outgoing!=null){outgoing.release();outgoing=null;}
             outgoing=current;outgoingPcm=pcm;if(outgoing!=null){ExoPlayer old=outgoing;fade(old,0f,revision,()->{old.release();if(outgoing==old){outgoing=null;outgoingPcm=null;}});}
-            discardPrepared();selected=source.getName();pcm=new AuroraPcmSpectrum();pcm.gain(BgmVolume.gain(context));
+            discardPrepared();selected=source.getName();pcm=new AuroraPcmSpectrum();pcm.gain(1f);
             current=createPlayer(source,pcm);
             ExoPlayer player=current;
             player.addListener(new Player.Listener(){
@@ -177,7 +178,7 @@ final class AuroraBgm {
                 }
             });
             player.prepare();player.play();
-        }else{current.play();reason="playing";pcm.gain(BgmVolume.gain(context));fade(current,1f,revision,null);}
+        }else{current.play();reason="playing";pcm.gain(1f);fade(current,1f,revision,null);}
     }
     private ExoPlayer createPlayer(File source,AuroraPcmSpectrum processor){
         androidx.media3.exoplayer.DefaultRenderersFactory factory=new androidx.media3.exoplayer.DefaultRenderersFactory(context){
@@ -204,7 +205,7 @@ final class AuroraBgm {
         if(overlap<=0){discardPrepared();return;}
         long remaining=duration-current.getCurrentPosition();
         if(preparedLoop==null&&remaining<=overlap+3000&&android.os.SystemClock.elapsedRealtime()>=loopRetryAt){
-            preparedPcm=new AuroraPcmSpectrum();preparedPcm.gain(BgmVolume.gain(context));
+            preparedPcm=new AuroraPcmSpectrum();preparedPcm.gain(1f);
             preparedLoop=createPlayer(file(context,selected),preparedPcm);preparedLoop.prepare();
         }
         if(preparedLoop==null||preparedLoop.getPlaybackState()!=Player.STATE_READY||remaining>overlap)return;
@@ -232,7 +233,7 @@ final class AuroraBgm {
         int revision=++operation;reason=why;discardPrepared();
         if(outgoing!=null){outgoing.setVolume(0);outgoing.release();outgoing=null;outgoingPcm=null;}
         if(current!=null){ExoPlayer player=current;fade(player,0f,revision,()->{releaseOutputs();if(abandon){audio.abandonAudioFocusRequest(request);focused=false;}});}
-        else {if(abandon){audio.abandonAudioFocusRequest(request);focused=false;}}
+        else {tvVolume.restoreAfterRelease();if(abandon){audio.abandonAudioFocusRequest(request);focused=false;}}
     }
     private void stop(){pauseInternal("stopped",true);}
     private void fade(ExoPlayer player,float target,int revision,Runnable done) {
@@ -245,7 +246,7 @@ final class AuroraBgm {
     private JSONObject snapshot()throws Exception {
         return new JSONObject().put("engine","Media3 ExoPlayer").put("diagnostic",(context.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0?diagnostic:"").put("repeat","one").put("loopMode",prefs.getInt("fadeMs",1500)>0?"crossfade":"gapless").put("loopCount",loopCount).put("crossfading",outgoing!=null).put("loopPrepared",preparedLoop!=null).put("playing",current!=null&&current.isPlaying())
                 .put("foreground",foreground).put("reason",reason).put("enabled",prefs.getBoolean("enabled",false)).put("autoplay",prefs.getBoolean("autoplay",prefs.getBoolean("themeAutoplay",false)))
-                .put("actualGain",current==null||pcm==null?0:current.getVolume()*pcm.requestedGain()).put("softwareGain",pcm==null?0:pcm.requestedGain()).put("inputRms",pcm==null?0:pcm.inputRms).put("outputRms",pcm==null?0:pcm.outputRms).put("renderedSamples",pcm==null?0:pcm.renderedSamples).put("volume",BgmVolume.percent(context)).put("volumeMax",100).put("systemVolume",audio.getStreamVolume(AudioManager.STREAM_MUSIC)).put("desktopVolume",audio.getStreamVolume(AudioManager.STREAM_MUSIC)).put("volumeMode","player_percent").put("fadeMs",prefs.getInt("fadeMs",1500)).put("selected",prefs.getString("selected",prefs.getString("themeSelected","")))
+                .put("actualGain",current==null||pcm==null?0:current.getVolume()*pcm.requestedGain()).put("softwareGain",pcm==null?0:pcm.requestedGain()).put("inputRms",pcm==null?0:pcm.inputRms).put("outputRms",pcm==null?0:pcm.outputRms).put("renderedSamples",pcm==null?0:pcm.renderedSamples).put("volume",prefs.getInt("volume_index",3)).put("volumeMax",tvVolume.max()).put("systemVolume",tvVolume.current()).put("desktopVolume",tvVolume.prior()).put("volumeMode","tv_index").put("fadeMs",prefs.getInt("fadeMs",1500)).put("selected",prefs.getString("selected",prefs.getString("themeSelected","")))
                 .put("lyrics",prefs.getString("lyrics","")).put("lyricRows",AuroraLyrics.read(context,prefs.getString("lyrics","")))
                 .put("positionMs",current==null?0:current.getCurrentPosition()).put("durationMs",current==null?0:Math.max(0,current.getDuration()));
     }

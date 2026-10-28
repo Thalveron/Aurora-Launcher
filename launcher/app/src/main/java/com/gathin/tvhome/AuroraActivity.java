@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 /** Isolated opt-in theme container. The existing native Home remains the recovery path. */
 public class AuroraActivity extends Activity {
+    @Override protected void attachBaseContext(android.content.Context base){super.attachBaseContext(DesktopLanguage.wrap(DesktopViewport.wrap(base)));}
+
     static volatile boolean visible;
     private static java.lang.ref.WeakReference<AuroraActivity> current=new java.lang.ref.WeakReference<>(null);
     private WebView web;private FrameLayout saverLayer;private PersonalBackground saverBackground;
@@ -29,8 +31,6 @@ public class AuroraActivity extends Activity {
             else main.postDelayed(this,250);
         });
     }};
-    @Override protected void attachBaseContext(android.content.Context base){super.attachBaseContext(DesktopViewport.wrap(DesktopLanguage.wrap(base)));}
-    @Override public void onConfigurationChanged(android.content.res.Configuration next){super.onConfigurationChanged(next);if(!preparingDefaults&&DesktopViewport.changed(this))recreate();}
     @Override public void onCreate(Bundle state){
         super.onCreate(state);if(BundledDefaults.showLoading(this)){preparingDefaults=true;return;}UpdateHealth.begin(this,getIntent());saverOnly=this instanceof AuroraSaverActivity;if(!saverOnly&&AuroraThemes.current(this).equals("legacy")){AuroraThemes.open(this);finish();return;}current=new java.lang.ref.WeakReference<>(this);getWindow().setFlags(1024,1024);UploadService.ensureStarted(this);
         FrameLayout frame=new FrameLayout(this);frame.setBackgroundColor(0xff101419);setContentView(frame);
@@ -99,7 +99,7 @@ public class AuroraActivity extends Activity {
     }
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);if(preparingDefaults){setIntent(intent);return;}UpdateHealth.begin(this,intent);if(ready)UpdateHealth.uiReady(this);if(IdleStandby.home(this))return;setIntent(intent);if(!java.util.Objects.equals(theme,AuroraThemes.current(this)))recreate();else focusHome();}
     @Override protected void onResume(){super.onResume();if(preparingDefaults)return;visible=true;if(!saverOnly){lastUserInput=android.os.SystemClock.elapsedRealtime();}current=new java.lang.ref.WeakReference<>(this);if(!saverOnly)AuroraPlayback.warm(this);if(ready){nativeSaver(AuroraSaver.active);UpdateHealth.uiReady(this);}AuroraBgm.foreground(this,true);if(web!=null){web.onResume();web.evaluateJavascript("window.dispatchEvent(new Event('aurora-visible'))",null);}}
-    @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(IdleStandby.key(this,event))return true;if(event.getAction()==android.view.KeyEvent.ACTION_DOWN)lastRemoteInput=android.os.SystemClock.elapsedRealtime();if(AuroraSaver.active){AuroraSaver.exit(this);if(web!=null)web.evaluateJavascript("window.dispatchEvent(new Event('aurora-saver-exit'))",null);consumeUntil=android.os.SystemClock.elapsedRealtime()+350;return true;}if(android.os.SystemClock.elapsedRealtime()<consumeUntil)return true;return super.dispatchKeyEvent(event);}
+    @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(preparingDefaults)return true;if(IdleStandby.key(this,event))return true;if(event.getAction()==android.view.KeyEvent.ACTION_DOWN)lastRemoteInput=android.os.SystemClock.elapsedRealtime();if(AuroraSaver.active){AuroraSaver.exit(this);if(web!=null)web.evaluateJavascript("window.dispatchEvent(new Event('aurora-saver-exit'))",null);consumeUntil=android.os.SystemClock.elapsedRealtime()+350;return true;}if(android.os.SystemClock.elapsedRealtime()<consumeUntil)return true;return super.dispatchKeyEvent(event);}
     static volatile long lastRemoteInput;private static volatile long lastUserInput=android.os.SystemClock.elapsedRealtime();
     static String saverError="";static long idleMillis(){return android.os.SystemClock.elapsedRealtime()-lastUserInput;}
     @Override public void onUserInteraction(){super.onUserInteraction();lastUserInput=android.os.SystemClock.elapsedRealtime();if(web!=null)web.evaluateJavascript("window.dispatchEvent(new Event('aurora-user-input'))",null);}
