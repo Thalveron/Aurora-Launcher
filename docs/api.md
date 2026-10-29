@@ -460,7 +460,14 @@ bootstrap 新增 console（正式入口）；legacyConsole 字段继续保留为
 
 - POST /api/v1/auth/open-setup：仅首次未初始化访问方式，局域网且同源；参数 {"confirmed":true}（标准 JSON）。成功 data={openAccess:true,needsPath:boolean}；已有账号或免密配置返回 ALREADY_INITIALIZED，缺少确认返回 CONFIRM_REQUIRED。写入操作日志，不产生默认密码。
 - 安全设置在首次免密状态允许留空用户名；关闭免密前必须同时设置用户名及8～64位确认密码。旧账号不受首次免密接口影响。
-- GET /api/v1/services/cities?name=耒阳：先匹配内置中国城市别名与地区、经纬度、时区，无本地结果再查询原全球在线源；响应结构不变。GeoNames 数据归属见 assets/geography/NOTICE.txt。
+- GET /api/v1/services/cities?name=上海：先匹配内置中国城市别名与地区、经纬度、时区，无本地结果再查询原全球在线源；响应结构不变。GeoNames 数据归属见 assets/geography/NOTICE.txt。
 - POST /api/v1/updates/config：autoCheck/automatic 为布尔值。网页通过统一保存栏提交，保存后 GET /updates 回读；关闭检查会同时关闭自动安装，开启自动安装会开启检查。设备不具备维护能力时，自动安装禁用并说明原因，手动下载与系统确认安装仍可用。
 - 更新来源保持 GitHub 原地址与 https://gh-proxy.com/ 加速地址。元数据并行请求并选最高有效版本，安装包线路测速择优，失败自动尝试另一条；校验包名、SHA-256、大小与原签名。
 - 登录页由服务端直接输出正确表单，无中间“正在读取登录状态”画面；HTML no-cache，JS/CSS 内容版本化。
+
+
+## 1.2.6 日志保留与语音参数
+
+- GET/POST /api/v1/logs/settings：{retentionDays:0|1|3|7|15|30}，0永久保存（默认保留已有日志，不自动覆盖）；有限期限按记录时间定期清理，修改需登录且写审计。列表仍只显示最近500条，导出流式发送全部保留记录，避免整份日志装入内存。
+- voice.volume：允许0～3，0静音、1原始幅度，超过1通过独立TTS音频会话的LoudnessEnhancer增益，最高约9.54dB。不修改系统音量；设备不支持时明确返回暂不支持。
+- POST /api/v1/voice/test：{text,parameters?:{volume,rate,pitch,language}}。可直接试听未保存参数，不写入或覆盖正式语音配置；语音引擎和指定声音仍使用已保存设置。

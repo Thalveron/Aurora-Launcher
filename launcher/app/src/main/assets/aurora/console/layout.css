@@ -14,8 +14,31 @@ html body.console-v2 #settings-main .card-grid{
 html body.console-v2 .card-grid>*{min-width:0;margin:0!important}
 html body.console-v2 .settings-columns{display:grid;grid-template-columns:repeat(2,minmax(0,var(--settings-column-max)));gap:var(--layout-gap);align-items:start;margin:0 0 24px;min-width:0}
 html body.console-v2 .settings-columns.is-single-column{grid-template-columns:minmax(0,var(--settings-column-max))}
-html body.console-v2 .settings-columns>.ui-card,
-html body.console-v2 .settings-columns>.device-block{width:100%;max-width:var(--settings-column-max);min-width:0;margin:0!important}
+html body.console-v2 .settings-lane{display:flex;flex-direction:column;gap:var(--layout-gap);min-width:0}
+html body.console-v2 .settings-lane>.ui-card,
+html body.console-v2 .settings-lane>.device-block{width:100%;max-width:var(--settings-column-max);min-width:0;margin:0!important}
+html body.console-v2 .settings-columns.is-single-column{display:flex;flex-direction:column}
+html body.console-v2 .settings-columns.is-single-column>.settings-lane{width:100%}
+html body.console-v2 .input-ports-card{align-self:start;overflow:hidden}
+html body.console-v2 .input-ports-card:not([open]){height:var(--input-ports-height,440px)}
+html body.console-v2 .input-ports-card[open]{height:auto;min-height:var(--input-ports-height,440px)}
+html body.console-v2 .input-ports-card>summary{font-size:16px;font-weight:600;min-height:64px;padding:20px;cursor:pointer}
+html body.console-v2 .input-ports-card>summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto}
+html body.console-v2 .input-port-preview{grid-column:1/-1;display:flex;flex-direction:column;gap:10px;padding-top:20px;font-size:14px;font-weight:400;line-height:1.6;overflow-wrap:anywhere}
+html body.console-v2 .input-port-preview strong{font-size:16px}
+html body.console-v2 .input-port-preview small{font-size:12px;color:var(--ui-muted)}
+html body.console-v2 .input-ports-card[open] .input-port-preview{display:none}
+html body.console-v2 .input-ports-card[open]>.input-ports-body{display:block;height:auto;padding:0 16px 16px}
+html body.console-v2 .input-ports-card:not([open])>.input-ports-body{display:none}
+html body.console-v2 #input-list{height:auto;max-height:none;overflow:visible;padding:0}
+html body.console-v2 #input-list .input-item{min-width:0;flex-wrap:wrap}
+html body.console-v2 [data-panel="logs"]>.ui-card{width:100%;max-width:none}
+html body.console-v2 .audit-log-list>.setting-row{grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr)}
+html body.console-v2 .audit-log-list .setting-row-control{width:auto;max-width:none;justify-content:flex-start;text-align:left}
+html body.console-v2 .audit-log-list .setting-row-title,
+html body.console-v2 .audit-log-list .setting-row-description,
+html body.console-v2 .audit-log-list .setting-row-control span{white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible;text-overflow:clip;max-width:none}
+@media(max-width:760px){html body.console-v2 .audit-log-list>.setting-row{grid-template-columns:1fr}}
 html body.console-v2 .device-control-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--layout-gap);align-items:start}
 html body.console-v2 .device-control-columns.is-single-column{grid-template-columns:minmax(0,1fr)}
 html body.console-v2 #shell-savebar{left:calc(var(--ui-sidebar-width) + var(--page-padding));right:var(--page-padding);max-width:var(--page-max);margin:0}

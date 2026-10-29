@@ -122,6 +122,7 @@
    {name:'耒阳',region:'湖南省',country:'中国',countryCode:'CN',lat:26.4167,lon:112.85,timezone:'Asia/Shanghai',aliases:['耒阳','耒阳市','leiyang']},
    {name:'伦敦',region:'英格兰',country:'英国',countryCode:'GB',lat:51.5085,lon:-.1257,timezone:'Europe/London',aliases:['伦敦','london']}
   ].filter(function(v){return !!query&&v.aliases.some(function(a){return a.indexOf(query)>=0;});}).map(function(v){var c=clone(v);delete c.aliases;return c;});}
+  if(path==='logs/settings'){var audit=stored('aurora-mock-log-retention',{retentionDays:0});if(body){only(body,['retentionDays']);if([0,1,3,7,15,30].indexOf(body.retentionDays)<0)fail('INVALID_ARGUMENT','保存期限无效');audit=save('aurora-mock-log-retention',body);}return audit;}
   if(path==='updates'||path==='updates/config'){
    var policy=stored('aurora-mock-update-policy',{autoCheck:true,automatic:false});
    if(body){only(body,['autoCheck','automatic']);Object.keys(body).forEach(function(k){if(typeof body[k]!=='boolean')fail('INVALID_ARGUMENT','开关须为布尔值');});Object.assign(policy,body);if(body.autoCheck===false)policy.automatic=false;if(body.automatic===true)policy.autoCheck=true;save('aurora-mock-update-policy',policy);}

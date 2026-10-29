@@ -1211,6 +1211,11 @@
       "method": "POST",
       "path": "apps/manage",
       "description": "一次修改一个属性：package 加 name/icon/resetIcon/visible/direction/enabled；启用状态需 confirm:true"
+    },
+    {
+      "method": "GET/POST",
+      "path": "logs/settings",
+      "description": "日志期限 {retentionDays:0|1|3|7|15|30}，0永久保存；写入需登录"
     }
   ]
 }

@@ -4,15 +4,19 @@ const base=__dirname+'/../app/src/main/assets/aurora/console/';
 const polish=fs.readFileSync(base+'polish.js','utf8'),settings=fs.readFileSync(base+'settings.js','utf8');
 function extract(source,start,end){return source.slice(source.indexOf(start),source.indexOf(end,source.indexOf(start)));}
 const libraryCalls=[];
-const state={desktop:['a','b'],saver:[]},ctx={Set,JSON,Array,selected:new Set(['a','b']),activeBackground:'desktop',orders:{desktop:['a','b','c'],saver:['c','b','a']},
- view:()=>({state:()=>state,choose:(scope,ids)=>libraryCalls.push([scope,Array.from(ids)]),deleteAssets:()=>{throw Error('must not delete');}}),backgrounds:()=>{},confirm:()=>false};
+const state={desktop:['a','b'],saver:['a']},ctx={Set,JSON,Array,activeBackground:'desktop',orders:{desktop:['a','b','c'],saver:['c','b','a']},
+ view:()=>({state:()=>state,choose:(scope,ids)=>{state[scope]=Array.from(ids);libraryCalls.push([scope,Array.from(ids)]);},deleteAssets:()=>{throw Error('must not delete');}}),backgrounds:()=>{},updateSelection:()=>{},confirm:()=>false};
 vm.createContext(ctx);
-vm.runInContext(extract(polish,'function selectedOrder()','async function deleteSelected()')+extract(polish,'async function deleteSelected()','function backgrounds(scope)')+';this.actions={selectedOrder,applyBackground,deleteSelected,moveOrder};',ctx);
+vm.runInContext(extract(polish,'function toggleBackground(','function backgrounds(scope)')+';this.actions={toggleBackground,deleteAsset,moveOrder};',ctx);
 (async()=>{
  ctx.actions.moveOrder('desktop','b','a');assert.deepEqual(Array.from(ctx.orders.desktop),['b','a','c']);assert.deepEqual(libraryCalls.pop(),['desktop',['b','a']]);
- ctx.orders.desktop=['a','b','c'];ctx.actions.moveOrder('desktop','c','b');assert.equal(libraryCalls.length,0,'reordering unused media must not change the applied set');
- ctx.orders.desktop=['c','b','a'];assert.deepEqual(Array.from(ctx.actions.selectedOrder()),['b','a']);ctx.actions.applyBackground('saver');assert.deepEqual(libraryCalls.pop(),['saver',['b','a']]);
- await ctx.actions.deleteSelected();assert.equal(libraryCalls.length,0,'cancelling deletion must not write');
+ state.desktop=['a','b'];ctx.orders.desktop=['a','b','c'];ctx.actions.moveOrder('desktop','c','b');assert.equal(libraryCalls.length,0,'reordering unused media must not change the applied set');
+ ctx.actions.toggleBackground('desktop','a',false);assert.deepEqual(state.desktop,['b']);assert.deepEqual(state.saver,['a'],'shared image stays assigned to saver');
+ ctx.actions.toggleBackground('desktop','b',false);assert.deepEqual(state.desktop,[],'last image can be unchecked');
+ ctx.actions.toggleBackground('saver','a',false);assert.deepEqual(state.saver,[]);
+ ctx.actions.toggleBackground('desktop','c',true);ctx.actions.toggleBackground('desktop','c',true);assert.deepEqual(state.desktop,['c'],'checking never creates duplicates');
+ libraryCalls.length=0;await ctx.actions.deleteAsset('c');assert.equal(libraryCalls.length,0,'cancelling deletion must not write');
+ assert(!polish.includes('设为桌面背景')&&!polish.includes('设为屏保背景'),'cross-scope apply buttons removed');
  const uploadSource=extract(settings,'async function uploadAssets(','  el(\'asset-upload\').onchange');
  async function upload(failAt){let seen=[],headers=[],requests=0;const meter={hidden:true,value:0},status={textContent:''},input={id:'background-upload',files:[],value:'selected',disabled:false};
   class XHR{open(method,path){assert.equal(method,'POST');assert.equal(path,'/api/v1/assets/upload');}setRequestHeader(k,v){headers.push([k,v]);}send(file){seen.push(file.name);const n=++requests;Promise.resolve().then(()=>{this.upload.onprogress({lengthComputable:true,loaded:5,total:10});if(n===failAt)this.onerror();else{this.responseText='{"ok":true,"data":{}}';this.onload();}});}upload={};}

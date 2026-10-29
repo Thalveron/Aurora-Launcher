@@ -49,6 +49,7 @@
     else if(path==='system/idle-standby'){read=path;expected=body;}
     else if(path==='apps/manage'){read=path;expected=result.apps.filter(function(app){return app.package===body.package;})[0];select=function(value){return value.apps.filter(function(app){return app.package===body.package;})[0];};}
     else if(path==='music/local/settings'){read=path;expected=body;}
+    else if(path==='logs/settings'){read=path;expected=body;}
     else if(path==='updates/config'){read='updates';expected=Object.assign({},body);if(body.autoCheck===false)expected.automatic=false;if(Object.prototype.hasOwnProperty.call(body,'automatic'))expected.automatic=body.automatic;if(body.automatic===true)expected.autoCheck=true;}
     if(read){var actual=select(await rawRequest(read));if(!contains(actual,expected)){var error=Error('保存后回读不一致，尚未确认同步。请刷新页面检查。');error.code='READBACK_MISMATCH';throw error;}}
     return result;

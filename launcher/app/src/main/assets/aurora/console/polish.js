@@ -3,7 +3,7 @@
 (function(){
  var root=document.getElementById('settings-main'),aside=document.getElementById('live-preview');
  if(!root||!aside)return;
- var selected=new Set(),orders={desktop:[],saver:[]},activeBackground='desktop',activeTheme='',appearance={},refreshing=false;
+ var orders={desktop:[],saver:[]},activeBackground='desktop',activeTheme='',appearance={},refreshing=false;
  function el(id){return document.getElementById(id);}
  function node(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
  function text(n,v){if(n&&n.textContent!==String(v))n.textContent=v;}
@@ -117,31 +117,30 @@
   var tabs=node('div','ui-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','背景用途');drop.after(tabs);
   ['desktop','saver'].forEach(function(scope,index){var title=scope==='desktop'?'桌面背景':'屏保背景',tab=button(title,function(){activeBackground=scope;syncBackgroundTabs();});tab.id='background-tab-'+scope;tab.setAttribute('role','tab');tab.setAttribute('aria-controls','background-pane-'+scope);tabs.append(tab);
    var pane=node('section','ui-card background-pane');pane.id='background-pane-'+scope;pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby',tab.id);tabs.after(pane);
-   var gallery=el(scope+'-slides'),seconds=el(scope==='desktop'?'slideSeconds':'saverSlideSeconds'),row=seconds.closest('.setting-row')||seconds.closest('label');pane.append(gallery,row);var caption=node('p','ui-card-note','多选后设置用途；拖动缩略图调整顺序，点击底部保存后同步到电视。');pane.append(caption);
+   var gallery=el(scope+'-slides'),seconds=el(scope==='desktop'?'slideSeconds':'saverSlideSeconds'),row=seconds.closest('.setting-row')||seconds.closest('label');pane.append(gallery,row);var caption=node('p','ui-card-note','勾选表示用于当前背景，取消勾选表示移除；点击底部保存后同步到电视。');pane.append(caption);
   });
-  var toolbar=node('div','background-actions');toolbar.id='background-actions';toolbar.append(node('span','', '未选择素材'),button('设为桌面背景',function(){applyBackground('desktop');}),button('设为屏保背景',function(){applyBackground('saver');}),button('删除所选',deleteSelected,'danger'));tabs.after(toolbar);
+  var toolbar=node('div','background-actions');toolbar.id='background-actions';toolbar.append(node('span','','未选择背景'));tabs.after(toolbar);
   Array.from(panel.children).filter(function(n){return n.classList.contains('ui-card')&&!n.classList.contains('background-pane');}).forEach(function(card){card.classList.add('ui-obsolete-wrapper');});
   syncBackgroundTabs();
  }
  function syncBackgroundTabs(){['desktop','saver'].forEach(function(scope){var tab=el('background-tab-'+scope),pane=el('background-pane-'+scope);if(tab){tab.setAttribute('aria-selected',String(scope===activeBackground));tab.tabIndex=scope===activeBackground?0:-1;}setHidden(pane,scope!==activeBackground);});if(view())backgrounds(activeBackground);updateSelection();}
- function updateSelection(){var bar=el('background-actions');if(!bar)return;text(bar.querySelector('span'),selected.size?'已选择 '+selected.size+' 项':'未选择素材');bar.querySelectorAll('button').forEach(function(b){b.disabled=!selected.size;});}
- function selectedOrder(){return orders[activeBackground].filter(function(id){return selected.has(id);});}
- function applyBackground(scope){if(!view()||!selected.size)return;view().choose(scope,selectedOrder());backgrounds('desktop');backgrounds('saver');}
- async function deleteSelected(){if(!view()||!selected.size)return;var ids=selectedOrder();if(!confirm('删除所选 '+ids.length+' 项背景素材？所有主题共用此库，正在使用的素材会受到保护。'))return;var bar=el('background-actions');bar.querySelectorAll('button').forEach(function(b){b.disabled=true;});try{await view().deleteAssets(ids);ids.forEach(function(id){selected.delete(id);});backgrounds('desktop');backgrounds('saver');}catch(error){notify(error.message);}finally{updateSelection();}}
+ function updateSelection(){var bar=el('background-actions');if(!bar||!view())return;var count=view().state()[activeBackground].length;text(bar.querySelector('span'),count?'已勾选 '+count+' 项，修改后请保存':'未勾选背景，修改后请保存');}
+ function toggleBackground(scope,id,checked){if(!view())return;var ids=view().state()[scope].filter(function(value){return value!==id;});if(checked)ids.push(id);view().choose(scope,ids);updateSelection();}
+ async function deleteAsset(id){if(!view()||!confirm('删除这项素材？所有主题共用此库，正在使用的素材不能删除。'))return;try{await view().deleteAssets([id]);backgrounds('desktop');backgrounds('saver');}catch(error){notify(error.message);}}
  function moveOrder(scope,from,to){var ids=orders[scope],i=ids.indexOf(from),j=ids.indexOf(to);if(i<0||j<0||i===j)return;ids.splice(j,0,ids.splice(i,1)[0]);var state=view().state(),active=state[scope],next=ids.filter(function(id){return active.indexOf(id)>=0;});if(JSON.stringify(next)!==JSON.stringify(active))view().choose(scope,next);backgrounds(scope);}
  function backgrounds(scope){
   setupBackgrounds();if(!view())return;var state=view().state(),box=el(scope+'-slides');if(!box)return;
   var list=state.assets.filter(function(a){return a.kind==='background';}),byId={};list.forEach(function(a){byId[a.id]=a;});
-  var existing=orders[scope].filter(function(id){return !!byId[id];});state[scope].concat(list.map(function(a){return a.id;})).forEach(function(id){if(byId[id]&&existing.indexOf(id)<0)existing.push(id);});existing=state[scope].filter(function(id){return !!byId[id];}).concat(existing.filter(function(id){return state[scope].indexOf(id)<0;}));orders[scope]=existing;
-  Array.from(selected).forEach(function(id){if(!byId[id])selected.delete(id);});box.replaceChildren();
-  existing.forEach(function(id,index){var asset=byId[id],card=view().card(asset);card.classList.add('background-asset');Array.from(card.querySelectorAll('small')).filter(function(n){return n.textContent==='▶ 视频';}).forEach(function(n){n.remove();});card.dataset.assetId=id;card.draggable=true;card.classList.toggle('is-selected',selected.has(id));
-   var check=node('input');check.type='checkbox';check.checked=selected.has(id);check.setAttribute('aria-label','选择素材 '+asset.name);check.onchange=function(){if(check.checked)selected.add(id);else selected.delete(id);card.classList.toggle('is-selected',check.checked);updateSelection();};card.prepend(check);
+  var existing=orders[scope].filter(function(id){return !!byId[id];});state[scope].concat(list.map(function(a){return a.id;})).forEach(function(id){if(byId[id]&&existing.indexOf(id)<0)existing.push(id);});var applied=state[scope==='desktop'?'appliedDesktop':'appliedSaver']||state[scope];existing=existing.filter(function(id){return applied.indexOf(id)>=0;}).concat(existing.filter(function(id){return applied.indexOf(id)<0;}));orders[scope]=existing;
+  box.replaceChildren();
+  existing.forEach(function(id,index){var asset=byId[id],card=view().card(asset);card.classList.add('background-asset');Array.from(card.querySelectorAll('small')).filter(function(n){return n.textContent==='▶ 视频';}).forEach(function(n){n.remove();});card.dataset.assetId=id;card.draggable=true;card.classList.toggle('is-selected',state[scope].indexOf(id)>=0);
+   var check=node('input');check.type='checkbox';check.checked=state[scope].indexOf(id)>=0;check.setAttribute('aria-label','选择素材 '+asset.name);check.onchange=function(){toggleBackground(scope,id,check.checked);card.classList.toggle('is-selected',check.checked);};card.prepend(check);
    card.append(node('small','asset-size',(Number(asset.bytes||0)/1048576).toFixed(1)+' MB'));
    var desktop=(state.appliedDesktop||[]).indexOf(id)>=0,saver=(state.appliedSaver||[]).indexOf(id)>=0;
    if(desktop||saver)card.append(node('span','asset-used',desktop&&saver?'桌面 / 屏保使用中':desktop?'桌面使用中':'屏保使用中'));
    if(asset.video){var badge=node('span','asset-video','▶ 视频');card.prepend(badge);}
    card.ondragstart=function(e){e.dataTransfer.setData('text/aurora-background',id);card.classList.add('dragging');};card.ondragend=function(){card.classList.remove('dragging');};card.ondragover=function(e){if(Array.from(e.dataTransfer.types).indexOf('text/aurora-background')>=0)e.preventDefault();};card.ondrop=function(e){var from=e.dataTransfer.getData('text/aurora-background');if(from){e.preventDefault();moveOrder(scope,from,id);}};
-   var arrows=node('div','asset-order');[-1,1].forEach(function(step){var b=button(step<0?'←':'→',function(){moveOrder(scope,id,existing[index+step]);});b.disabled=index+step<0||index+step>=existing.length;b.setAttribute('aria-label',(step<0?'前移 ':'后移 ')+asset.name);arrows.append(b);});card.append(arrows);box.append(card);
+   var arrows=node('div','asset-order');[-1,1].forEach(function(step){var b=button(step<0?'←':'→',function(){moveOrder(scope,id,existing[index+step]);});b.disabled=index+step<0||index+step>=existing.length;b.setAttribute('aria-label',(step<0?'前移 ':'后移 ')+asset.name);arrows.append(b);});var remove=button('删除素材',function(){deleteAsset(id);},'danger');arrows.append(remove);card.append(arrows);box.append(card);
   });
   if(!list.length){var empty=node('div','ui-empty');empty.append(node('span','empty-symbol','▧'),node('strong','','还没有背景素材'),node('p','','上传图片或视频后，可分别设置桌面和屏保背景。'),button('上传背景',function(){el('background-upload').click();}));box.append(empty);}
   updateSelection();

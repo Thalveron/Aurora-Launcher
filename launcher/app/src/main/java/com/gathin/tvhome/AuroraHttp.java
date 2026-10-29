@@ -129,10 +129,11 @@ final class AuroraHttp {
             switch(route){
                 case "config/native":data=ConsoleNativeSettings.read(c);break;
                 case "logs":data=WebAudit.list(c);break;
+                case "logs/settings":data=WebAudit.settings(c);break;
                 case "music/usb/volumes":data=ConsoleUsb.volumes();break;
                 case "apps/layout":ConsoleNativeSettings.requireNative(c);data=WebSettings.apps(c);break;
                 case "apps/cards":ConsoleNativeSettings.requireNative(c);data=WebSettings.cards(c);break;
-                case "logs/export":binary(output,200,"application/x-ndjson; charset=utf-8",WebAudit.export(c),false);WebAudit.record(c,peer,"导出操作日志","完整日志",200);status=200;return true;
+                case "logs/export":output.write("HTTP/1.1 200 OK\r\nContent-Type: application/x-ndjson; charset=utf-8\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n".getBytes(StandardCharsets.US_ASCII));WebAudit.exportTo(c,output);WebAudit.record(c,peer,"导出操作日志","完整日志",200);status=200;return true;
                 case "updates":data=LauncherUpdater.state(c);break;
                 case "system/default-home":data=DefaultHome.status(c);break;
                 case "console/addresses":data=ConsoleAddresses.list(c);break;
@@ -231,6 +232,7 @@ final class AuroraHttp {
                 case "system/screenshots/capture":AuroraSettings.only(body,"resolution");String resolution=body.optString("resolution","4k");if(!resolution.equals("4k")&&!resolution.equals("native"))throw new IllegalArgumentException("截图分辨率无效");data=AuroraScreenshots.capture(c,resolution.equals("4k"));WebAudit.record(c,peer,"拍摄桌面截图",data.toString(),200);break;
                 case "system/screenshots/delete":AuroraSettings.only(body,"id");AuroraScreenshots.delete(c,body.getString("id"));WebAudit.record(c,peer,"删除桌面截图",body.getString("id"),200);break;
                 case "logs/clear":AuroraSettings.only(body,"confirm");WebAudit.clear(c,Boolean.TRUE.equals(body.opt("confirm")),peer);data=new JSONObject().put("cleared",true);break;
+                case "logs/settings":data=WebAudit.configure(c,body);break;
                 case "voice":data=AuroraVoice.save(c,body);break;
                 case "voice/speak":data=AuroraVoice.speak(c,body,false);break;
                 case "voice/test":data=AuroraVoice.speak(c,body,true);break;
