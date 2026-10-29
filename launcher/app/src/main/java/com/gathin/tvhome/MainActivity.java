@@ -217,7 +217,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private final BroadcastReceiver uploadChanged = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent intent) {
             String kind=intent.getStringExtra("kind");
-            if("input-shortcut".equals(kind)){reloadApps(false);return;}
+            if("input-shortcut".equals(kind)||"apps-presentation".equals(kind)){reloadApps(false);return;}
             if("settings-language".equals(kind)){if(visibleHome==MainActivity.this)recreate();return;}
             if("settings-layout".equals(kind)){if(visibleHome==MainActivity.this)recreate();return;}
             if("settings".equals(kind)||"settings-ambient".equals(kind)){
@@ -290,10 +290,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         android.widget.TextClock date=findViewById(R.id.date);
         String format;
         if(DesktopLanguage.english(this)){
-            String stamp=java.time.ZonedDateTime.now(java.time.ZoneId.of(LocationSettings.zone(this))).format(java.time.format.DateTimeFormatter.ofPattern("MMM d EEEE",java.util.Locale.US));
+            String stamp=java.time.Instant.ofEpochMilli(AuroraServices.now()).atZone(java.time.ZoneId.of(LocationSettings.zone(this))).format(java.time.format.DateTimeFormatter.ofPattern("MMM d EEEE",java.util.Locale.US));
             String shown=mode==1?stamp:DesktopLanguage.city(this)+" | "+stamp+"\n"+DesktopLanguage.lunar(this);
             format="'"+shown.replace("'","''")+"'";
-        }else format=mode==1?"M月d日 EEEE":"'"+LocationSettings.city(this).replace("'","")+" | 'M月d日 EEEE\n'"+LunarDate.today()+"'";
+        }else format=mode==1?"M月d日 EEEE":"'"+LocationSettings.city(this).replace("'","")+" | 'M月d日 EEEE\n'"+LunarDate.today(this)+"'";
         date.setFormat12Hour(format);date.setFormat24Hour(format);
     }
     private AppLibraryDialog appLibrary;
@@ -313,7 +313,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 if(!java.util.Objects.equals(clock.getTimeZone(),zone))clock.setTimeZone(zone);
                 CharSequence format=clock.getFormat24Hour();if(format!=null)clock.setText(android.text.format.DateFormat.format(format,calendar));
             }
-            String city=LocationSettings.city(MainActivity.this);
+            String city=LocationSettings.city(MainActivity.this)+"|"+zone+"|"+calendar.get(java.util.Calendar.YEAR)+"-"+calendar.get(java.util.Calendar.DAY_OF_YEAR);
             if(!city.equals(globalHeaderCity)){globalHeaderCity=city;applyInformationMode(false);}
         }catch(Exception ignored){}
         handler.postDelayed(this,1000);
@@ -422,7 +422,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         reducedMotion = cfg.reducedMotion;
         dockRow = cfg.dockRow;
         festival = cfg.festival;
-        festive = festival.active(LocalDate.now());
+        festive = festival.active(CityTime.date(AuroraServices.now(),LocationSettings.zone(MainActivity.this)));
         liveTvPkg = cfg.liveTvPackage;
         liveTvAction = cfg.liveTvAction;
         inputAction = cfg.inputAction;
@@ -790,7 +790,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         HomeCompatibility.ensureEnabled(this);
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> HomeCompatibility.ensureEnabled(this), 3000);
         // A festival that started or ended while Home was in the background: rebuild with or without it.
-        if (festive != festival.active(LocalDate.now())) {
+        if (festive != festival.active(CityTime.date(AuroraServices.now(),LocationSettings.zone(MainActivity.this)))) {
             recreate();
             return;
         }
@@ -834,7 +834,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         handler.postDelayed(minuteTick, MINUTE_MS);
         if (festive && diya != null) {
             diya.start();
-            LocalDate today = LocalDate.now();
+            LocalDate today = CityTime.date(AuroraServices.now(),LocationSettings.zone(MainActivity.this));
             if (!reducedMotion && !today.equals(lastPetalShower)) {
                 lastPetalShower = today;
                 handler.postDelayed(this::playPetalShower, 450);

@@ -4,10 +4,15 @@ import android.content.Context;import java.io.*;
 final class ManagedWebAssets {
  static void sync(Context c)throws Exception{
   long version=UpdatePackages.code(c.getPackageManager().getPackageInfo(c.getPackageName(),0));
-  if(c.getSharedPreferences("managed_web_assets",0).getLong("version",-1)==version)return;
+  long installed=c.getPackageManager().getPackageInfo(c.getPackageName(),0).lastUpdateTime;
+  if(c.getSharedPreferences("managed_web_assets",0).getLong("version",-1)==version&&c.getSharedPreferences("managed_web_assets",0).getLong("installed",-1)==installed)return;
   File base=new File(c.getExternalFilesDir(null),"aurora");
   copy(c,"aurora/console",new File(base,"console"));copy(c,"aurora/core",new File(base,"core"));File cards=new File(base,"themes/cards");cards.mkdirs();copy(c,"aurora/themes/cards/theme.js",new File(cards,"theme.js"));
-  if(!c.getSharedPreferences("managed_web_assets",0).edit().putLong("version",version).commit())throw new IOException("网页版本标记保存失败");
+  for(String retired:new String[]{"console/index.html","console/settings.html","console/redirect.js","console/theme-css.js"}){
+   File file=new File(base,retired);if(!file.getCanonicalPath().startsWith(base.getCanonicalPath()+File.separator))throw new IOException("网页资源路径无效");
+   if(file.exists()&&!file.delete())throw new IOException("旧网页资源清理失败");
+  }
+  if(!c.getSharedPreferences("managed_web_assets",0).edit().putLong("version",version).putLong("installed",installed).commit())throw new IOException("网页版本标记保存失败");
  }
  private static void copy(Context c,String source,File target)throws Exception{
   String[] entries=c.getAssets().list(source);if(entries!=null&&entries.length>0){if(!target.isDirectory()&&!target.mkdirs())throw new IOException("无法创建网页资源目录");for(String entry:entries)copy(c,source+"/"+entry,new File(target,entry));return;}

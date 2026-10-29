@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const nodes={},pending=[],calls=[];let saved=12;
-function node(id){return nodes[id]||(nodes[id]={value:'',checked:false,textContent:'',append(){},replaceChildren(){}});}
+function node(id){return nodes[id]||(nodes[id]={value:'',checked:false,textContent:'',parentElement:{append(){}},append(){},replaceChildren(){}});}
 const state=()=>({volume:saved,volumeMax:100,enabled:true,autoplay:false,fadeMs:1500,reason:'playing',selected:''});
 const api={request:async(path,body)=>{if(path==='bgm/library')return [];if(path==='bgm')return state();if(path==='bgm/volume'){calls.push(body.volume);return new Promise(resolve=>pending.push(()=>{saved=body.volume;resolve(state());}));}return state();}};
 const sandbox={window:{AuroraAPI:api,addEventListener(){}},document:{hidden:false,getElementById:node,createElement:()=>({})},setInterval:()=>0,clearInterval(){},setTimeout:()=>0,clearTimeout(){},fetch(){}};

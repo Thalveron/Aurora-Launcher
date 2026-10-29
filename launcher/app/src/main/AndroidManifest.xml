@@ -26,6 +26,7 @@
     <!-- Android 11+ package visibility: lets the launcher list the TV apps it shows as tiles, and the
          apps that declare a module card (docs/specs/card.md). -->
     <queries>
+        <intent><action android:name="android.settings.MANAGE_UNKNOWN_APP_SOURCES" /></intent>
         <package android:name="com.gathin.tvhome.updater" /><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -52,7 +53,8 @@
         android:name=".LauncherApplication"
         android:label="@string/app_name"
         android:icon="@drawable/aurora_launcher_icon"
-        android:banner="@drawable/banner"
+        android:roundIcon="@drawable/aurora_launcher_icon"
+        android:banner="@drawable/aurora_launcher_banner"
         android:theme="@style/Theme.TvHome"
         android:allowBackup="false"
         android:networkSecurityConfig="@xml/aurora_network_security"
@@ -87,6 +89,7 @@
         <activity android:name=".BootInputActivity" android:exported="true" android:excludeFromRecents="true" android:launchMode="singleTask" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
         <service android:name=".UploadService" android:exported="false" />
         <activity android:name=".DesktopInformationActivity" android:exported="false" android:screenOrientation="landscape" android:theme="@style/Theme.TvHome.InfoDrawer" />
+        <activity android:name=".UpdateInstallActivity" android:exported="false" android:screenOrientation="landscape" android:theme="@android:style/Theme.Material.Dialog.NoActionBar" />
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.updates" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/updater_paths" /></provider>
         <activity android:name=".BackgroundActivity" android:exported="false" android:screenOrientation="landscape" />
         <activity android:name=".AmbientMusicActivity" android:exported="false" android:screenOrientation="landscape" />

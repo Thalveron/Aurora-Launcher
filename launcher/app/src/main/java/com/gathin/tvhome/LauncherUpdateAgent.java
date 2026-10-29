@@ -18,10 +18,11 @@ public final class LauncherUpdateAgent {
    if(mode.equals("rollback")){
     File previousRun=new File(plan.getString("previousRun"));if(!previousRun.getPath().matches(java.util.regex.Pattern.quote(ROOT)+"[a-f0-9]{24}"))throw new IOException("Invalid rollback workspace");
     File apk=new File(previousRun,"previous.apk"),backup=new File(previousRun,"backup.zip");verify(apk,plan.getString("targetSha"));verify(backup,plan.getString("backupSha"));status("rolling_back","正在回退到上一版本");
-    install(apk);command("am","force-stop",PKG);restore(backup,plan.optBoolean("fullBackup"));syncAssets(apk);launch(false);status("rolled_back","已回退到上一版本并恢复设置");return;
+    validateBackup(backup);preflightExternal(backup);install(apk);command("am","force-stop",PKG);restore(backup,plan.optBoolean("fullBackup"));syncAssets(apk);launch(false);status("rolled_back","已回退到上一版本并恢复设置");return;
    }
    status("preparing","正在保存独立恢复包");
    receive("/target",new File(run,"target.apk"),plan.getString("targetSha"));receive("/previous",new File(run,"previous.apk"),plan.getString("previousSha"));receive("/backup",new File(run,"backup.zip"),plan.getString("backupSha"));
+   validateBackup(new File(run,"backup.zip"));preflightExternal(new File(run,"backup.zip"));
    status("installing","正在覆盖安装，原设置已保存");
    try{install(new File(run,"target.apk"));if(mode.equals("clean")){String clear=command("pm","clear",PKG);if(!clear.contains("Success"))throw new IOException("清空设置失败");}syncAssets(new File(run,"target.apk"));launch(true);status("verifying","新版已安装，正在观察启动状态");
     if(!healthy())throw new IOException("新版未通过启动健康检查");
@@ -98,7 +99,7 @@ public final class LauncherUpdateAgent {
   }if(count==0||!privateData)throw new IOException("恢复快照为空，拒绝清除当前设置");
  }
  private static void restore(File backup,boolean full)throws Exception{
-  validateBackup(backup);
+  validateBackup(backup);preflightExternal(backup);
   String data=plan.getString("dataDir"),external=plan.getString("externalDir");
   appCommand("rm -rf "+UpdatePolicy.quote(data+"/files")+" "+UpdatePolicy.quote(data+"/shared_prefs")+" "+UpdatePolicy.quote(data+"/databases")+(full?" "+UpdatePolicy.quote(external):""));
   try(ZipInputStream zip=new ZipInputStream(new BufferedInputStream(openGuard(backup)))){ZipEntry entry;int count=0;
@@ -116,11 +117,12 @@ public final class LauncherUpdateAgent {
   else{Process p=new ProcessBuilder("run-as",PKG,"sh","-c","cat > "+UpdatePolicy.quote(file.getPath())).redirectErrorStream(true).start();try(OutputStream out=p.getOutputStream()){byte[] b=new byte[65536];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}if(!p.waitFor(30,TimeUnit.SECONDS)||p.exitValue()!=0)throw new IOException("无法恢复应用设置");}
  }
  private static void syncAssets(File apk)throws Exception{
-  String external=plan.getString("externalDir");
-  try(ZipInputStream zip=new ZipInputStream(new BufferedInputStream(openGuard(apk)))){ZipEntry e;
-   while((e=zip.getNextEntry())!=null){String name=e.getName();if(e.isDirectory()||name.contains("..")||!(name.startsWith("assets/aurora/console/")||name.startsWith("assets/aurora/core/")||name.equals("assets/aurora/themes/cards/theme.js")))continue;File target=new File(external,name.substring("assets/".length()));appCommand("mkdir -p "+UpdatePolicy.quote(target.getParent()));writeAsApp(target,zip);}
-  }
+  // Android 11 scoped storage can reject run-as despite a matching UID.
+  // The real app syncs shipped assets at startup (ManagedWebAssets).
   if(root&&!plan.optBoolean("useRunAs")){String data=plan.getString("dataDir");for(String dir:new String[]{"files","shared_prefs","databases"})command("chown","-R",plan.getInt("uid")+":"+plan.getInt("uid"),data+"/"+dir);}
+ }
+ private static void preflightExternal(File backup)throws Exception{
+  try(ZipInputStream zip=new ZipInputStream(new BufferedInputStream(openGuard(backup)))){ZipEntry e;while((e=zip.getNextEntry())!=null)if(e.getName().startsWith("external/")){String external=UpdatePolicy.quote(plan.getString("externalDir"));appCommand("test -d "+external+" && test -w "+external);return;}}
  }
  private static InputStream openGuard(File file)throws Exception{
   Process p=new ProcessBuilder("run-as",GUARD,"cat",file.getPath()).start();

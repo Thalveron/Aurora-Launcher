@@ -34,7 +34,7 @@ final class AuroraThemes {
         if(!name.equals(manifest.optString("id"))||manifest.optInt("apiVersion")!=1)throw new IOException("主题接口版本不兼容");return manifest;
     }
     static JSONArray list(Context c)throws Exception {
-        JSONArray themes=new JSONArray();themes.put(manifest(c,FOUNDATION).put("available",true).put("stage","接口验收预览"));
+        JSONArray themes=new JSONArray();
         themes.put(manifest(c,"legacy").put("available",true).put("stage","已内置"));
         themes.put(manifest(c,"cards").put("available",true).put("stage","简约卡片 · 封面、歌词、快捷功能与系统状态"));
         JSONArray users=AuroraCssThemes.entries(c);for(int i=0;i<users.length();i++)themes.put(manifest(c,users.getJSONObject(i).getString("id")).put("available",true).put("stage","自定义 CSS 主题"));

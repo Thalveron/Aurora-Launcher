@@ -8,9 +8,13 @@ final class UploadSecurity {
  static String password(Context c){return prefs(c).getString("password","");}
  static String username(Context c){return prefs(c).getString("username",initialized(c)?"tv":"");}
  static synchronized void initialize(Context c,String name,String value,String confirmation){
-  if(initialized(c))throw new IllegalStateException("账号已经初始化，请登录后在安全设置修改");
+  if(initialized(c)||openAccess(c))throw new IllegalStateException("访问方式已经设置，请在安全设置修改");
   ConsoleAccessRules.username(name);ConsoleAccessRules.password(value,confirmation);
   if(!prefs(c).edit().putString("username",name).putString("password",value).commit())throw new IllegalStateException("账号保存失败");
+ }
+ static synchronized void initializeOpen(Context c){
+  if(initialized(c)||openAccess(c))throw new IllegalStateException("访问方式已经设置，请在安全设置修改");
+  if(!prefs(c).edit().putBoolean("openAccess",true).commit())throw new IllegalStateException("访问方式保存失败");
  }
  static boolean authorized(Context c,String header){
   if(!initialized(c)||header==null||!header.startsWith("Basic "))return false;

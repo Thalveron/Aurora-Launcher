@@ -2,9 +2,9 @@
   "apiVersion": 1,
   "stage": 2,
   "config": {
-    "theme": "foundation",
+    "theme": "legacy",
     "locale": "zh-CN",
-    "lastGood": "foundation",
+    "lastGood": "legacy",
     "icon_fallback": "app",
     "consoleLocale": "zh-CN"
   },
@@ -335,7 +335,7 @@
         "lon": 121.4737,
         "key": "",
         "urls": [
-          "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone=Asia%2FShanghai"
+          "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone={timezone}"
         ],
         "headers": {},
         "intervalMinutes": 60,
@@ -371,7 +371,7 @@
     },
     "time": {
       "canSyncSystem": false,
-      "permissionReason": "Computer preview does not set system time",
+      "permissionReason": "电脑模拟预览不修改系统时钟",
       "updating": false,
       "updatedAt": 0
     }
@@ -395,5 +395,61 @@
     "voices": [],
     "ready": false,
     "reason": "Computer preview"
+  },
+  "system/capabilities": {
+    "standby": {
+      "available": false,
+      "backend": "",
+      "preferred": "auto",
+      "candidates": [
+        {
+          "backend": "AdbLoopbackBackend",
+          "available": false,
+          "reason": "本地模拟预览不连接电视"
+        }
+      ]
+    },
+    "screenshot": {
+      "available": false,
+      "backend": "",
+      "preferred": "auto",
+      "candidates": [
+        {
+          "backend": "AdbLoopbackBackend",
+          "available": false,
+          "reason": "本地模拟预览不连接电视"
+        }
+      ]
+    },
+    "key": {
+      "available": false,
+      "backend": "",
+      "preferred": "auto",
+      "candidates": [
+        {
+          "backend": "AdbLoopbackBackend",
+          "available": false,
+          "reason": "本地模拟预览不连接电视"
+        }
+      ]
+    },
+    "launch": {
+      "available": false,
+      "backend": "",
+      "preferred": "auto",
+      "candidates": [
+        {
+          "backend": "AdbLoopbackBackend",
+          "available": false,
+          "reason": "本地模拟预览不连接电视"
+        }
+      ]
+    },
+    "adb": {
+      "message": "本地模拟预览不连接电视",
+      "pending": false,
+      "connected": false
+    },
+    "webview": "电脑浏览器"
   }
 }

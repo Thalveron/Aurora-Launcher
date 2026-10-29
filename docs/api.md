@@ -54,7 +54,7 @@ LAN读取也需登录。本机127.0.0.1免密读展示数据；所有POST、系�
 | WS | events | snapshot及增量事件 |
 | GET | system/capabilities | 后端及可用状态 |
 | POST | system/connect | 一次ADB授权请求 |
-| POST | system/key | {key:up/down/left/right/ok/back/home} |
+| POST | system/key | {key:up/down/left/right/ok/back/home/volume_up/volume_down} |
 | POST | system/standby/confirm | 一次性60秒令牌 |
 | POST | system/standby | {confirmationToken}，二次确认 |
 | GET | system/screenshot | JPEG单帧，需登录 |
@@ -401,3 +401,66 @@ POST /api/v1/system/idle-standby/preview 接受 {}，显示60秒预览，绝不�
 ### 手动上传桌面更新（0.2.6）
 POST /api/v1/updates/upload：已登录（或主动开启免登录）的局域网请求；原始 APK 请求体，必须有 Content-Length，1KB～512MB。验证包名、系统要求、签名、文件完整性和版本，允许同版本重装，拒绝降级。返回 {version,versionCode,sha256,bytes,uploadToken,expiresAt}，有效期15分钟。上传本身不安装。
 POST /api/v1/updates/install-upload：{uploadToken,confirmed:true}，再次校验并消费上传票据，以普通 update 模式保留数据安装，不执行 clean。无维护权限时打开电视系统安装确认，有权限时沿用独立备份回退流程。POST updates/cancel 可取消待安装上传包。待确认上传包不被自动更新任务抢占。上传、安装和取消均记录日志。
+
+## 0.3.1 测试版补充
+- GET /api/v1/system/default-home：返回 isDefault、currentPackage、previousPackage、originalDisabled、canManage、canRestore、reason。控制类接口仍需登录（或主动开启的免登录模式）。
+- POST /api/v1/system/default-home：{confirmed:true,disableOriginal:true}。验证 HOME 已设置成功才尝试 pm disable-user；仅限系统登记的原 HOME 包，保护本应用与系统设置/UI。使用当前 Android 用户，不写死用户0。返回实际状态和message。无ADB则打开系统HOME选择，不声称已停用。
+- POST /api/v1/system/default-home/restore：{confirmed:true}，仅恢复此前记录且仍通过安全检查的原HOME包；默认主页仍为 Aurora。所有操作记录日志。
+- time.syncSystem 的内置默认值为 false。升级初始化一次关闭旧模板引入的开启值；未获得 SET_TIME 或具备 CAP_SYS_TIME 的 Root 时，返回值强制false且UI禁用；保存true会拒绝。
+- updates/check 仅查版本；updates/download 才下载，ready后确认取消或安装。缺少安装权限返回 install_permission 和 hasPendingInstaller，授权后再次调用 updates/install 复用已校验文件。
+- network/traffic 新增 uidAvailable、connectionsAvailable、compatibilityNote、diagnostics。不可用的UID计数/速率返回null。无ADB也可开启基础监控，实际仅总量及本应用数据；完整数据需要ADB和系统支持。
+
+
+### 应用管理（控制台第四轮）
+- GET /api/v1/apps/manage：需登录；返回 data={apps:[],theme,mock}。每项包含 package、name、originalName、icon、customIcon、version、launchable、visible、rank、system、enabled、removable、canToggle、toggleReason。
+- POST /api/v1/apps/manage：需登录及当前主题上下文；请求 package 加 **一个**属性：name（最多60字，空白恢复原名）、icon（128/256像素PNG的base64，解码后最多40000字节）、resetIcon:true、visible:boolean、direction:-1/1 或 enabled:boolean。enabled 还须 confirm:true。
+- 名称、图标只更改桌面呈现，不更改安装包；隐藏与顺序沿用当前主题存储。禁用只对可控系统应用开放，保护主页、维护组件、系统UID、持久进程、设置、安装器、输入法与连接核心组件；重新启用是恢复入口。未连接本机调试时拒绝操作。
+- 写入纳入操作日志。返回统一信封，data 与 GET 相同。原有安装、卸载和模块卡片接口继续保留。
+- 电脑模拟返回同一字段结构；修改只作用于浏览器模拟数据，不能向电视发指令。
+- 网页遥控器只新增 volume_up / volume_down 两个具名按键；任意数值、power 等依旧拒绝，待机继续使用独立确认票据。
+
+
+## 新控制台接管接口（兼容迁移）
+
+正式入口为 `/console/app.html`，加在安全设置的访问前缀后。根地址、`/console/`、`/console/settings.html`、旧 `desktop/?section=...` 在有效访问前缀内由服务端 302 跳转。配置了非空安全路径时，路径外的请求仍被拒绝，不能靠旧地址绕过路径保护。旧控制台 API 不再执行操作，返回 501 / NOT_IMPLEMENTED。
+
+HTML 使用 Cache-Control: no-cache；console/core 的 JS、CSS 由内容摘要生成文件名，资源之间的引用同步替换。未带摘要的资源地址 302 到当前摘要地址。摘要资源使用私有 immutable 缓存，接口和媒体状态不缓存。未登录时先在服务端判断登录态，不下发控制台页面。生产控制台不加载模拟数据脚本；本机开发服务器仅在显式 mock=1 时注入。
+
+所有以下 JSON 路由遵循 v1 的 ok/data 或 ok/error 结构。控制类 POST 需要登录（或用户已主动开启局域网免密），记录操作日志。未支持的能力返回 NOT_IMPLEMENTED，不能替换成模拟结果。
+
+| 方法 | 路径 | 参数/返回 |
+|---|---|---|
+| GET | /api/v1/config/native | 仅极简桌面：fields 为明确设置白名单，包含 id/title/type/value/min/max/options；不返回安全配置 |
+| POST | /api/v1/config/native | {changes:{"launcher:columns":5}}；先完整验证，保存、逐项回读，再广播刷新；返回 fields 和 verified:true |
+| POST | /api/v1/config/native/reset-color | {id:"appearance:text"}；重置已声明的颜色，返回当前设置 |
+| GET | /api/v1/apps/layout | 极简桌面的完整应用显示/固定/顺序列表 |
+| POST | /api/v1/apps/layout | {apps:[{package,visible,pinned,...}]}，完整白名单列表；应用列表变化则拒绝 |
+| GET | /api/v1/apps/cards | 应用模块卡片 package/label/caption/shown；其他主题返回 NOT_IMPLEMENTED |
+| POST | /api/v1/apps/cards | {package,shown}，返回最新卡片列表 |
+| POST | /api/v1/apps/uninstall | {package,confirm:true}；系统、设置、桌面、维护组件受保护；返回最新应用列表 |
+| GET | /api/v1/music/usb/volumes | 已挂载 U 盘 id/label/total/free；字节单位；不接受任意目录 |
+| POST | /api/v1/music/usb/upload | 原始音频请求体，Content-Length、X-USB-Volume、URL 编码 X-File-Name；单首≤1GB；成功为 {volume,name,bytes,verified:true} |
+| POST | /api/v1/inputs/name | {id,name}；仅已枚举输入口，名称≤60字，留空清除；返回输入源列表 |
+| GET | /api/v1/logs | 最近500条，time 为毫秒，含 ip/action/detail/status |
+| GET | /api/v1/logs/export | 登录后返回 NDJSON 完整保留日志，二进制下载例外，不包 JSON envelope |
+| POST | /api/v1/logs/clear | {confirm:true}；清空后保留清空动作本身的审计记录 |
+| POST | /api/v1/bgm/builtin | {}；显式导入并选中内置钢琴，不隐式开始播放 |
+| POST | /api/v1/bgm/delete | {id,confirm:true}；当前使用曲目不能删除 |
+
+USB 上传采用临时文件、音频轨验证、同步落盘、原子改名；重复名称自动编号；中断清理未完成文件。返回前检查保存大小。原屏保 .audio 文件通过受限 ID 兼容读取，仍保存在原目录，不搬动、不丢失。
+
+天气服务 time 配置新增可选 hour24 布尔值；旧配置缺少此字段时沿用原设备的时间格式，保存后统一控制各主题显示。syncSystem 权限要求保持不变，hour24 不依赖系统校时权限。
+
+写入确认：原生字段由服务端逐项回读；控制台对配置、外观、背景音乐、语音、输入源快捷方式、服务地址、待机和流量设置另发 GET 校验。安装仅返回任务排队时显示等待，通过 apps/jobs 的 done/failed 才显示最终结果。安全设置改变路径/端口/登录态后必须跳转新地址重新认证，不复用旧路径会话。
+
+bootstrap 新增 console（正式入口）；legacyConsole 字段继续保留为兼容别名，指向同一正式入口，新页面不依赖该别名。
+
+
+## 1.0.0 首次访问、城市搜索与更新策略
+
+- POST /api/v1/auth/open-setup：仅首次未初始化访问方式，局域网且同源；参数 {"confirmed":true}（标准 JSON）。成功 data={openAccess:true,needsPath:boolean}；已有账号或免密配置返回 ALREADY_INITIALIZED，缺少确认返回 CONFIRM_REQUIRED。写入操作日志，不产生默认密码。
+- 安全设置在首次免密状态允许留空用户名；关闭免密前必须同时设置用户名及8～64位确认密码。旧账号不受首次免密接口影响。
+- GET /api/v1/services/cities?name=耒阳：先匹配内置中国城市别名与地区、经纬度、时区，无本地结果再查询原全球在线源；响应结构不变。GeoNames 数据归属见 assets/geography/NOTICE.txt。
+- POST /api/v1/updates/config：autoCheck/automatic 为布尔值。网页通过统一保存栏提交，保存后 GET /updates 回读；关闭检查会同时关闭自动安装，开启自动安装会开启检查。设备不具备维护能力时，自动安装禁用并说明原因，手动下载与系统确认安装仍可用。
+- 更新来源保持 GitHub 原地址与 https://gh-proxy.com/ 加速地址。元数据并行请求并选最高有效版本，安装包线路测速择优，失败自动尝试另一条；校验包名、SHA-256、大小与原签名。
+- 登录页由服务端直接输出正确表单，无中间“正在读取登录状态”画面；HTML no-cache，JS/CSS 内容版本化。

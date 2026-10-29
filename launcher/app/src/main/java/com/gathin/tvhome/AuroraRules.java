@@ -28,8 +28,9 @@ final class AuroraRules {
         switch (name) {
             case "up": return 19; case "down": return 20;
             case "left": return 21; case "right": return 22;
+            case "volume_up": return 24; case "volume_down": return 25;
             case "ok": return 23; case "back": return 4; case "home": return 3;
-            default: throw new IllegalArgumentException("只允许上下左右、确定、返回和主页");
+            default: throw new IllegalArgumentException("只允许方向键、确定、返回、主页和音量键");
         }
     }
     static File inside(File root, String relative) throws IOException {

@@ -5,20 +5,20 @@ final class UpdateNetwork {
  private static final ExecutorService probes=Executors.newFixedThreadPool(2,r->{Thread t=new Thread(r,"aurora-update-network");t.setDaemon(true);return t;});
  static HttpURLConnection open(String url,String range)throws Exception{
   for(int n=0;n<6;n++){
-   if(!UpdatePolicy.transport(url))throw new IOException("更新地址或重定向不受信任");
-   HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection();c.setInstanceFollowRedirects(false);c.setConnectTimeout(4000);c.setReadTimeout(10000);c.setRequestProperty("User-Agent","Aurora-Launcher-Updater");c.setRequestProperty("Accept-Encoding","identity");if(range!=null)c.setRequestProperty("Range",range);
+   if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("更新请求已取消");if(!UpdatePolicy.transport(url))throw new IOException("更新地址或重定向不受信任");
+   HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection();c.setInstanceFollowRedirects(false);c.setConnectTimeout(4000);c.setReadTimeout(10000);c.setRequestProperty("User-Agent","Aurora-Launcher-Updater");c.setRequestProperty("Accept-Encoding","identity");c.setRequestProperty("Cache-Control","no-cache");if(range!=null)c.setRequestProperty("Range",range);
    int code=c.getResponseCode();if(code>=300&&code<400){String location=c.getHeaderField("Location");c.disconnect();if(location==null)throw new IOException("重定向缺少地址");url=new URL(new URL(url),location).toString();continue;}
    if(code!=200&&code!=206){c.disconnect();throw new IOException("HTTP "+code);}return c;
   }throw new IOException("更新地址重定向过多");
  }
  static JSONObject manifest()throws Exception{
-  java.util.List<Future<JSONObject>> jobs=new ArrayList<>();
-  for(String url:UpdatePolicy.manifestSources())jobs.add(probes.submit(()->{
+  java.util.List<Future<JSONObject>> jobs=new ArrayList<>();CompletionService<JSONObject> completed=new ExecutorCompletionService<>(probes);
+  for(String url:UpdatePolicy.manifestSources())jobs.add(completed.submit(()->{
    HttpURLConnection c=open(url,null);try(InputStream in=c.getInputStream()){ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] buf=new byte[4096];int n;while((n=in.read(buf))!=-1){if(b.size()+n>131072)throw new IOException("版本信息过大");b.write(buf,0,n);}JSONObject all=new JSONObject(b.toString("UTF-8"));if(all.getInt("schema")!=1)throw new IOException("不支持的更新协议");JSONObject latest=release(all.getJSONObject("latest"));return new JSONObject().put("latest",latest).put("source",url);}finally{c.disconnect();}
   }));
-  JSONObject best=null;Exception error=null;
-  for(Future<JSONObject> job:jobs)try{JSONObject result=job.get(30,TimeUnit.SECONDS);if(best==null||result.getJSONObject("latest").getLong("versionCode")>best.getJSONObject("latest").getLong("versionCode"))best=result;}catch(Exception e){error=e;}finally{job.cancel(true);}
-  if(best==null)throw new IOException("更新服务暂不可用，请稍后检查（尚未发布版本信息或网络不可达）",error);
+  JSONObject best=null;List<String> errors=new ArrayList<>();long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(18);
+  try{for(int n=0;n<jobs.size();n++){long remaining=deadline-System.nanoTime();if(remaining<=0)break;Future<JSONObject> job=completed.poll(remaining,TimeUnit.NANOSECONDS);if(job==null)break;try{JSONObject result=job.get();if(best==null||result.getJSONObject("latest").getLong("versionCode")>best.getJSONObject("latest").getLong("versionCode"))best=result;}catch(Exception e){Throwable cause=e.getCause()==null?e:e.getCause();errors.add(String.valueOf(cause.getMessage()));}}}finally{for(Future<?> job:jobs)job.cancel(true);}
+  if(best==null)throw new IOException("检查更新失败（原地址及加速线路）："+(errors.isEmpty()?"连接超时，请检查网络后重试":String.join("；",errors)));
   return best;
  }
  static JSONObject release(JSONObject input)throws Exception{

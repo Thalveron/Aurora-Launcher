@@ -1,1 +1,28 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/console/aurora.svg"><title>Aurora Launcher · 登录</title><link rel="stylesheet" href="/console/login.css"></head><body><div class="aurora"></div><main><div class="brand">✦ AURORA LAUNCHER</div><h1>把桌面，<br>调成你喜欢的样子。</h1><p class="intro">主题 · 音乐 · 让每一次回家都有不同的风景</p><form id="login"><h2>连接你的电视</h2><label>账号<input name="username" autocomplete="username" required></label><label>访问密码<input name="password" type="password" autocomplete="current-password" required placeholder="请输入访问密码"></label><label id="confirm-row" hidden>再次输入密码<input name="passwordConfirm" type="password" autocomplete="new-password"></label><button>进入控制中心 <span>↗</span></button><p id="message" role="status">仅连接当前局域网内的电视</p></form><small>密码保留在电视上。共享电脑使用完后，请退出登录。</small></main><script src="/console/login.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/console/aurora.svg"><title>Aurora Launcher · 登录</title>
+<link rel="stylesheet" href="/console/login.css">
+</head>
+<body>
+<div class="aurora"></div>
+<main>
+ <div class="brand">✦ AURORA LAUNCHER</div>
+ <section class="login-story"><h1>把桌面，<br>调成你喜欢的样子。</h1><p class="intro">主题 · 音乐 · 让每一次回家都有不同的风景</p></section>
+ <section class="login-card" id="login-card" aria-busy="true">
+  <p id="login-loading" role="status" hidden></p>
+  <form id="login" hidden data-initialized="__AURORA_INITIALIZED__" method="post" action="/api/v1/auth/login">
+   <h2>连接你的电视</h2>
+   <label>账号<input name="username" autocomplete="username" required></label>
+   <label>访问密码<input name="password" type="password" autocomplete="current-password" required placeholder="请输入访问密码"></label>
+   <label id="confirm-row" hidden>再次输入密码<input name="passwordConfirm" type="password" autocomplete="new-password"></label>
+   <button disabled>进入控制中心 <span>↗</span></button>
+   <p id="message" role="status">仅连接当前局域网内的电视</p>
+  </form>
+  <button id="open-setup" type="button" class="login-secondary" hidden>无密码访问</button>
+  <small class="login-note">密码保留在电视上。共享电脑使用完后，请退出登录。</small>
+ </section>
+</main>
+<script src="/console/login.js"></script>
+</body></html>

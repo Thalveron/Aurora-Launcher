@@ -22,7 +22,6 @@ html[data-console-theme=light] .color-dialog h3{color:#243c48}
 html[data-console-theme=light] pre,html[data-console-theme=light] .input-item small,html[data-console-theme=light] .asset small{color:#627e8a}
 html[data-console-theme=light] .device-block,html[data-console-theme=light] .input-item,html[data-console-theme=light] hr{border-color:#dee7ed}
 html[data-console-theme=light] .device-block .remote button{background:#edf5f6;color:#365b65;border-color:#cedfe4}
-html[data-console-theme=light] #native-category-frame,html[data-console-theme=light] #legacy-settings{background:#fff}
 html.embedded[data-console-theme=light]{--ink:#243c48;--muted:#6e8290;--green:#287f70;--line:#dce6ec;--paper:#fff;--white:#f7fafb}
 html.embedded[data-console-theme=light] .settings-card,html.embedded[data-console-theme=light] .note{background:#f5f9fa;color:#36525f}
 html.embedded[data-console-theme=light] input,html.embedded[data-console-theme=light] select{background:#fff;color:#243c48;border-color:#cbdbe3}
@@ -91,8 +90,6 @@ html[data-console-theme=light] .theme-card{background:#fff;border-color:#e1e7dc}
 html[data-console-theme=light] .theme-card.current{background:#f0f6eb;border-color:#8cb391;box-shadow:none}
 #settings-main>#native-category{background:transparent;border:0;border-radius:0;padding:0!important}
 #native-category>h2,#native-category>p{display:none}
-#native-category-frame{display:block;border-radius:0;width:100%;min-height:320px}
-html[data-console-theme=light] #native-category-frame{background:#f5f7f2}
 html.embedded[data-console-theme=light],html.embedded[data-console-theme=light] body{background:#f5f7f2}
 html.embedded main{padding:12px 0!important}
 html.embedded[data-console-theme=light] .settings-card{background:#fff;border-color:#e1e7dc}
@@ -138,33 +135,3 @@ html[data-console-theme=light] #cards-app-settings h3{color:#203f49}
 html[data-console-theme=light] #cards-app-settings>label{color:#345d4c}
 
 .idle-standby-switch{display:flex;align-items:center;gap:12px;font-weight:600}.idle-standby-switch input{width:20px;height:20px}
-
-#traffic-panel .traffic-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0}
-#traffic-panel .traffic-stat{padding:20px;background:#1b2c3c;border:1px solid #35475a;border-radius:14px}
-#traffic-panel .traffic-stat small{display:block;color:#a9c0cf;margin-bottom:12px}
-#traffic-panel .traffic-stat strong{font-size:25px;color:#f2fbff}
-.traffic-chart{display:block;width:100%;height:180px;margin:18px 0;border-radius:14px;background:rgba(110,140,160,.06)}
-.traffic-scroll{max-width:100%;max-height:620px;overflow:auto;margin:18px 0}
-.traffic-table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.6;text-align:left}
-.traffic-table th{position:sticky;top:0;background:#1b2c3c;z-index:1;white-space:nowrap}
-.traffic-table td,.traffic-table th{padding:13px 12px;border-bottom:1px solid #344959;vertical-align:top}
-.traffic-table td small{display:block;color:#91abba}
-.traffic-table td:not(:first-child){font-variant-numeric:tabular-nums;white-space:nowrap}
-.traffic-app-link{padding:0;border:0;background:transparent;color:#edf3f8;text-align:left}
-.traffic-interface{display:inline-block;margin:5px 12px 5px 0;padding:8px 12px;background:#1b2c3c;border-radius:10px;font-size:13px}
-.traffic-package{color:#d8e2ec;font-family:ui-monospace,monospace;font-size:13px;overflow-wrap:anywhere;padding:8px 0}
-#traffic-detail{margin-top:30px;padding-top:22px;border-top:1px solid #637b8a}
-.traffic-hint{color:#ffc17c;max-width:220px;white-space:normal!important}
-#traffic-panel .actions label{display:flex;gap:8px;align-items:center}
-#traffic-panel input[type=checkbox]{width:18px;height:18px}
-html[data-console-theme=light] #traffic-panel .traffic-stat,html[data-console-theme=light] #traffic-panel .traffic-interface{background:#f0f7f7;border-color:#d5e4e6}
-html[data-console-theme=light] #traffic-panel .traffic-stat strong{color:#183c49}
-html[data-console-theme=light] #traffic-panel .traffic-stat small,html[data-console-theme=light] .traffic-table td small{color:#5b7883}
-html[data-console-theme=light] .traffic-table th{background:#eaf3f3;color:#244c56}
-html[data-console-theme=light] .traffic-table td,html[data-console-theme=light] .traffic-table th{border-color:#dae7e9}
-html[data-console-theme=light] .traffic-app-link{color:#253746}
-html[data-console-theme=light] .traffic-package{color:#384957}
-html[data-console-theme=light] .traffic-hint{color:#905312}
-@media(max-width:900px){#traffic-panel .traffic-totals{grid-template-columns:repeat(2,minmax(0,1fr))}#traffic-panel .traffic-stat{padding:14px}#traffic-panel .traffic-stat strong{font-size:21px}}
-
-#traffic-panel .traffic-app-link{background:none!important;color:#edf3f8!important;box-shadow:none;border:0;font-weight:500}html[data-console-theme=light] #traffic-panel .traffic-app-link{color:#253746!important}#traffic-panel .traffic-app-link:focus-visible{outline:2px solid currentColor;outline-offset:4px}

@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "upstream": "@photostructure/tz-lookup",
+  "version": "11.7.0",
+  "commit": "6051e7e2fe8b754e23d40aff0120cf9b38bde608",
+  "sourceSha256": "548133c31996a29b35120248e3ac92e4b7f50db5193a1c4a4da227e786b55c3a",
+  "zoneCount": 436,
+  "dataSha256": "8dfe61af8c0917b5f3e5c329afbef867e9b59fb20770f9405676f58474546b60"
+}

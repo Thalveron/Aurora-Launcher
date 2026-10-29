@@ -10,8 +10,8 @@ android {
         applicationId 'com.gathin.tvhome'
         minSdk 26
         targetSdk 34
-        versionCode 72
-        versionName '0.2.6'
+        versionCode 100
+        versionName '1.0.0'
     }
 
     buildTypes {
@@ -50,3 +50,7 @@ tasks.register('prepareUpdateAgent', Copy) {
  rename { 'update-agent.apk' }
 }
 tasks.named('preBuild').configure { dependsOn 'prepareUpdateAgent' }
+
+// Reuse the shipped offline map in JVM tests without duplicating it.
+android.sourceSets.test.resources.srcDir('src/main/assets/timezone')
+android.sourceSets.test.resources.srcDir('src/main/assets/geography')

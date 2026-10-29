@@ -17,10 +17,11 @@ public class HomeSettingsActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         try {
+            if(android.os.Build.VERSION.SDK_INT>=29){android.app.role.RoleManager roles=getSystemService(android.app.role.RoleManager.class);if(roles!=null&&roles.isRoleAvailable(android.app.role.RoleManager.ROLE_HOME)&&!roles.isRoleHeld(android.app.role.RoleManager.ROLE_HOME)){startActivityForResult(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_HOME),1);return;}}
             startActivity(new Intent(Settings.ACTION_HOME_SETTINGS));
             Toast.makeText(this, R.string.home_settings_help, Toast.LENGTH_LONG).show();
         } catch (ActivityNotFoundException | SecurityException unavailable) {
-            Toast.makeText(this, R.string.not_available, Toast.LENGTH_LONG).show();
+            try{startActivity(new Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS));}catch(Exception noChooser){Toast.makeText(this, R.string.not_available, Toast.LENGTH_LONG).show();}
         } finally {
             finish();
         }

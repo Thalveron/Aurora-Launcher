@@ -1,0 +1,7 @@
+'use strict';
+(function(){
+ var api=window.AuroraAPI,status=document.getElementById('default-home-status'),set=document.getElementById('default-home-set'),restore=document.getElementById('default-home-restore');
+ async function refresh(){if(api.mock){status.textContent='电脑模拟不能更改电视默认桌面；请连接电视后操作。';status.classList.add('ui-help');set.disabled=restore.disabled=true;set.title=restore.title='电脑模拟无法更改电视默认桌面';return;}try{var s=await api.request('system/default-home');status.textContent=(s.isDefault?'默认主页：Aurora Launcher':'当前默认主页：'+(s.currentPackage||'未选择'))+(s.originalDisabled?' · 原桌面已停用':'')+'。'+s.reason;set.textContent=s.canManage?'设为默认并停用原桌面':'打开电视的默认桌面选择';restore.disabled=!s.canRestore;}catch(e){status.textContent=e.message;}}
+ async function act(recover){if(!confirm(recover?'恢复原桌面启用？Aurora Launcher 仍保持默认。':'将 Aurora Launcher 设为默认，并尝试停用原独立桌面。不会卸载，可恢复；系统设置等组件不会处理。继续？'))return;set.disabled=restore.disabled=true;try{var result=await api.request(recover?'system/default-home/restore':'system/default-home',recover?{confirmed:true}:{confirmed:true,disableOriginal:true});await refresh();status.textContent=result.message+'。'+status.textContent;}catch(e){status.textContent=e.message;}finally{set.disabled=false;}}
+ set.onclick=function(){act(false);};restore.onclick=function(){act(true);};document.querySelector('[data-page="device"]').addEventListener('click',refresh);if(location.hash==='#device')refresh();
+})();

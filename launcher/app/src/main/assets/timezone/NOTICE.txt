@@ -1,0 +1,4 @@
+Local timezone lookup data and algorithm derived from @photostructure/tz-lookup 11.7.0, PhotoStructure contributors (CC0-1.0).
+Source: https://github.com/photostructure/tz-lookup/tree/6051e7e2fe8b754e23d40aff0120cf9b38bde608
+No coordinates are transmitted by this offline lookup. Compact boundaries can be approximate; timezone metadata from an explicit city search takes priority.
+Boundary provenance: timezone-boundary-builder, https://github.com/evansiroky/timezone-boundary-builder, derived from OpenStreetMap contributors (https://www.openstreetmap.org/copyright). Underlying boundary databases are available under ODbL 1.0; see ODbL-1.0.txt. This compact map and source reference are distributed alongside the application source.

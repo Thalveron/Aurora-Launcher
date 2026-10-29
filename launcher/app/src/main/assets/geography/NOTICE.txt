@@ -1,0 +1,4 @@
+China city lookup derived from GeoNames cities500, downloaded 2026-10-29.
+Source: https://download.geonames.org/export/dump/cities500.zip
+Copyright GeoNames contributors. CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
+Changes: China subset; selected columns, aliases and Chinese province labels. Data may be incomplete or outdated.

@@ -30,9 +30,7 @@ public final class UploadService extends Service {
             try{ManagedWebAssets.sync(this);}catch(Exception e){android.util.Log.w("TvHome","Managed web assets unavailable",e);}
             BridgePreview.sync(this);
             try {
-                BackgroundUploadServer created = new BackgroundUploadServer(this, kind -> {
-                    sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(getPackageName()).putExtra("kind", kind));
-                });
+                BackgroundUploadServer created = new BackgroundUploadServer(this);
                 server = created;LauncherUpdater.start(this);
                 if (closed) created.close();
             } catch (Exception e) { android.util.Log.w("TvHome", "Upload server unavailable", e); stopSelf(); }
@@ -55,7 +53,7 @@ public final class UploadService extends Service {
         },"console-rebind").start(),1000);
     }
     private BackgroundUploadServer newServer()throws java.io.IOException{
-        return new BackgroundUploadServer(this,kind->sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(getPackageName()).putExtra("kind",kind)));
+        return new BackgroundUploadServer(this);
     }
     private void foreground(){
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel("lan_upload", "局域网上传", NotificationManager.IMPORTANCE_LOW));

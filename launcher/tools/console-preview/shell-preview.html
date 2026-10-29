@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aurora Launcher · 控制台外壳验收</title><link rel="icon" href="/console/aurora.svg"><link rel="stylesheet" href="/console/shell.css"><script src="/console/ui-mode.js"></script></head>
+<body class="console-v2" data-shell-demo="true"><header id="console-topbar"></header><nav id="tabs" aria-label="控制台设置"></nav><main id="settings-main">
+<div class="ui-page-eyebrow">控制台改版 / 第一步</div><h2 id="demo-page-title">天气与时间服务</h2><p style="font-size:12px;color:var(--ui-muted);margin:8px 0 24px">先确认导航、信息密度和共用组件，再迁移页面内容。</p>
+<div class="shell-demo-banner">这是外壳验收预览。所有更改仅保存在此浏览器，不连接或操作电视。</div>
+<p class="ui-section-caption">设置行与控件</p><div id="demo-settings"></div>
+<p class="ui-section-caption">高级选项默认收起</p><details class="ui-card"><summary>高级设置</summary><div id="demo-advanced"></div></details>
+<div class="ui-help"><span>↳</span><span>试着修改一项设置：底部会出现保存与撤销。保存成功后才更新同步状态，失败时保留未保存的内容。</span></div>
+<p style="font-size:12px;color:var(--ui-muted)">本步只验收外壳，天气、屏保的完整内容在下一步迁移。<a href="/console/settings.html?mock=1#services">查看接入现有页面的外壳 →</a></p>
+</main><aside id="live-preview" hidden><div class="preview-heading"><strong>桌面预览</strong><span id="preview-state">模拟画面</span></div><p></p></aside><div id="notice" role="status" hidden></div>
+<script src="/console/shell.js"></script><script src="/console/shell-preview.js"></script></body></html>

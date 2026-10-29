@@ -45,14 +45,22 @@ final class AuroraHttp {
             boolean credentialAttempt=headers.containsKey("authorization")||(path.equals("/api/v1/auth/login")&&request[0].equals("POST"));
             if(credentialAttempt&&!session&&!existingWeb){synchronized(failedLogins){long[] failure=failedLogins.get(peer);if(failure!=null&&android.os.SystemClock.elapsedRealtime()-failure[0]<60000&&failure[1]>=8){json(output,429,null,"RATE_LIMIT","密码尝试过多，请一分钟后重试");return true;}}}
             boolean password=loopback&&UploadSecurity.authorized(c,headers.get("authorization"))||existingWeb;
-            boolean loginAsset=path.equals("/console/login.html")||path.equals("/console/login.js")||path.equals("/console/login.css")||path.equals("/console/aurora.svg");
+            String logicalAsset=(path.startsWith("/console/")||path.startsWith("/core/"))?ConsoleAssets.logical(c,path.substring(1)):null;
+            boolean loginAsset=logicalAsset!=null&&java.util.Arrays.asList("console/login.html","console/login.js","console/login.css","console/aurora.svg").contains(logicalAsset);
             boolean loginAttempt=path.equals("/api/v1/auth/login")&&request[0].equals("POST");
             boolean setupAttempt=path.equals("/api/v1/auth/setup")&&request[0].equals("POST");
+            if(path.equals("/api/v1/auth/open-setup")&&request[0].equals("POST")){
+                JSONObject choice=body(input,headers);
+                if(!choice.optBoolean("confirmed")){json(output,409,null,"CONFIRM_REQUIRED","请确认局域网设备可直接管理桌面");return true;}
+                if(UploadSecurity.initialized(c)||UploadSecurity.openAccess(c)){json(output,409,null,"ALREADY_INITIALIZED","访问方式已设置，请登录后修改");return true;}
+                UploadSecurity.initializeOpen(c);WebAudit.record(c,peer,"首次选择无密码访问","仅限局域网",200);
+                json(output,200,new JSONObject().put("openAccess",true).put("needsPath",ConsoleSettings.path(c).isEmpty()),null,null);return true;
+            }
             if(path.equals("/api/v1/auth/status")&&request[0].equals("GET")){json(output,200,new JSONObject().put("initialized",UploadSecurity.initialized(c)).put("openAccess",UploadSecurity.openAccess(c)),null,null);return true;}
             if(setupAttempt||loginAttempt){
                 JSONObject credentials=body(input,headers);
                 if(setupAttempt){
-                    if(UploadSecurity.initialized(c)){json(output,409,null,"ALREADY_INITIALIZED","账号已创建，请登录");return true;}
+                    if(UploadSecurity.initialized(c)||UploadSecurity.openAccess(c)){json(output,409,null,"ALREADY_INITIALIZED","访问方式已设置，请登录后修改");return true;}
                     UploadSecurity.initialize(c,credentials.optString("username"),credentials.optString("password"),credentials.optString("passwordConfirm"));
                 }
                 String basic="Basic "+java.util.Base64.getEncoder().encodeToString((credentials.optString("username")+":"+credentials.optString("password")).getBytes(StandardCharsets.UTF_8));
@@ -68,7 +76,7 @@ final class AuroraHttp {
             if(path.startsWith("/api/v1/updates")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             if(path.equals("/api/v1/security")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             if(path.startsWith("/api/v1/system/screenshots")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
-            boolean sensitive=path.equals("/api/v1/actions")||path.startsWith("/api/v1/system/")||path.startsWith("/api/v1/logs")||path.startsWith("/api/v1/network/")||!request[0].equals("GET")||path.startsWith("/console/")||path.startsWith("/api/v1/services");
+            boolean sensitive=path.equals("/api/v1/apps/manage")||path.equals("/api/v1/actions")||path.startsWith("/api/v1/system/")||path.startsWith("/api/v1/logs")||path.startsWith("/api/v1/network/")||!request[0].equals("GET")||path.startsWith("/console/")||path.startsWith("/api/v1/services");
             if(!password&&!session&&!loginAsset&&(!loopback||sensitive)){
                 if(credentialAttempt)synchronized(failedLogins){
                     long now=android.os.SystemClock.elapsedRealtime();long[] failure=failedLogins.get(peer);
@@ -78,16 +86,26 @@ final class AuroraHttp {
                 if(path.startsWith("/console/")&&request[0].equals("GET")){ConsolePath.redirect(output,ConsolePath.base(c)+"console/login.html");status=302;return true;}unauthorized(output);status=401;if(credentialAttempt)WebAudit.login(c,peer,false);return true;
             }
             if(password||session){if(credentialAttempt)synchronized(failedLogins){failedLogins.remove(peer);}if(password)WebAudit.login(c,peer,true);}
+            if(request[0].equals("GET")&&(path.equals("/console/")||path.equals("/console/index.html")||path.equals("/console/settings.html")||path.equals("/console/login.html")&&existingWeb)){ConsolePath.redirect(output,ConsolePath.base(c)+"console/app.html");status=302;return true;}
             String expectedTheme=headers.get("x-aurora-theme");
-            boolean themeWrite=request[0].equals("POST")&&(path.startsWith("/api/v1/config/appearance")||path.startsWith("/api/v1/bgm/")||path.equals("/api/v1/actions"));
+            boolean themeWrite=request[0].equals("POST")&&(path.startsWith("/api/v1/config/appearance")||path.startsWith("/api/v1/config/native")||path.equals("/api/v1/apps/layout")||path.equals("/api/v1/apps/cards")||path.startsWith("/api/v1/bgm/")||path.equals("/api/v1/actions")||path.equals("/api/v1/apps/manage"));
             if(themeWrite&&expectedTheme!=null&&!expectedTheme.equals(AuroraThemes.current(c))){json(output,409,null,"THEME_CHANGED","当前主题已切换，请刷新设置页面");return true;}
             logged=request[0].equals("POST")||!loopback&&(path.contains("screen")||path.endsWith("events"));
             if(path.startsWith("/api/v1/")&&AuroraRoutes.pending(AuroraRoutes.canonical(path.substring(8)))){json(output,501,null,"NOT_IMPLEMENTED","接口已预留，尚未实现");status=501;return true;}
             if(request[0].equals("GET")) {
                 if(!path.startsWith("/api/v1/")){
-                    String asset=path.substring(1);if(asset.equals("console/"))asset+="index.html";
-                    byte[] data=uri.getQuery()!=null&&uri.getQuery().equals("packaged=1")?AuroraThemes.packaged(c,asset):AuroraThemes.asset(c,asset);
-                    binary(output,200,mime(asset),data,true,asset.startsWith("themes/"));status=200;return true;
+                    String asset=path.substring(1);
+                    if(path.startsWith("/console/")||path.startsWith("/core/")){
+                        if(logicalAsset==null)throw new FileNotFoundException("页面资源不存在");
+                        String published=ConsoleAssets.publicName(c,logicalAsset);
+                        if(!published.equals(asset)){ConsolePath.redirect(output,ConsolePath.base(c)+published);status=302;return true;}
+                        byte[] content=ConsoleAssets.read(c,logicalAsset);
+                        if(logicalAsset.equals("console/login.html"))content=ConsoleLoginPage.render(content,UploadSecurity.initialized(c));
+                        binary(output,200,mime(logicalAsset),content,true,false,published.equals(logicalAsset)?"no-cache":"private, max-age=31536000, immutable");
+                    }else{
+                        byte[] data=uri.getQuery()!=null&&uri.getQuery().equals("packaged=1")?AuroraThemes.packaged(c,asset):AuroraThemes.asset(c,asset);
+                        binary(output,200,mime(asset),data,true,asset.startsWith("themes/"));
+                    }status=200;return true;
                 }
                 String route=AuroraRoutes.canonical(path.substring(8));
                 if(AuroraRoutes.pending(route)){json(output,501,null,"NOT_IMPLEMENTED","接口已预留，尚未实现");status=501;return true;}
@@ -109,7 +127,14 @@ final class AuroraHttp {
                 if(route.equals("media/cover")){binary(output,200,"image/jpeg",AuroraData.cover(c),false);status=200;return true;}
                 Object data;
             switch(route){
+                case "config/native":data=ConsoleNativeSettings.read(c);break;
+                case "logs":data=WebAudit.list(c);break;
+                case "music/usb/volumes":data=ConsoleUsb.volumes();break;
+                case "apps/layout":ConsoleNativeSettings.requireNative(c);data=WebSettings.apps(c);break;
+                case "apps/cards":ConsoleNativeSettings.requireNative(c);data=WebSettings.cards(c);break;
+                case "logs/export":binary(output,200,"application/x-ndjson; charset=utf-8",WebAudit.export(c),false);WebAudit.record(c,peer,"导出操作日志","完整日志",200);status=200;return true;
                 case "updates":data=LauncherUpdater.state(c);break;
+                case "system/default-home":data=DefaultHome.status(c);break;
                 case "console/addresses":data=ConsoleAddresses.list(c);break;
                 case "security":data=ConsoleSettings.get(c);break;
                 case "themes/custom-css":data=new JSONObject().put("css",AuroraSettings.css(c));break;
@@ -124,7 +149,7 @@ final class AuroraHttp {
                     case "voice":data=AuroraVoice.state(c);break;
                     case "backgrounds":JSONArray backgrounds=new JSONArray(),all=AuroraLibrary.list(c);for(int n=0;n<all.length();n++)if(all.getJSONObject(n).getString("kind").equals("background"))backgrounds.put(all.get(n));data=backgrounds;break;
                     case "apps/jobs":data=AuroraLibrary.jobs();break;
-                    case "services/cities":data=AuroraServices.cities(android.net.Uri.parse(request[1]).getQueryParameter("name")==null?"":android.net.Uri.parse(request[1]).getQueryParameter("name"));break;
+                    case "services/cities":data=AuroraServices.cities(c,android.net.Uri.parse(request[1]).getQueryParameter("name")==null?"":android.net.Uri.parse(request[1]).getQueryParameter("name"));break;
                     case "services":data=AuroraServices.status(c);break;
                     case "spectrum":data=AuroraSpectrum.read(c);break;
                     case "saver":data=new JSONObject().put("active",AuroraSaver.active);break;
@@ -136,6 +161,7 @@ final class AuroraHttp {
                     case "bgm/library":data=AuroraBgm.library(c);break;
                     case "media/queue":data=queue(c);break;
                     case "apps":data=AuroraData.apps(c);break;
+                    case "apps/manage":data=AppManagement.list(c);break;
                     case "status":data=AuroraData.status(c);break;
                     case "network/traffic":data=NetworkTraffic.state(c);break;
                     case "network/traffic/history":{android.net.Uri q=android.net.Uri.parse(request[1]);String uid=q.getQueryParameter("uid"),hours=q.getQueryParameter("hours");data=NetworkTraffic.history(c,uid==null?-1:Integer.parseInt(uid),hours==null?24:Integer.parseInt(hours));break;}
@@ -150,6 +176,12 @@ final class AuroraHttp {
                 json(output,200,data,null,null);status=200;return true;
             }
             if(!request[0].equals("POST")){json(output,405,null,"METHOD","此接口仅支持GET或POST");status=405;return true;}
+            if(path.equals("/api/v1/music/usb/upload")){
+                if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
+                JSONObject uploaded=ConsoleUsb.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")),headers.getOrDefault("x-usb-volume",""),java.net.URLDecoder.decode(headers.getOrDefault("x-file-name",""),"UTF-8"));
+                WebAudit.record(c,peer,"上传 U 盘歌曲",uploaded.optString("volume")+" / "+uploaded.optString("name")+" · "+uploaded.optLong("bytes")+" B",200);
+                json(output,200,uploaded,null,null);status=200;return true;
+            }
             if(path.equals("/api/v1/updates/upload")){
                 if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
                 JSONObject uploaded=LauncherUpdater.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")));
@@ -177,7 +209,14 @@ final class AuroraHttp {
             if(AuroraRoutes.pending(route)){json(output,501,null,"NOT_IMPLEMENTED","接口已预留，尚未实现");status=501;return true;}
                 if(route.startsWith("themes/css/")){AuroraSettings.only(body,"css");data=AuroraCssThemes.saveCss(c,route.substring(11),body.getString("css"));json(output,200,data,null,null);status=200;return true;}
             switch(route){
+                case "config/native":data=ConsoleNativeSettings.save(c,body);WebAudit.record(c,peer,"修改极简桌面设置",String.valueOf(body.getJSONObject("changes").names()),200);break;
+                case "config/native/reset-color":data=ConsoleNativeSettings.resetColor(c,body);break;
+                case "apps/uninstall":AuroraSettings.only(body,"package","confirm");WebApps.uninstall(c,body.getString("package"),body.optBoolean("confirm"));data=AppManagement.list(c);break;
+                case "apps/layout":ConsoleNativeSettings.requireNative(c);AuroraSettings.only(body,"apps");WebSettings.saveApps(c,body.getJSONArray("apps"));AppManagement.revision(c);data=WebSettings.apps(c);c.sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(c.getPackageName()).putExtra("kind","settings-layout"));break;
+                case "apps/cards":ConsoleNativeSettings.requireNative(c);AuroraSettings.only(body,"package","shown");WebSettings.card(c,body.getString("package"),body.getBoolean("shown"));data=WebSettings.cards(c);c.sendBroadcast(new Intent("com.gathin.tvhome.UPLOAD_CHANGED").setPackage(c.getPackageName()).putExtra("kind","settings-layout"));break;
                 case "updates/config":data=LauncherUpdater.configure(c,body);break;
+                case "system/default-home":data=DefaultHome.takeOver(c,body);break;
+                case "system/default-home/restore":data=DefaultHome.restore(c,body);break;
                 case "updates/check":AuroraSettings.only(body);data=LauncherUpdater.request(c,"check");break;
                 case "updates/download":AuroraSettings.only(body);data=LauncherUpdater.request(c,"download");break;
                 case "updates/cancel":AuroraSettings.only(body);data=LauncherUpdater.request(c,"cancel");break;
@@ -205,6 +244,7 @@ final class AuroraHttp {
                 case "config/appearance/preview":data=AuroraSettings.apply(c,body,false);break;
                 case "music/local/settings":data=AuroraMusicSettings.call(c,"save",body);break;
                 case "music/local/scan":data=AuroraMusicSettings.call(c,"scan",null);break;
+                case "inputs/name":data=AuroraInputs.name(c,body);break;
                 case "inputs/switch":AuroraInputs.open(c,body.getString("id"));break;
                 case "inputs/shortcut":data=InputShortcut.save(c,body);WebAudit.record(c,peer,"设置输入源快捷方式",body.toString(),200);break;
                 case "services":data=AuroraServices.save(c,body);break;
@@ -233,6 +273,7 @@ final class AuroraHttp {
                 case "system/wifi":case "system/bluetooth":case "system/display":
                     String setting=route.endsWith("wifi")?android.provider.Settings.ACTION_WIFI_SETTINGS:route.endsWith("bluetooth")?android.provider.Settings.ACTION_BLUETOOTH_SETTINGS:android.provider.Settings.ACTION_DISPLAY_SETTINGS;
                     c.startActivity(SystemSettings.intent(c,setting).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));break;
+                case "apps/manage":data=AppManagement.change(c,body);WebAudit.record(c,peer,"修改应用设置",body.optString("package")+" · "+(body.has("enabled")?"启用状态":body.has("visible")?"显示状态":body.has("direction")?"排序":body.has("name")?"名称":"图标"),200);break;
                 case "apps/launch":controls(c).select("launch").launch(body.getString("package"));break;
                 case "themes/open":AuroraThemes.open(c);break;
                 case "config":synchronized(AuroraThemes.class){
@@ -259,7 +300,7 @@ final class AuroraHttp {
             json(output,200,data,null,null);status=200;
         }catch(FileNotFoundException e){status=404;if(!streamOutput.started)json(output,status,null,"NOT_FOUND",e.getMessage()==null?"文件不存在":e.getMessage());}
         catch(IllegalArgumentException|org.json.JSONException e){status=400;if(!streamOutput.started)json(output,status,null,"INVALID_ARGUMENT",String.valueOf(e.getMessage()));}
-        catch(UnsupportedOperationException e){status=501;if(!streamOutput.started)json(output,status,null,"UNSUPPORTED",String.valueOf(e.getMessage()));}
+        catch(UnsupportedOperationException e){status=501;if(!streamOutput.started)json(output,status,null,"NOT_IMPLEMENTED",String.valueOf(e.getMessage()));}
         catch(Exception e){status=503;if(!streamOutput.started)json(output,status,null,"UNAVAILABLE",e.getMessage()==null?"能力暂不可用":e.getMessage());}
         finally{if(logged)WebAudit.record(c,peer,request[0]+" "+path,"",status);}
         return true;
@@ -271,7 +312,7 @@ final class AuroraHttp {
     }
     private static final java.util.concurrent.ScheduledExecutorService streamTimers=java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r->{Thread t=new Thread(r,"aurora-stream-watchdog");t.setDaemon(true);return t;});
     private static boolean cookie(String header){if(header==null)return false;for(String item:header.split(";"))if(item.trim().equals("aurora_session="+themeSession))return true;return false;}
-    static JSONObject bootstrap(Context c)throws Exception{return new JSONObject().put("apiVersion",1).put("stage",2).put("legacyConsole",ConsolePath.base(c)+"desktop/").put("time",AuroraData.time(c)).put("weather",AuroraData.weather(c))
+    static JSONObject bootstrap(Context c)throws Exception{return new JSONObject().put("apiVersion",1).put("stage",2).put("console",ConsolePath.base(c)+"console/app.html").put("legacyConsole",ConsolePath.base(c)+"console/app.html").put("time",AuroraData.time(c)).put("weather",AuroraData.weather(c))
             .put("media",AuroraData.media(c)).put("apps",AuroraData.apps(c)).put("status",AuroraData.status(c)).put("config",AuroraThemes.publicConfig(c)).put("appearance",AuroraSettings.get(c)).put("themes",AuroraThemes.list(c));}
     private static JSONArray queue(Context c)throws Exception{
         android.media.session.MediaController controller=AuroraData.controller(c);JSONArray result=new JSONArray();
@@ -285,7 +326,7 @@ final class AuroraHttp {
     }
     private static String mime(String path){if(path.endsWith(".ttf"))return "font/ttf";if(path.endsWith(".otf"))return "font/otf";if(path.endsWith(".txt"))return "text/plain";if(path.endsWith(".js"))return "application/javascript";if(path.endsWith(".css"))return "text/css";if(path.endsWith(".json"))return "application/json";if(path.endsWith(".png"))return "image/png";if(path.endsWith(".jpg"))return "image/jpeg";if(path.endsWith(".svg"))return "image/svg+xml";return "text/html";}
     private static void unauthorized(OutputStream out)throws Exception {
-        byte[] body=new JSONObject().put("ok",false).put("error",new JSONObject().put("code","AUTH_REQUIRED").put("message","需要登录，用户名tv，密码与原控制台相同")).toString().getBytes(StandardCharsets.UTF_8);
+        byte[] body=new JSONObject().put("ok",false).put("error",new JSONObject().put("code","AUTH_REQUIRED").put("message","请先登录控制中心")).toString().getBytes(StandardCharsets.UTF_8);
         out.write(("HTTP/1.1 401 Unauthorized\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: "+body.length+"\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n").getBytes(StandardCharsets.US_ASCII));out.write(body);out.flush();
     }
     static void json(OutputStream out,int status,Object data,String code,String message)throws Exception {
@@ -296,9 +337,12 @@ final class AuroraHttp {
     }
     private static void binary(OutputStream out,int status,String type,byte[] data,boolean policy)throws IOException {binary(out,status,type,data,policy,false);}
     private static void binary(OutputStream out,int status,String type,byte[] data,boolean policy,boolean themeFrame)throws IOException {
+        binary(out,status,type,data,policy,themeFrame,policy&&type.equals("text/html")?"no-cache":"no-store");
+    }
+    private static void binary(OutputStream out,int status,String type,byte[] data,boolean policy,boolean themeFrame,String cache)throws IOException {
         data=ConsolePath.body(type,data);
         String csp=policy?"Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self' ws://127.0.0.1:8899; object-src 'none'; frame-ancestors "+(themeFrame?"'self'":"'none'")+"\r\n":"";
-        out.write(("HTTP/1.1 "+status+" "+(status<400?"OK":"Error")+"\r\nContent-Type: "+type+"\r\nContent-Length: "+data.length+"\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n"+csp+"Connection: close\r\n\r\n").getBytes(StandardCharsets.US_ASCII));out.write(data);out.flush();
+        out.write(("HTTP/1.1 "+status+" "+(status<400?"OK":"Error")+"\r\nContent-Type: "+type+"\r\nContent-Length: "+data.length+"\r\nCache-Control: "+cache+"\r\nX-Content-Type-Options: nosniff\r\n"+csp+"Connection: close\r\n\r\n").getBytes(StandardCharsets.US_ASCII));out.write(data);out.flush();
     }
     private static void mjpeg(Context c,Socket socket,OutputStream out,String query,String sessionCookie)throws Exception {
         double fps=1;if(query!=null)for(String item:query.split("&"))if(item.startsWith("fps="))fps=Double.parseDouble(item.substring(4));

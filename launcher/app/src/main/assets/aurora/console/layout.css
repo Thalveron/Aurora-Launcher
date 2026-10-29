@@ -1,0 +1,24 @@
+/* Shared width and responsive layout; typography remains in shell/components. */
+:root{--page-padding:40px;--page-max:1600px;--layout-gap:20px;--card-min:260px;--settings-column-max:720px}
+html body.console-v2 #console-workspace.page-container,
+html body.console-v2 #settings-main.page-container{
+ width:calc(100% - var(--page-padding) * 2);max-width:var(--page-max);
+ margin:32px 0 0 var(--page-padding);padding:0;min-width:0;
+}
+html body.console-v2 #console-workspace.page-container #settings-main{width:100%;max-width:none;margin:0;padding:0 0 var(--ui-save-reserve);min-width:0}
+html body.console-v2.preview-open #console-workspace.page-container{max-width:var(--page-max);grid-template-columns:minmax(0,1fr) 320px;gap:var(--layout-gap)}
+html body.console-v2 #settings-main .card-grid{
+ display:grid!important;grid-template-columns:repeat(auto-fill,minmax(var(--card-min),1fr))!important;
+ gap:var(--layout-gap)!important;width:100%;max-width:none;margin-left:0;margin-right:0;padding:0!important;min-width:0;
+}
+html body.console-v2 .card-grid>*{min-width:0;margin:0!important}
+html body.console-v2 .settings-columns{display:grid;grid-template-columns:repeat(2,minmax(0,var(--settings-column-max)));gap:var(--layout-gap);align-items:start;margin:0 0 24px;min-width:0}
+html body.console-v2 .settings-columns.is-single-column{grid-template-columns:minmax(0,var(--settings-column-max))}
+html body.console-v2 .settings-columns>.ui-card,
+html body.console-v2 .settings-columns>.device-block{width:100%;max-width:var(--settings-column-max);min-width:0;margin:0!important}
+html body.console-v2 .device-control-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--layout-gap);align-items:start}
+html body.console-v2 .device-control-columns.is-single-column{grid-template-columns:minmax(0,1fr)}
+html body.console-v2 #shell-savebar{left:calc(var(--ui-sidebar-width) + var(--page-padding));right:var(--page-padding);max-width:var(--page-max);margin:0}
+@media(max-width:1279px){html body.console-v2.preview-open #console-workspace.page-container{display:flex;flex-direction:column}html body.console-v2 #console-workspace.page-container #settings-main{order:2}html body.console-v2 #console-workspace.page-container #live-preview{order:1;width:100%;position:sticky;top:88px}}
+@media(max-width:760px){:root{--page-padding:16px}html body.console-v2 #console-workspace.page-container,html body.console-v2 #settings-main.page-container{margin-top:24px}html body.console-v2 #settings-main .card-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important}html body.console-v2 #shell-savebar{left:16px;right:16px}}
+@media(max-width:300px){html body.console-v2 #settings-main .card-grid{grid-template-columns:minmax(0,1fr)!important}}

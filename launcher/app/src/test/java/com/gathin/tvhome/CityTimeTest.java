@@ -1,0 +1,10 @@
+package com.gathin.tvhome;
+import org.junit.Test;import static org.junit.Assert.*;import java.time.*;
+public class CityTimeTest {
+ @Test public void cityNamesAcceptEnglishAndRejectControlCharacters(){assertEquals("Los Angeles",CityTime.name(" Los Angeles "));assertEquals("New York",CityTime.name("New York"));assertEquals("洛杉矶",CityTime.name("洛杉矶"));try{CityTime.name("Los\nAngeles");fail();}catch(IllegalArgumentException expected){}}
+ @Test public void losAngelesObservesSummerAndWinterRules(){assertEquals(-7*3600,Instant.parse("2026-07-01T12:00:00Z").atZone(ZoneId.of(CityTime.zone("America/Los_Angeles"))).getOffset().getTotalSeconds());assertEquals(-8*3600,Instant.parse("2026-01-01T12:00:00Z").atZone(ZoneId.of(CityTime.zone("America/Los_Angeles"))).getOffset().getTotalSeconds());}
+ @Test public void localDateChangesWithTheSelectedCity(){long epoch=Instant.parse("2026-10-28T01:30:00Z").toEpochMilli();assertEquals(LocalDate.of(2026,10,27),CityTime.date(epoch,"America/Los_Angeles"));assertEquals(LocalDate.of(2026,10,28),CityTime.date(epoch,"Asia/Shanghai"));}
+ @Test public void oldShanghaiForecastTemplateBecomesCityRelative(){String u="https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&timezone=Asia%2FShanghai&forecast_days=4";assertEquals("https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&timezone={timezone}&forecast_days=4",CityTime.weatherTemplate(u,"openmeteo"));assertTrue(CityTime.weatherTemplate("https://api.open-meteo.com/v1/forecast?latitude=0","openmeteo").endsWith("&timezone={timezone}"));}
+ @Test public void customProvidersAreNotRewritten(){String u="https://weather.example.com/data?timezone=custom";assertEquals(u,CityTime.weatherTemplate(u,"custom"));assertEquals(u,CityTime.weatherTemplate(u,"openmeteo"));}
+ @Test public void keysRejectInvalidCoordinatesAndZones(){assertEquals(CityTime.key(34.05223,-118.24368),CityTime.key(34.052230,-118.243680));try{CityTime.key(100,0);fail();}catch(IllegalArgumentException expected){}try{CityTime.zone("Not/A_Real_Zone");fail();}catch(DateTimeException expected){}}
+}

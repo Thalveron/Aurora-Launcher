@@ -1,0 +1,576 @@
+{
+  "fields": [
+    {
+      "id": "launcher:desktop_info_mode",
+      "title": "桌面信息显示",
+      "section": "layout",
+      "type": "select",
+      "value": 0,
+      "min": 0,
+      "max": 1,
+      "options": [
+        "完整信息",
+        "极简信息：时间、日期、今天天气"
+      ]
+    },
+    {
+      "id": "launcher:columns",
+      "title": "每排应用数量",
+      "section": "layout",
+      "type": "number",
+      "value": 5,
+      "min": 4,
+      "max": 7
+    },
+    {
+      "id": "launcher:animations",
+      "title": "桌面动画",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "launcher:advanced_effects",
+      "title": "增强动画效果",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "launcher:app_ambient",
+      "title": "焦点跟随应用颜色的氛围光",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:fill_dock",
+      "title": "自动填满第一排",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:reduced_motion",
+      "title": "减少动态效果",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:dock_title",
+      "title": "显示选中应用名称",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:dock_row",
+      "title": "第一排独立卡片栏",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:reorder_button",
+      "title": "显示排序按钮",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:module_cards",
+      "title": "应用模块卡片",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:app_library",
+      "title": "显示全部应用入口",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:show_stats",
+      "title": "显示性能统计",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:show_home_settings_shortcut",
+      "title": "显示默认主页入口",
+      "section": "layout",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:rows_below_dock",
+      "title": "第一排下方可见行数",
+      "section": "layout",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 3
+    },
+    {
+      "id": "config:greeting_name",
+      "title": "问候语称呼",
+      "section": "layout",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "appearance:text",
+      "title": "全局字体与播放卡片颜色",
+      "section": "appearance",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "appearance:spectrum",
+      "title": "频谱颜色",
+      "section": "compat",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "appearance:opacity",
+      "title": "频谱不透明程度",
+      "section": "compat",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "appearance:brightness",
+      "title": "频谱亮度",
+      "section": "compat",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "config:background_color",
+      "title": "默认纯色背景",
+      "section": "appearance",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:sky_intensity",
+      "title": "默认背景光效强度",
+      "section": "appearance",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "appearance:card_style",
+      "title": "播放卡片频谱样式",
+      "section": "music",
+      "type": "select",
+      "value": 0,
+      "min": 0,
+      "max": 4,
+      "options": [
+        "渐变柱状",
+        "流动波线",
+        "镜面频谱",
+        "光点",
+        "环形"
+      ]
+    },
+    {
+      "id": "appearance:card_color",
+      "title": "播放卡片频谱渐变起始色",
+      "section": "music",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "appearance:card_color2",
+      "title": "播放卡片频谱渐变结束色",
+      "section": "music",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "appearance:card_opacity",
+      "title": "播放卡片频谱不透明程度（0为隐藏）",
+      "section": "music",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "appearance:card_size",
+      "title": "播放卡片频谱尺寸百分比",
+      "section": "music",
+      "type": "number",
+      "value": 30,
+      "min": 30,
+      "max": 200
+    },
+    {
+      "id": "appearance:card_angle",
+      "title": "播放卡片频谱渐变角度",
+      "section": "music",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 360
+    },
+    {
+      "id": "launcher:desktop_card_visible",
+      "title": "显示桌面播放卡片",
+      "section": "music",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "launcher:desktop_lyrics_visible",
+      "title": "显示桌面歌词",
+      "section": "music",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "launcher:music_card_position",
+      "title": "播放卡片位置",
+      "section": "music",
+      "type": "select",
+      "value": 0,
+      "min": 0,
+      "max": 2,
+      "options": [
+        "靠左",
+        "居中",
+        "靠右"
+      ]
+    },
+    {
+      "id": "launcher:lyrics_color",
+      "title": "歌词未唱部分颜色",
+      "section": "music",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "launcher:lyrics_highlight",
+      "title": "歌词逐字高亮颜色",
+      "section": "music",
+      "type": "color",
+      "value": "#FFFFFF",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "ambient:enabled",
+      "title": "启用背景音乐",
+      "section": "ambient",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "ambient:continuous",
+      "title": "在桌面持续播放",
+      "section": "ambient",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "ambient:minutes",
+      "title": "无操作多少分钟后播放",
+      "section": "ambient",
+      "type": "minutes",
+      "value": 5,
+      "min": 3,
+      "max": 10
+    },
+    {
+      "id": "ambient:volume_index",
+      "title": "背景音乐实际音量",
+      "section": "ambient",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "ambient:info_mode",
+      "title": "音乐氛围信息",
+      "section": "ambient",
+      "type": "select",
+      "value": 0,
+      "min": 0,
+      "max": 2,
+      "options": [
+        "完整信息",
+        "极简信息：时间、日期、今天天气",
+        "全部隐藏"
+      ]
+    },
+    {
+      "id": "ambient:spectrum_visible",
+      "title": "显示屏保频谱",
+      "section": "ambient",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "ambient:lyrics_visible",
+      "title": "显示屏保单行歌词（频谱上方）",
+      "section": "ambient",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "ambient:lyrics",
+      "title": "当前屏保音乐歌词（LRC，按歌曲保存）",
+      "section": "ambient",
+      "type": "lrc",
+      "value": "",
+      "min": 0,
+      "max": 100000
+    },
+    {
+      "id": "ambient:crossfade",
+      "title": "无缝交叉淡化循环",
+      "section": "ambient",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "home:enabled",
+      "title": "Home键返回极简桌面",
+      "section": "system",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:settings_key_panel",
+      "title": "遥控设置键打开快捷面板",
+      "section": "system",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "config:settings_key_keycodes",
+      "title": "遥控设置键代码（逗号分隔）",
+      "section": "advanced",
+      "type": "codes",
+      "value": "",
+      "min": 0,
+      "max": 512
+    },
+    {
+      "id": "config:vpn_app",
+      "title": "VPN应用包名",
+      "section": "advanced",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 256
+    },
+    {
+      "id": "config:live_tv_package",
+      "title": "电视直播应用包名",
+      "section": "advanced",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 256
+    },
+    {
+      "id": "config:live_tv_action",
+      "title": "电视直播操作",
+      "section": "advanced",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 256
+    },
+    {
+      "id": "config:source_panel_service",
+      "title": "输入源面板服务",
+      "section": "advanced",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 256
+    },
+    {
+      "id": "config:source_panel_action",
+      "title": "输入源面板操作",
+      "section": "advanced",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 256
+    },
+    {
+      "id": "config:input_action",
+      "title": "输入源操作",
+      "section": "advanced",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 256
+    },
+    {
+      "id": "config:shamsi_date",
+      "title": "额外显示波斯历日期",
+      "section": "advanced",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": "ambient:greeting",
+      "title": "氛围屏幕问候语（留空隐藏）",
+      "section": "ambient",
+      "type": "text",
+      "value": "",
+      "min": 0,
+      "max": 80
+    },
+    {
+      "id": "ambient:greeting_x",
+      "title": "问候语水平位置（%）",
+      "section": "ambient",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "ambient:greeting_y",
+      "title": "问候语垂直位置（%）",
+      "section": "ambient",
+      "type": "number",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "location:city",
+      "title": "天气城市名称",
+      "section": "system",
+      "type": "text",
+      "value": "上海",
+      "min": 0,
+      "max": 40
+    },
+    {
+      "id": "location:latitude",
+      "title": "天气纬度（-90～90）",
+      "section": "system",
+      "type": "text",
+      "value": "31.2304",
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "location:longitude",
+      "title": "天气经度（-180～180）",
+      "section": "system",
+      "type": "text",
+      "value": "121.4737",
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "location:timezone",
+      "title": "时区（例如 Asia/Shanghai）",
+      "section": "system",
+      "type": "text",
+      "value": "Asia/Shanghai",
+      "min": 0,
+      "max": 80
+    },
+    {
+      "id": "location:hour24",
+      "title": "24小时制",
+      "section": "system",
+      "type": "boolean",
+      "value": false,
+      "min": 0,
+      "max": 0
+    }
+  ],
+  "themeId": "legacy",
+  "desktopBackground": "",
+  "desktopMode": "default",
+  "ambientBackground": "",
+  "ambientMode": "follow",
+  "slideshow": {
+    "enabled": false,
+    "seconds": 8,
+    "ids": []
+  },
+  "version": "Aurora Launcher · 模拟数据"
+}

@@ -1201,6 +1201,16 @@
       "method": "GET/POST",
       "path": "inputs/shortcut",
       "description": "原生桌面输入源快捷方式：id、remoteHint，写入需登录"
+    },
+    {
+      "method": "GET",
+      "path": "apps/manage",
+      "description": "应用管理列表（需登录），含桌面名称、图标、隐藏、排序和系统停用能力"
+    },
+    {
+      "method": "POST",
+      "path": "apps/manage",
+      "description": "一次修改一个属性：package 加 name/icon/resetIcon/visible/direction/enabled；启用状态需 confirm:true"
     }
   ]
 }

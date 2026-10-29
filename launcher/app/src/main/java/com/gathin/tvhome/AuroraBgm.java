@@ -98,6 +98,7 @@ final class AuroraBgm {
         File folder=new File(AuroraThemes.root(c),"bgm");if(!folder.isDirectory()&&!folder.mkdirs())throw new IOException("无法创建背景音乐目录");return folder;
     }
     static File file(Context c,String id)throws Exception {
+        if(id.matches("[a-f0-9-]+\\.audio")){File legacy=AuroraRules.inside(AmbientMusic.directory(c),id);if(!legacy.isFile())throw new FileNotFoundException("背景音乐已丢失");return legacy;}
         if(!id.matches("[a-f0-9-]{36}\\.(ogg|flac|wav|mp3|m4a|aac|opus)"))throw new IllegalArgumentException("背景音乐编号无效");
         File file=AuroraRules.inside(directory(c),id);if(!file.isFile())throw new FileNotFoundException("背景音乐已丢失，请重新选择");return file;
     }
@@ -105,7 +106,10 @@ final class AuroraBgm {
         File[] files=directory(c).listFiles((dir,name)->name.matches("[a-f0-9-]{36}\\.(ogg|flac|wav|mp3|m4a|aac|opus)"));
         JSONArray result=new JSONArray();if(files==null)return result;Arrays.sort(files,(a,b)->Long.compare(b.lastModified(),a.lastModified()));
         SharedPreferences prefs=c.getSharedPreferences("aurora_bgm",0);
-        for(File file:files)result.put(new JSONObject().put("id",file.getName()).put("name",prefs.getString("name:"+file.getName(),file.getName())).put("bytes",file.length()));return result;
+        for(File file:files)result.put(new JSONObject().put("id",file.getName()).put("name",prefs.getString("name:"+file.getName(),file.getName())).put("bytes",file.length()));
+        SharedPreferences legacy=c.getSharedPreferences("ambient_music",0);
+        for(File file:AmbientMusic.items(c))result.put(new JSONObject().put("id",file.getName()).put("name",legacy.getString("name_"+file.getName(),"原屏保音乐")).put("bytes",file.length()).put("source","legacy"));
+        return result;
     }
     static JSONObject upload(Context c,InputStream input,int length,String name)throws Exception {
         if(length<=0||length>256*1024*1024)throw new IllegalArgumentException("单个音乐文件需在256 MB以内");
@@ -132,6 +136,18 @@ final class AuroraBgm {
         return onMain(c,()->{
             AuroraBgm self=instance;
             switch(command){
+                case "builtin":
+                    AuroraSettings.only(body);
+                    SharedPreferences libraryPrefs=c.getSharedPreferences("aurora_bgm",0);
+                    String builtin=libraryPrefs.getString("builtin-piano","");
+                    try{file(c,builtin);}catch(Exception missing){
+                        android.content.res.AssetFileDescriptor resource=c.getResources().openRawResourceFd(R.raw.ambient_piano);
+                        try(InputStream in=c.getResources().openRawResource(R.raw.ambient_piano)){
+                            JSONObject imported=upload(c,in,(int)resource.getLength(),"内置钢琴.wav");builtin=imported.getString("id");
+                            if(!libraryPrefs.edit().putString("builtin-piano",builtin).commit())throw new IOException("内置音乐记录保存失败");
+                        }finally{resource.close();}
+                    }
+                    if(!self.prefs.edit().putString("selected",builtin).commit())throw new IOException("内置音乐选择保存失败");break;
                 case "play":
                     if(body.has("id")){file(c,body.getString("id"));self.prefs.edit().putString("selected",body.getString("id")).commit();}
                     self.prefs.edit().putBoolean("enabled",true).commit();self.manualStop=false;self.wanted=true;self.play();break;
@@ -144,12 +160,13 @@ final class AuroraBgm {
                     SharedPreferences.Editor edit=self.prefs.edit();
                     for(java.util.Iterator<String> keys=body.keys();keys.hasNext();){String key=keys.next();
                         switch(key){case "enabled":case "autoplay":edit.putBoolean(key,body.getBoolean(key));break;
-                            case "fadeMs":int duration=body.getInt(key);if(duration<0||duration>10000)throw new IllegalArgumentException("淡化时长范围0～10000毫秒");edit.putInt(key,duration);break;
+                            case "fadeMs":int duration=body.getInt(key);if(duration<0||duration>10000)throw new IllegalArgumentException("淡化时长范围0～10000毫秒");edit.putInt(key,duration);if(!c.getSharedPreferences("ambient_music",0).edit().putBoolean("crossfade",duration>0).commit())throw new IOException("原生循环设置保存失败");break;
                             case "lyrics":String lyric=body.getString(key);if(!lyric.isEmpty())AuroraLibrary.file(c,lyric,"lyrics");edit.putString(key,lyric);break;
                             case "selected":file(c,body.getString(key));edit.putString(key,body.getString(key));break;
                             default:throw new IllegalArgumentException("未知音乐设置："+key);}}
                     edit.commit();if(!self.prefs.getBoolean("enabled",false)){self.wanted=false;self.stop();}break;
                 case "delete":
+                    AuroraSettings.only(body,"id","confirm");if(!body.optBoolean("confirm"))throw new IllegalArgumentException("请先确认删除音乐");
                     String id=body.getString("id");File file=file(c,id);
                     if(id.equals(self.selected))throw new IllegalArgumentException("请先切换其他音乐，或停止后清除当前选择再删除");
                     if(!file.delete())throw new IOException("删除失败");SharedPreferences.Editor removed=self.prefs.edit().remove("name:"+id);if(id.equals(self.prefs.getString("selected","")))removed.remove("selected");removed.commit();break;

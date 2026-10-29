@@ -16,6 +16,3 @@ launcher/hs_err_pid*.log
 launcher/replay_pid*.log
 
 launcher/updateagent/build/
-
-# Owner media and default template are local distribution data.
-launcher/app/src/main/assets/private-defaults/

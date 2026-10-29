@@ -933,5 +933,15 @@
   "地址会跟随本机 IP、后台端口和访问路径变化；二维码不包含密码。": "The address follows this device's IP, port and console path. No password is included in the QR code.",
   "将下载并校验新版，保留现有设置。若系统要求确认，请按安装提示操作。": "Download and verify the new version, keeping your settings. Follow any system installation prompt.",
   "将恢复更新前的安装包和设置。更新后修改的设置将被覆盖。": "Restore the previous APK and its settings snapshot. Changes made after that update will be overwritten.",
-  "自动回退保护：安装失败、无法启动或启动健康检查失败时恢复上一版。任意功能性异常并不一定能自动识别。": "Recovery handles failed installation or startup health checks. It cannot detect every functional problem."
+  "自动回退保护：安装失败、无法启动或启动健康检查失败时恢复上一版。任意功能性异常并不一定能自动识别。": "Recovery handles failed installation or startup health checks. It cannot detect every functional problem.",
+  "设为默认桌面": "Set as default home",
+  "恢复原桌面": "Re-enable original home",
+  "当前默认桌面：Aurora Launcher": "Default home: Aurora Launcher",
+  "尚未设置为默认桌面": "Not the default home yet",
+  "下载新版": "Download update",
+  "继续安装": "Continue installation",
+  "安装已下载新版": "Install downloaded update",
+  "新版已下载并校验": "Update downloaded and verified",
+  "是否安装新版？保留账号、设置、背景和音乐。": "Install this update? Accounts, settings, backgrounds and music will be kept.",
+  "将尝试停用原独立桌面，不卸载，保留恢复入口；系统设置等组件受到保护。继续？": "Try disabling the original standalone launcher without uninstalling it. Restore remains available and settings components are protected. Continue?"
 }

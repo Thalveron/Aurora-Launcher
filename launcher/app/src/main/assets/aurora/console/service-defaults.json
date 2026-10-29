@@ -6,7 +6,7 @@
     "lon": 121.4737,
     "key": "",
     "urls": [
-      "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone=Asia%2FShanghai"
+      "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone={timezone}"
     ],
     "headers": {},
     "intervalMinutes": 60,

@@ -1,7 +1,12 @@
-const fs=require("fs"),vm=require("vm"),assert=require("assert"),path=require("path");
-const source=fs.readFileSync(path.join(__dirname,"../app/src/main/assets/web/app.js"),"utf8");
-const initial=source.split("\n").find(s=>s.startsWith("var initialPage="));assert(initial);
-const ids=["overview","layout","appearance","music","ambient","backgrounds","apps","usb","system","devices","logs","advanced","security"];
-for(const current of ids){const nodes=Object.fromEntries(ids.map(id=>[id,{hidden:false}]));nodes["page-title"]={};nodes["page-description"]={};let removed=false;const doc={documentElement:{dataset:{}},getElementById:id=>id==="section-boot-style"?{remove(){removed=true;}}:nodes[id]};vm.runInNewContext(initial,{pages:Object.fromEntries(ids.map(id=>[id,[id,id,id]])),pageHash:()=>current,$:id=>nodes[id],document:doc});assert(removed);for(const id of ids)assert.equal(nodes[id].hidden,id!==current);assert.equal(doc.documentElement.dataset.sectionReady,current);}
-assert(source.indexOf(initial)<source.indexOf("(async()=>{try{await loadState()"));
-console.log("PASS all 13 settings categories selected before network/state loading");
+'use strict';
+const fs=require('fs'),assert=require('assert'),path=require('path');
+const root=path.join(__dirname,'../app/src/main/assets');
+for(const file of ['web/index.html','web/app.js','web/style.css','aurora/console/index.html','aurora/console/settings.html','aurora/console/redirect.js'])assert(!fs.existsSync(path.join(root,file)),file+' retired');
+const html=fs.readFileSync(path.join(root,'aurora/console/app.html'),'utf8');
+assert(!html.includes('/core/mock.js'),'production does not load simulated data');
+const navigation=fs.readFileSync(path.join(root,'aurora/console/navigation.js'),'utf8');
+assert(!navigation.includes('legacyConsole'));assert(!navigation.includes('frame.src'));
+for(const script of ['native-settings','usb-page','logs-page','app-tools'])assert(html.includes('/console/'+script+'.js'));
+const server=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/gathin/tvhome/ConsolePath.java'),'utf8');
+assert(server.includes('console/app.html#'));assert(server.includes('request[1]="/api/v1/legacy"'));
+console.log('PASS old pages retired; native, USB, logs and app tools use new components');

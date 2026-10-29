@@ -1,0 +1,25 @@
+'use strict';
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const root=path.join(__dirname,'../app/src/main/assets/aurora'),M=require(path.join(root,'console/services-model.js')),defaults=JSON.parse(fs.readFileSync(path.join(root,'console/service-defaults.json')));
+const initial=M.state(defaults,false);
+assert.deepEqual(M.payload(initial,initial,false),defaults);
+const editor=M.editor(initial,'headers','{broken');assert.throws(()=>M.payload(editor,initial,false),/有效的 JSON/);assert.deepEqual(initial.config,defaults);
+for(const bad of ['http://example.org/weather','https://user:password@example.org/weather','https://你的APIHost/v7/weather/now'])assert.throws(()=>M.payload(M.editor(initial,'urls',bad),initial,false));
+assert.throws(()=>M.payload(M.editor(initial,'urls',Array(9).fill('https://example.org').join('\n')),initial,false),/最多/);
+assert.throws(()=>M.payload(M.editor(initial,'ntp','https://ntp.example.org'),initial,false),/NTP/);
+assert.throws(()=>M.payload(M.editor(initial,'headers','{"Authorization":12}'),initial,false),/请求头/);
+assert.throws(()=>M.payload(M.editor(initial,'mapping','[]'),initial,false),/JSON 对象/);
+assert.throws(()=>M.payload(M.editor(initial,'mapping','{"temperature":"$.current[*]"}'),initial,false),/字段映射/);
+assert.throws(()=>M.payload(M.change(initial,'weather','intervalMinutes',4),initial,false),/刷新间隔/);
+assert.throws(()=>M.payload(M.change(initial,'time','intervalMinutes',5.5),initial,false),/校时间隔/);
+const empty=M.editor(M.editor(M.editor(initial,'urls',''),'ntp',''),'http','');const fallback=M.payload(empty,initial,false);assert.deepEqual(fallback.weather.urls,[]);assert.deepEqual(fallback.time.ntp,[]);assert.deepEqual(fallback.time.http,[]);
+const la=M.city(initial,{name:'洛杉矶',lat:34.05223,lon:-118.24368,timezone:'America/Los_Angeles'}),q=M.preset(la,'qweather',defaults),o=M.preset(q,'openmeteo',defaults);assert.equal(q.config.weather.city,'洛杉矶');assert.equal(q.config.time.timezone,'America/Los_Angeles');assert.equal(o.config.weather.city,'洛杉矶');assert.equal(o.editors.urls,defaults.weather.urls.join('\n'));assert.throws(()=>M.payload(q,initial,false),/APIHost/);
+const storage=new Map(),context={window:{},URLSearchParams,Date,crypto:require('crypto'),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},fetch:async p=>({json:async()=>JSON.parse(fs.readFileSync(path.join(root,p.slice(1))))})};vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(root,'core/mock.js'),'utf8'),context);
+(async()=>{
+ const request=async(p,b)=>{const r=await context.window.AuroraMock.response(p,b);assert(r.ok,JSON.stringify(r.error));return JSON.parse(JSON.stringify(r.data));};
+ const cities=await request('services/cities?name=Los%20Angeles');assert.equal(cities[0].timezone,'America/Los_Angeles');assert.equal(cities[0].countryCode,'US');
+ const saved=await request('services',M.payload(la,initial,false));assert.equal(saved.config.weather.city,'洛杉矶');assert.equal((await request('services')).config.time.timezone,'America/Los_Angeles');
+ const tested=await request('services/test',{});assert.equal(tested.config.weather.city,'洛杉矶');assert(tested.weather.success);assert(tested.time.updatedAt>0);
+ const restored=await request('services/reset',{});assert.equal(restored.config.weather.city,'上海');assert.equal(restored.config.time.syncSystem,false);
+ console.log('PASS service wire fields / JSON+HTTPS+NTP validation / intervals / fallback defaults / city-preserving templates / mock search+save+test+reset');
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -5,7 +5,7 @@ window.AuroraFreeLayout=function(o){
  var old=document.getElementById('free-layout-tools');if(old)old.remove();
  o.box.classList.remove('free-layout-canvas');if(o.theme!=='cards')return;
  var tools=document.createElement('div');tools.id='free-layout-tools';tools.className='free-layout-tools';
- var note=document.createElement('p');note.textContent='仅简约卡片：拖动区块换位置，拖右下角改变大小。松手自动保存；数值以整个电视画面的百分比表示。区块可重叠，请保留应用操作空间。';tools.append(note);
+ var note=document.createElement('p');note.textContent='仅简约卡片：拖动区块换位置，拖右下角改变大小。松手更新预览，点击底部保存后应用；数值以整个电视画面的百分比表示。区块可重叠，请保留应用操作空间。';tools.append(note);
  var toggle=document.createElement('button');toggle.textContent=o.value.freeform?'恢复网格布局':'启用拖动与缩放';tools.append(toggle);
  var snap=document.createElement('input');snap.type='checkbox';snap.checked=true;var sl=document.createElement('label');sl.append(snap,document.createTextNode(' 吸附到 1% 网格'));tools.append(sl);
  var fields=document.createElement('div');fields.className='free-layout-fields';tools.append(fields);

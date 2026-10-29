@@ -29,7 +29,7 @@ final class WeatherHeader {
         try {
             JSONObject daily=AuroraServices.weather(activity).getJSONObject("daily");
             JSONArray days=daily.getJSONArray("time"),lo=daily.getJSONArray("temperature_2m_min"),hi=daily.getJSONArray("temperature_2m_max");
-            LocalDate today=LocalDate.now(ZoneId.of(LocationSettings.zone(activity)));int first=-1,second=-1;
+            LocalDate today=CityTime.date(AuroraServices.now(),LocationSettings.zone(activity));int first=-1,second=-1;
             for(int i=0;i<days.length();i++){if(days.getString(i).equals(today.toString()))first=i;if(days.getString(i).equals(today.plusDays(1).toString()))second=i;}
             if(first<0 || second<0)return null;
             return DesktopLanguage.t(activity,"今天 @")+daily.getJSONArray("weather_code").getInt(first)+"@ "+range(lo,hi,first)+DesktopLanguage.t(activity,"\n明天 @")+daily.getJSONArray("weather_code").getInt(second)+"@ "+range(lo,hi,second);

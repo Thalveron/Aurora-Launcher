@@ -45,7 +45,7 @@ final class AuroraData {
         return new JSONObject().put("epochMs",AuroraServices.now()).put("timezone",now.getZone().getId())
                 .put("time",now.format(DateTimeFormatter.ofPattern(LocationSettings.prefs(c).getBoolean("hour24",true)?"HH:mm":"hh:mm")))
                 .put("date",now.toLocalDate().toString()).put("weekday",now.format(DateTimeFormatter.ofPattern("EEEE",Locale.forLanguageTag(DesktopLanguage.code(c)))))
-                .put("lunar",DesktopLanguage.lunar(c)).put("festival",ChineseFestivals.today());
+                .put("lunar",DesktopLanguage.lunar(c)).put("festival",ChineseFestivals.on(now.toLocalDate()));
     }
     static JSONArray apps(Context c)throws Exception {
         Map<String,ApplicationInfo> installed=new LinkedHashMap<>();
@@ -56,11 +56,12 @@ final class AuroraData {
         Collections.sort(list,(a,b)->a.loadLabel(c.getPackageManager()).toString().compareToIgnoreCase(b.loadLabel(c.getPackageManager()).toString()));
         JSONArray result=new JSONArray();
         for(ApplicationInfo app:list) result.put(new JSONObject().put("package",app.packageName)
-                .put("name",app.loadLabel(c.getPackageManager()).toString()).put("icon","/api/v1/icons/"+app.packageName));
+                .put("name",AppManagement.label(c,app.packageName,app.loadLabel(c.getPackageManager()).toString())).put("icon",AppManagement.iconUrl(c,app.packageName)));
         return result;
     }
     static byte[] icon(Context c,String pkg)throws Exception {
         WebApps.valid(c,pkg);
+        byte[] custom=AppManagement.icon(c,pkg);if(custom!=null)return custom;
         Drawable drawable=c.getPackageManager().getApplicationIcon(pkg);
         Bitmap bitmap=Bitmap.createBitmap(128,128,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(bitmap);
         drawable.setBounds(0,0,128,128);drawable.draw(canvas);

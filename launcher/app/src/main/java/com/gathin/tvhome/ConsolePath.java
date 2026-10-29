@@ -37,7 +37,20 @@ final class ConsolePath {
    String tail=path.substring(b.length());
    if(tail.equals("console")){redirect(out,b+"console/");return true;}
    if(tail.startsWith("console/")||tail.startsWith("api/v1/")||tail.startsWith("core/")||tail.startsWith("themes/")){request[1]="/"+tail+query;return false;}
-   if(tail.startsWith("desktop/"))return false;
+   if(tail.startsWith("desktop/")){
+    if(request[0].equals("GET")&&(tail.equals("desktop/")||tail.equals("desktop/index.html")||tail.equals("desktop/app.js")||tail.equals("desktop/style.css"))){
+     String section=android.net.Uri.parse(raw).getQueryParameter("section"),page="legacy";
+     if("appearance".equals(section))page="style";
+     else if("ambient".equals(section))page="saver";
+     else if("backgrounds".equals(section))page="background";
+     else if("apps".equals(section))page="library";
+     else if("system".equals(section))page="services";
+     else if("devices".equals(section))page="inputs";
+     else if(java.util.Arrays.asList("layout","music","usb","logs","advanced","security").contains(section))page=section;
+     redirect(out,b+"console/app.html#"+page);return true;
+    }
+    request[1]="/api/v1/legacy";return false;
+   }
    return reject(out,404);
   }
   if(!local)return reject(out,404);

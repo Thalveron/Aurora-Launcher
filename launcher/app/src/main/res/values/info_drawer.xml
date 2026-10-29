@@ -6,12 +6,6 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.18</item>
-        <item name="android:windowAnimationStyle">@style/Animation.AuroraInfoDrawer</item>
-    </style>
-    <style name="Animation.AuroraInfoDrawer" parent="@android:style/Animation.Activity">
-        <item name="android:activityOpenEnterAnimation">@anim/info_drawer_enter</item>
-        <item name="android:activityOpenExitAnimation">@null</item>
-        <item name="android:activityCloseEnterAnimation">@null</item>
-        <item name="android:activityCloseExitAnimation">@anim/info_drawer_exit</item>
+        <item name="android:windowAnimationStyle">@null</item>
     </style>
 </resources>

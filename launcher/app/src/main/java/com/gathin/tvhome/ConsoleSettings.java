@@ -11,12 +11,13 @@ final class ConsoleSettings {
   AuroraSettings.only(body,"username","password","passwordConfirm","port","path","openAccess");
   if(body.has("openAccess")&&!(body.get("openAccess") instanceof Boolean))throw new IllegalArgumentException("openAccess 必须为布尔值");
   boolean open=body.optBoolean("openAccess",UploadSecurity.openAccess(c));
-  String name=ConsoleAccessRules.username(body.optString("username",UploadSecurity.username(c)));
+  String name=body.optString("username",UploadSecurity.username(c));
+  if(!open||!name.isEmpty())name=ConsoleAccessRules.username(name);
   String path=ConsoleAccessRules.path(body.optString("path",path(c)));
   int oldPort=port(c),port=oldPort;
   if(body.has("port")){Object raw=body.get("port");if(!(raw instanceof Number)||((Number)raw).doubleValue()!=((Number)raw).intValue())throw new IllegalArgumentException("端口必须是整数");port=ConsoleAccessRules.port(((Number)raw).intValue());}
   String password=body.optString("password","");if(!password.isEmpty())ConsoleAccessRules.password(password,body.optString("passwordConfirm",""));
-  if(!UploadSecurity.initialized(c))throw new IllegalStateException("请先初始化账号");
+  if(!open&&!UploadSecurity.initialized(c)&&password.isEmpty())throw new IllegalStateException("关闭无密码访问前，请设置账号和至少8位密码");
   if(port!=oldPort&&port!=INTERNAL_PORT)try(ServerSocket probe=new ServerSocket()){probe.setReuseAddress(true);probe.bind(new InetSocketAddress(port));}catch(java.io.IOException busy){throw new IllegalArgumentException("该端口已被占用，设置未保存");}
   boolean changed=open!=UploadSecurity.openAccess(c)||!name.equals(UploadSecurity.username(c))||!path.equals(path(c))||port!=oldPort||!password.isEmpty();
   SharedPreferences.Editor e=UploadSecurity.prefs(c).edit().putString("username",name).putString("path",path).putInt("port",port).putBoolean("openAccess",open);

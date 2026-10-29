@@ -9,5 +9,5 @@ final class AuroraRoutes{
   if(route.startsWith("apps/icon/"))return "icons/"+route.substring(10);
   return route;
  }
- static boolean pending(String route){return route.equals("ai/chat")||route.equals("themes/upload")||route.equals("icons");}
+ static boolean pending(String route){return route.equals("legacy")||route.equals("ai/chat")||route.equals("themes/upload")||route.equals("icons");}
 }

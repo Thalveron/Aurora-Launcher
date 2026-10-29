@@ -1,32 +1,30 @@
 'use strict';
-const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
-const assets=path.resolve(__dirname,'../app/src/main/assets/web');
-const html=fs.readFileSync(path.join(assets,'index.html'),'utf8'),source=fs.readFileSync(path.join(assets,'app.js'),'utf8');
-class Element{
- constructor(tag){this.tagName=tag;this.children=[];this.style={};}
- append(...nodes){for(const n of nodes){this.children.push(n);if(n&&typeof n==='object')n.parentElement=this;}}
- replaceChildren(...nodes){this.children=[];this.append(...nodes);}
- setAttribute(k,v){this[k]=v;}
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
+const root=path.join(__dirname,'../../');
+const inventory=JSON.parse(fs.readFileSync(path.join(root,'docs/console-feature-map.json'),'utf8'));
+const nodes=new Map();
+class Node{
+ constructor(tag){this.tagName=tag;this.children=[];this.hidden=false;this.value='';}
+ set id(value){this._id=value;nodes.set(value,this);}get id(){return this._id;}
+ append(...items){this.children.push(...items);}
+ replaceChildren(...items){this.children=items;}
+ removeAttribute(){} checkValidity(){return true;}
 }
-const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element('div')]));
-const fields=JSON.parse(fs.readFileSync(0,'utf8'));
-const state={fields:[{id:'future:unsupported',section:'future-section',type:'text',title:'Future field',value:''},...fields]};
-const context={document:{createElement:tag=>new Element(tag)},state,$:id=>nodes.get(id)||null,openColor(){},saveField(){},TextDecoder};
-vm.createContext(context);
-const start=source.indexOf('function renderFields(){'),end=source.indexOf('async function saveField(',start);
-vm.runInContext(source.slice(start,end),context);
-for(let round=0;round<2;round++){
- context.renderFields();
- for(const section of ['layout','appearance','music','ambient','system','advanced']){
-  const expected=fields.filter(f=>f.section===section).length;
-  assert(expected>0,'fixture must exercise '+section);
-  assert.equal(nodes.get('fields-'+section).children.length,expected,section+' rendered all controls');
-  console.log('PASS complete settings section',section,expected);
- }
- const descendants=[];function visit(n){descendants.push(n);for(const c of n.children||[])if(c&&typeof c==='object')visit(c);}
- visit(nodes.get('fields-music'));
- const styles=descendants.find(n=>n.id==='field-appearance:card_style');
- assert(styles&&styles.children.length===5&&typeof styles.onchange==='function','all five native spectrum choices and save handler');
- assert(descendants.some(n=>n.id==='field-launcher:music_card_position'),'existing position setting remains');
-}
-console.log('PASS unknown/compat groups cannot abort rendering, repeated rendering has no duplicates');
+for(const id of ['native-category','native-settings-anchor','native-category-title']){const n=new Node('div');n.id=id;}
+const fields=inventory.fields.map(f=>({id:f.id,title:f.name,section:f.section,type:f.id==='launcher:columns'?'number':'boolean',value:f.id==='launcher:columns'?5:true,min:0,max:100}));
+let draft, writes=[];
+const UI={row:(title,desc,control)=>control,card:(title,desc,rows)=>({title,rows}),draft:(id,options)=>{draft={baseline:options.initial,value:options.initial,patch(p){this.value=Object.assign({},this.value,p);options.render(this.value);},options};return draft;}};
+const api={request:async(p,b)=>{if(b){writes.push([p,b]);return {fields};}return p==='config'?{theme:'legacy'}:{fields};}};
+const context={window:{AuroraAPI:api,AuroraConsoleUI:UI},document:{createElement:t=>new Node(t),getElementById:id=>nodes.get(id),querySelectorAll:()=>[]}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../app/src/main/assets/aurora/console/native-settings.js'),'utf8'),context);
+(async()=>{
+ await context.window.AuroraNativeSettings.show('layout');
+ const expected=fields.filter(f=>['appearance','layout','music','advanced','system'].includes(f.section)&&!f.id.startsWith('location:'));
+ for(const f of expected)assert(nodes.has('native-field-'+f.id),f.id+' has a control');
+ assert.equal(nodes.get('native-field-launcher:columns').value,5);
+ nodes.get('native-field-launcher:columns').value='6';nodes.get('native-field-launcher:columns').onchange();
+ await draft.options.save(draft.value);assert.equal(writes[0][0],'config/native');assert.equal(writes[0][1].changes['launcher:columns'],6);
+ assert.equal(Object.keys(writes[0][1].changes).length,1,'only changed settings are written');
+ assert.equal(writes.length,1);
+ console.log('PASS native settings schema coverage, typed values and changed-only writes');
+})().catch(e=>{console.error(e);process.exitCode=1;});
