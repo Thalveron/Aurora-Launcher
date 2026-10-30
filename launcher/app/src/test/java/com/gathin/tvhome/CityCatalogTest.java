@@ -5,12 +5,12 @@ import static org.junit.Assert.*;
 
 public class CityCatalogTest {
     private List<CityCatalog.City> cities()throws Exception{return CityCatalog.read(getClass().getResourceAsStream("/china-cities.tsv"));}
-    @Test public void leiyangWorksOfflineWithChineseAndPinyin()throws Exception {
+    @Test public void cityWorksOfflineWithChineseAndPinyin()throws Exception {
         List<CityCatalog.City> all=cities();assertTrue(all.size()>10000);
-        for(String query:new String[]{"耒阳","耒阳市","Leiyang","lei yang"}){
+        for(String query:new String[]{"上海","上海市","Shanghai","shang hai"}){
             CityCatalog.City city=CityCatalog.search(all,query).get(0);
-            assertEquals("湖南",city.region);assertEquals("Asia/Shanghai",city.timezone);
-            assertEquals(26.40,city.lat,.1);assertEquals(112.85,city.lon,.1);
+            assertEquals("上海",city.region);assertEquals("Asia/Shanghai",city.timezone);
+            assertEquals(31.22,city.lat,.1);assertEquals(121.46,city.lon,.1);
         }
     }
     @Test public void hengyangResolvesHunanBeforeAnyPartialMatch()throws Exception {

@@ -119,7 +119,6 @@
    {name:'上海',region:'上海市',country:'中国',countryCode:'CN',lat:31.2304,lon:121.4737,timezone:'Asia/Shanghai',aliases:['上海','shanghai']},
    {name:'洛杉矶',region:'加利福尼亚州',country:'美国',countryCode:'US',lat:34.05223,lon:-118.24368,timezone:'America/Los_Angeles',aliases:['洛杉矶','los angeles']},
    {name:'深圳',region:'广东省',country:'中国',countryCode:'CN',lat:22.54554,lon:114.0683,timezone:'Asia/Shanghai',aliases:['深圳','shenzhen']},
-   {name:'耒阳',region:'湖南省',country:'中国',countryCode:'CN',lat:26.4167,lon:112.85,timezone:'Asia/Shanghai',aliases:['耒阳','耒阳市','leiyang']},
    {name:'伦敦',region:'英格兰',country:'英国',countryCode:'GB',lat:51.5085,lon:-.1257,timezone:'Europe/London',aliases:['伦敦','london']}
   ].filter(function(v){return !!query&&v.aliases.some(function(a){return a.indexOf(query)>=0;});}).map(function(v){var c=clone(v);delete c.aliases;return c;});}
   if(path==='logs/settings'){var audit=stored('aurora-mock-log-retention',{retentionDays:0});if(body){only(body,['retentionDays']);if([0,1,3,7,15,30].indexOf(body.retentionDays)<0)fail('INVALID_ARGUMENT','保存期限无效');audit=save('aurora-mock-log-retention',body);}return audit;}
