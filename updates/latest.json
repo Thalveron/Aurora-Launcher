@@ -1,15 +1,24 @@
 {
   "schema": 1,
   "latest": {
-    "version": "1.3.8",
-    "versionCode": 138,
+    "version": "1.3.9",
+    "versionCode": 139,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.3.8/Aurora-Launcher-v1.3.8.apk",
-    "sha256": "36025c362f6848f2d4a27cad5d53a1de8e123ee8c5796e137707cad4ebbc56a6",
-    "bytes": 21548811,
-    "notes": "# Aurora Launcher 1.3.8\n\n- 内置系统主页入口，可在系统中直接选择 Aurora Launcher 作为默认桌面。\n- 优化电视端更新页面的遥控焦点，跳过说明文字。\n- 修复下载状态变化时的焦点处理。\n\n沿用原签名，更新保留现有设置与素材。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.3.9/Aurora-Launcher-v1.3.9.apk",
+    "sha256": "0fadba0f93fd685214b97bd21b4cc0c5430b17e3e8e216a346bb0ece997d2184",
+    "bytes": 21999501,
+    "notes": "Aurora Launcher 1.3.9\n\n- 修复部分电视系统拒绝安装更新的问题。\n- 保留桌面更新页面的遥控焦点优化。\n- 更新保留现有用户设置。\n"
   },
   "history": [
+    {
+      "version": "1.3.8",
+      "versionCode": 138,
+      "minSdk": 26,
+      "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.3.8/Aurora-Launcher-v1.3.8.apk",
+      "sha256": "36025c362f6848f2d4a27cad5d53a1de8e123ee8c5796e137707cad4ebbc56a6",
+      "bytes": 21548811,
+      "notes": "# Aurora Launcher 1.3.8\n\n- 内置系统主页入口，可在系统中直接选择 Aurora Launcher 作为默认桌面。\n- 优化电视端更新页面的遥控焦点，跳过说明文字。\n- 修复下载状态变化时的焦点处理。\n\n沿用原签名，更新保留现有设置与素材。\n"
+    },
     {
       "version": "1.3.6",
       "versionCode": 136,
