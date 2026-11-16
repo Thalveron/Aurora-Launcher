@@ -125,6 +125,7 @@ final class AuroraHttp {
                 if(route.startsWith("assets/file/")){AuroraLibrary.serve(c,route.substring(12),headers.get("range"),streamOutput);status=200;return true;}
                 if(route.startsWith("icons/")){binary(output,200,"image/png",AuroraData.icon(c,route.substring(6)),false);status=200;return true;}
                 if(route.equals("media/cover")){binary(output,200,"image/jpeg",AuroraData.cover(c),false);status=200;return true;}
+                if(route.equals("inputs/shortcut/image")){binary(output,200,InputShortcut.imageType(c),InputShortcut.imageBytes(c),false);status=200;return true;}
                 Object data;
             switch(route){
                 case "config/native":data=ConsoleNativeSettings.read(c);break;
@@ -196,6 +197,12 @@ final class AuroraHttp {
                 JSONObject uploaded=AuroraLibrary.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")),name);
                 json(output,200,uploaded,null,null);status=200;return true;
             }
+            if(path.equals("/api/v1/inputs/shortcut/image")){
+                if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
+                JSONObject uploaded=InputShortcut.uploadImage(c,input,Long.parseLong(headers.getOrDefault("content-length","0")));
+                WebAudit.record(c,peer,"上传遥控器提示图片",headers.getOrDefault("content-length","0")+" bytes",200);
+                json(output,200,uploaded,null,null);status=200;return true;
+            }
             if(path.equals("/api/v1/bgm/upload")){
                 if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
                 String name=java.net.URLDecoder.decode(headers.getOrDefault("x-file-name",""),"UTF-8");
@@ -248,6 +255,7 @@ final class AuroraHttp {
                 case "music/local/scan":data=AuroraMusicSettings.call(c,"scan",null);break;
                 case "inputs/name":data=AuroraInputs.name(c,body);break;
                 case "inputs/switch":AuroraInputs.open(c,body.getString("id"));break;
+                case "inputs/shortcut/image/reset":AuroraSettings.only(body);data=InputShortcut.resetImage(c);WebAudit.record(c,peer,"恢复默认遥控器提示图片","",200);break;
                 case "inputs/shortcut":data=InputShortcut.save(c,body);WebAudit.record(c,peer,"设置输入源快捷方式",body.toString(),200);break;
                 case "services":data=AuroraServices.save(c,body);break;
                 case "services/test":data=AuroraServices.test(c);break;
@@ -376,11 +384,13 @@ final class AuroraHttp {
             String appearance=AuroraSettings.get(c).toString();if(!appearance.equals(lastAppearance)){ws(out,1,new JSONObject().put("type","snapshot").put("data",new JSONObject().put("appearance",new JSONObject(appearance))).toString().getBytes(StandardCharsets.UTF_8));lastAppearance=appearance;}
             if(android.os.SystemClock.elapsedRealtime()>=nextSnapshot){nextSnapshot=android.os.SystemClock.elapsedRealtime()+1000;
             if(ticks++%10==0)apps=AuroraData.apps(c);
-            JSONObject snapshot=new JSONObject().put("time",AuroraData.time(c)).put("weather",AuroraData.weather(c)).put("media",AuroraData.media(c)).put("status",AuroraData.status(c)).put("apps",apps).put("config",AuroraThemes.publicConfig(c)).put("appearance",AuroraSettings.get(c)).put("saver",new JSONObject().put("active",AuroraSaver.active));
+            JSONObject snapshot=new JSONObject().put("time",AuroraData.time(c)).put("weather",AuroraData.weather(c)).put("media",AuroraData.media(c)).put("status",AuroraData.status(c)).put("config",AuroraThemes.publicConfig(c)).put("appearance",AuroraSettings.get(c)).put("saver",new JSONObject().put("active",AuroraSaver.active));
             String nextMedia=snapshot.getJSONObject("media").toString(),nextConfig=snapshot.getJSONObject("config").toString(),nextApps=apps.toString();
             if(!lastMedia.isEmpty()&&!lastMedia.equals(nextMedia))event(out,"media.changed",snapshot.getJSONObject("media"));
             if(!lastConfig.isEmpty()&&!lastConfig.equals(nextConfig))event(out,"config.changed",snapshot.getJSONObject("config"));
             if(!lastApps.isEmpty()&&!lastApps.equals(nextApps))event(out,"apps.changed",new JSONObject().put("apps",apps).put("added",appDelta(apps,new JSONArray(lastApps))).put("removed",appDelta(new JSONArray(lastApps),apps)));
+            // The app list is by far the largest part of a snapshot: clients keep the last one, so resend it only on change.
+            if(!nextApps.equals(lastApps))snapshot.put("apps",apps);
             lastMedia=nextMedia;lastConfig=nextConfig;lastApps=nextApps;
             String data=snapshot.toString();if(!data.equals(previous)){ws(out,1,new JSONObject().put("type","snapshot").put("sequence",sequence.incrementAndGet()).put("data",snapshot).toString().getBytes(StandardCharsets.UTF_8));previous=data;}}
             if(input.available()>0){DataInputStream in=new DataInputStream(input);int first=in.readUnsignedByte(),second=in.readUnsignedByte();int length=second&127;if(length==126)length=in.readUnsignedShort();

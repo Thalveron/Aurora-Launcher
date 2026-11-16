@@ -1200,7 +1200,17 @@
     {
       "method": "GET/POST",
       "path": "inputs/shortcut",
-      "description": "原生桌面输入源快捷方式：id、remoteHint，写入需登录"
+      "description": "原生桌面输入源快捷方式：id、remoteHint、visible，返回 customImage、imageVersion，写入需登录"
+    },
+    {
+      "method": "GET/POST",
+      "path": "inputs/shortcut/image",
+      "description": "切换输入源后的遥控器提示图片：GET 返回当前图片，POST 以二进制上传 PNG/JPG/WebP（5 MB 以内，需登录）"
+    },
+    {
+      "method": "POST",
+      "path": "inputs/shortcut/image/reset",
+      "description": "删除自定义遥控器提示图片，恢复内置图片（需登录）"
     },
     {
       "method": "GET",

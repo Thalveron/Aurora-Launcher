@@ -1955,5 +1955,20 @@
   "模拟日志": "Sample log",
   "仅供电脑预览，不是电视操作记录": "Browser preview only; not a TV operation record",
   "（模拟）": " (sample)",
-  "10 月 28 日 · 星期三 · 22°C": "Oct 28 · Wednesday · 22°C"
+  "10 月 28 日 · 星期三 · 22°C": "Oct 28 · Wednesday · 22°C",
+  "遥控器提示图片预览": "Remote image preview",
+  "默认图片只适配部分电视与盒子，可上传自己设备的遥控器图片。支持 PNG、JPG、WebP，5 MB 以内，竖向图片效果最好。": "The built-in image fits only some TV and box combinations. Upload a picture of your own remote: PNG, JPG or WebP up to 5 MB; portrait images work best.",
+  "上传遥控器图片": "Upload remote image",
+  "恢复默认图片": "Restore default image",
+  "正在使用自定义遥控器图片": "Using your custom remote image",
+  "正在使用默认遥控器图片": "Using the default remote image",
+  "遥控器图片需在5 MB以内": "The remote image must be 5 MB or smaller",
+  "正在上传遥控器图片": "Uploading remote image",
+  "遥控器图片已更新": "Remote image updated",
+  "已恢复默认遥控器图片": "Default remote image restored",
+  "请选择PNG、JPG或WebP图片": "Choose a PNG, JPG or WebP image",
+  "遥控器图片边长需在8192像素以内": "The remote image must be at most 8192 pixels on each side",
+  "保存遥控器图片失败": "Could not save the remote image",
+  "恢复默认遥控器图片失败": "Could not restore the default remote image",
+  "选中的屏保音乐文件已丢失，请重新上传并选择": "The selected screensaver music file is missing. Upload and select it again"
 }

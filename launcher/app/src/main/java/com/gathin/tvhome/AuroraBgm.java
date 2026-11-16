@@ -277,9 +277,10 @@ final class AuroraBgm {
             player.setVolume(from+(target-from)*progress);if(progress<1f)main.postDelayed(this,40);else if(done!=null)done.run();
         }});
     }
+    private boolean missing(){String id=prefs.getString("selected",prefs.getString("themeSelected",""));if(id.isEmpty())return false;try{file(context,id);return false;}catch(Exception lost){return true;}}
     private JSONObject snapshot()throws Exception {
         return new JSONObject().put("engine","Media3 ExoPlayer").put("diagnostic",(context.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0?diagnostic:"").put("repeat","one").put("loopMode",prefs.getInt("fadeMs",1500)>0?"crossfade":"gapless").put("loopCount",loopCount).put("crossfading",outgoing!=null).put("loopPrepared",preparedLoop!=null).put("playing",current!=null&&current.isPlaying())
-                .put("foreground",foreground).put("reason",reason).put("enabled",prefs.getBoolean("enabled",false)).put("autoplay",prefs.getBoolean("autoplay",prefs.getBoolean("themeAutoplay",false)))
+                .put("foreground",foreground).put("missing",missing()).put("reason",reason).put("enabled",prefs.getBoolean("enabled",false)).put("autoplay",prefs.getBoolean("autoplay",prefs.getBoolean("themeAutoplay",false)))
                 .put("actualGain",current==null||pcm==null?0:current.getVolume()*pcm.requestedGain()).put("softwareGain",pcm==null?0:pcm.requestedGain()).put("inputRms",pcm==null?0:pcm.inputRms).put("outputRms",pcm==null?0:pcm.outputRms).put("renderedSamples",pcm==null?0:pcm.renderedSamples).put("volume",prefs.getInt("volume_percent",5)).put("volumeMax",100).put("volumeUnit","percent").put("systemVolume",tvVolume.current()).put("desktopVolume",tvVolume.prior()).put("volumeMode","software").put("fadeMs",prefs.getInt("fadeMs",1500)).put("selected",prefs.getString("selected",prefs.getString("themeSelected","")))
                 .put("lyrics",prefs.getString("lyrics","")).put("lyricRows",AuroraLyrics.read(context,prefs.getString("lyrics","")))
                 .put("positionMs",current==null?0:current.getCurrentPosition()).put("durationMs",current==null?0:Math.max(0,current.getDuration()));

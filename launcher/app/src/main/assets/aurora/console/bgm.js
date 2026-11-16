@@ -5,7 +5,7 @@
   var reasons = {stopped: '已停止', desktop_hidden: '桌面不在前台，已暂停', playing: '正在播放', preparing: '正在准备音频',
     manual_pause: '已手动暂停', other_media: '其他音乐正在播放，已让出声音', focus_lost: '音频焦点已让出', ducked: '其他应用暂时使用声音', focus_denied: '暂时无法获得音频焦点'};
   function show(state, form) {
-    el('bgm-status').textContent = (reasons[state.reason] || state.reason) + ' · 单曲循环 · 独立屏保音量 ' + state.volume + '%';
+    el('bgm-status').textContent = (state.missing ? '选中的屏保音乐文件已丢失，请重新上传并选择 · ' : '') + (reasons[state.reason] || state.reason) + ' · 单曲循环 · 独立屏保音量 ' + state.volume + '%';
     if (form) {el('bgm-volume').max=state.volumeMax||100;el('bgm-volume').value = state.volume;el('bgm-volume-number').value=state.volume; el('bgm-volume-value').textContent = state.volume + '%';
       el('bgm-enabled').checked = state.enabled; el('bgm-autoplay').checked = state.autoplay; el('bgm-fade').value = String(state.fadeMs);
       if (state.selected) el('bgm-library').value = state.selected;}
