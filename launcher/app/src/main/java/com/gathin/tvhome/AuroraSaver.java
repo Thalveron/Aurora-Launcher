@@ -19,7 +19,8 @@ final class AuroraSaver {
         if(!AuroraSettings.get(c).getBoolean("saverEnabled"))throw new IllegalArgumentException("屏保未启用");
         JSONObject state=AuroraBgm.state(c);
         if(state.optBoolean("enabled")&&!state.optString("selected").isEmpty()){
-            AuroraBgm.command(c,"play",new JSONObject());state=AuroraBgm.state(c);
+            // Music is optional: a lost or unreadable file must never keep the screensaver from starting.
+            try{AuroraBgm.command(c,"play",new JSONObject());state=AuroraBgm.state(c);}catch(Exception unavailable){state=new JSONObject();}
             if(state.optString("reason").equals("other_media"))return new JSONObject().put("active",false);
         }
         launching=0;active=true;AuroraActivity.nativeSaver(true);return new JSONObject().put("active",true);

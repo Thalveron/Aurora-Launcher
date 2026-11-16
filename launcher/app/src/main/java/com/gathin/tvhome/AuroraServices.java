@@ -11,6 +11,7 @@ import java.util.*;
 final class AuroraServices {
     private static volatile boolean weatherBusy,timeBusy;
     private static volatile long weatherTry,timeTry,offset;
+    private static volatile long clockSkew=Long.MIN_VALUE,timeSeen;private static volatile int timeFailures;
     private static volatile Boolean rootClock;
     private static volatile boolean checkingRoot;
     static JSONObject defaults()throws Exception{return new JSONObject("{\"weather\":{\"provider\":\"openmeteo\",\"city\":\"上海\",\"lat\":31.2304,\"lon\":121.4737,\"key\":\"\",\"urls\":[\"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&forecast_days=4&timezone={timezone}\"],\"headers\":{},\"intervalMinutes\":60,\"mapping\":{\"temperature\":\"$.current.temperature_2m\",\"code\":\"$.current.weather_code\",\"dates\":\"$.daily.time\",\"min\":\"$.daily.temperature_2m_min\",\"max\":\"$.daily.temperature_2m_max\",\"codes\":\"$.daily.weather_code\"}},\"time\":{\"ntp\":[\"ntp.aliyun.com\",\"time.cloudflare.com\",\"pool.ntp.org\"],\"http\":[\"https://www.baidu.com\",\"https://www.cloudflare.com\"],\"intervalMinutes\":360,\"timezone\":\"Asia/Shanghai\",\"syncSystem\":false}}");}
@@ -82,19 +83,27 @@ final class AuroraServices {
         return Boolean.TRUE.equals(rootClock)&&TvAdb.status().optBoolean("connected");
     }
     static void time(Context c)throws Exception{
-        JSONObject t=config(c).getJSONObject("time");if(timeBusy||android.os.SystemClock.elapsedRealtime()<timeTry)return;sync(c,t);
+        JSONObject t=config(c).getJSONObject("time");long elapsed=android.os.SystemClock.elapsedRealtime(),skew=System.currentTimeMillis()-elapsed;
+        // The TV clock can stop or jump across standby and cold boot. A correction measured against the old clock is then wrong: drop it and resync at once.
+        if(clockSkew==Long.MIN_VALUE)clockSkew=skew;
+        if(ClockSync.jumped(clockSkew,skew)){clockSkew=skew;offset=0;timeTry=0;}
+        else if(timeSeen!=0&&elapsed-timeSeen>ClockSync.IDLE_GAP_MS)timeTry=0;
+        timeSeen=elapsed;
+        if(timeBusy||elapsed<timeTry)return;sync(c,t);
     }
+    /** The desktop came back to the foreground: check the clock now instead of waiting for the sync interval. */
+    static void resync(){timeTry=0;}
     private static synchronized void sync(Context c,JSONObject t){if(timeBusy)return;timeBusy=true;timeTry=android.os.SystemClock.elapsedRealtime()+60000;new Thread(()->{try{
         Long value=null;String source="";JSONArray ntp=t.getJSONArray("ntp");for(int i=0;i<ntp.length();i++)try{value=ntp(ntp.getString(i));source=ntp.getString(i);break;}catch(Exception ignored){}
         if(value==null){JSONArray http=t.getJSONArray("http");for(int i=0;i<http.length();i++){HttpURLConnection h=null;try{h=connection(http.getString(i),new JSONObject());h.setRequestMethod("HEAD");h.getResponseCode();long date=h.getDate();if(date>1577836800000L){value=date;source=new URL(http.getString(i)).getHost();break;}}catch(Exception ignored){}finally{if(h!=null)h.disconnect();}}}
-        if(value==null)throw new IOException("所有校时地址均失败");offset=value-System.currentTimeMillis();if(Math.abs(offset)>10L*365*86400000)throw new IOException("校时偏差异常");
+        if(value==null)throw new IOException("所有校时地址均失败");if(!ClockSync.plausible(value))throw new IOException("校时偏差异常");offset=value-System.currentTimeMillis();
         if(t.getBoolean("syncSystem")&&canSetTime(c)){
             if(c.checkSelfPermission("android.permission.SET_TIME")==android.content.pm.PackageManager.PERMISSION_GRANTED)((android.app.AlarmManager)c.getSystemService(Context.ALARM_SERVICE)).setTime(value);
             else {String result=TvAdb.shell(c,"date -u -s @"+(value/1000));if(result.toLowerCase(Locale.ROOT).contains("invalid")||result.toLowerCase(Locale.ROOT).contains("denied"))throw new IOException("系统拒绝校时");}
             offset=0;
         }
-        c.getSharedPreferences("aurora_service_state",0).edit().putLong("timeAt",System.currentTimeMillis()).putString("timeSource",source).putString("timeError","").apply();timeTry=android.os.SystemClock.elapsedRealtime()+t.getLong("intervalMinutes")*60000;
-    }catch(Exception e){c.getSharedPreferences("aurora_service_state",0).edit().putString("timeError","校时失败，继续使用电视时钟").apply();}finally{timeBusy=false;}},"aurora-clock-sync").start();}
+        c.getSharedPreferences("aurora_service_state",0).edit().putLong("timeAt",System.currentTimeMillis()).putString("timeSource",source).putString("timeError","").apply();clockSkew=System.currentTimeMillis()-android.os.SystemClock.elapsedRealtime();timeFailures=0;timeTry=android.os.SystemClock.elapsedRealtime()+t.getLong("intervalMinutes")*60000;
+    }catch(Exception e){timeTry=android.os.SystemClock.elapsedRealtime()+ClockSync.retryDelay(timeFailures++);c.getSharedPreferences("aurora_service_state",0).edit().putString("timeError","校时失败，继续使用电视时钟").apply();}finally{timeBusy=false;}},"aurora-clock-sync").start();}
     private static long ntp(String host)throws Exception{try(DatagramSocket s=new DatagramSocket()){s.setSoTimeout(2000);byte[] b=new byte[48];b[0]=0x23;long start=android.os.SystemClock.elapsedRealtime();byte[] nonce=new byte[8];new java.security.SecureRandom().nextBytes(nonce);System.arraycopy(nonce,0,b,40,8);InetAddress addr=InetAddress.getByName(host);s.connect(addr,123);s.send(new DatagramPacket(b,b.length));DatagramPacket p=new DatagramPacket(new byte[48],48);s.receive(p);byte[] r=p.getData();if(p.getLength()<48||(r[0]&7)!=4||(r[0]&0xc0)==0xc0||(r[1]&255)<1||(r[1]&255)>15)throw new IOException("NTP响应无效");for(int i=0;i<8;i++)if(r[24+i]!=nonce[i])throw new IOException("NTP请求不匹配");long seconds=ByteBuffer.wrap(r,40,4).getInt()&0xffffffffL,fraction=ByteBuffer.wrap(r,44,4).getInt()&0xffffffffL;return (seconds-2208988800L)*1000+(fraction*1000>>>32)+(android.os.SystemClock.elapsedRealtime()-start)/2;}}
     static JSONObject status(Context c)throws Exception{android.content.SharedPreferences p=c.getSharedPreferences("aurora_service_state",0);return new JSONObject().put("config",config(c)).put("weather",new JSONObject().put("updating",weatherBusy).put("updatedAt",p.getLong("weatherAt",0)).put("error",p.getString("weatherError","")).put("success",p.getLong("weatherAt",0)>0&&p.getString("weatherError","").isEmpty())).put("time",new JSONObject().put("updating",timeBusy).put("updatedAt",p.getLong("timeAt",0)).put("error",p.getString("timeError","")).put("source",p.getString("timeSource","")).put("offsetMs",offset).put("canSyncSystem",canSetTime(c)).put("permissionReason","需要SET_TIME系统签名权限或Root专用后端；WRITE_SECURE_SETTINGS不授予系统校时能力"));}
     static JSONObject test(Context c)throws Exception{weatherTry=0;timeTry=0;refreshWeather(c,config(c).getJSONObject("weather"));time(c);return status(c);}

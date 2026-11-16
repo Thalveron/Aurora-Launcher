@@ -27,7 +27,7 @@ final class AuroraBgm {
     private final AudioFocusRequest request;
     private SharedPreferences prefs;private String boundTheme;
     private ExoPlayer current,outgoing,preparedLoop;private AuroraPcmSpectrum pcm,outgoingPcm,preparedPcm;
-    private long loopRetryAt;private int loopCount;private final java.util.WeakHashMap<ExoPlayer,Integer> fadeTokens=new java.util.WeakHashMap<>();
+    private long loopRetryAt,quietSince,learnTick;private boolean learning;private int loopCount;private final java.util.WeakHashMap<ExoPlayer,Integer> fadeTokens=new java.util.WeakHashMap<>();
     private final Runnable loopWatch=new Runnable(){public void run(){try{maintainLoop();}catch(Exception error){discardPrepared();loopRetryAt=android.os.SystemClock.elapsedRealtime()+5000;}main.postDelayed(this,50);}};
     private double[] mixedSpectrum(){
         double[] result=new double[32];boolean playing=false;
@@ -45,7 +45,7 @@ final class AuroraBgm {
             boolean busy=other!=null&&!other.getPackageName().equals(context.getPackageName())&&other.getPlaybackState()!=null
                     &&other.getPlaybackState().getState()==android.media.session.PlaybackState.STATE_PLAYING;
             if(busy&&!reason.equals("other_media"))pauseInternal("other_media",false);
-            else if(!busy&&reason.equals("other_media"))try{play();}catch(Exception e){reason=e.getMessage();}
+            else if(!busy&&reason.equals("other_media"))try{play();}catch(Exception e){reason=String.valueOf(e.getMessage());}
         }
         main.postDelayed(this,1000);
     }};
@@ -57,7 +57,7 @@ final class AuroraBgm {
                 .setAudioAttributes(new android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA)
                         .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC).build())
                 .setOnAudioFocusChangeListener(change->{
-                    if(change==AudioManager.AUDIOFOCUS_GAIN){focused=true;if(foreground&&wanted)try{play();}catch(Exception e){reason=e.getMessage();}}
+                    if(change==AudioManager.AUDIOFOCUS_GAIN){focused=true;if(foreground&&wanted)try{play();}catch(Exception e){reason=String.valueOf(e.getMessage());}}
                     else {focused=false;pauseInternal(change==AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK?"ducked":"focus_lost",false);}
                 },main).build();
         main.postDelayed(observe,1000);
@@ -82,8 +82,8 @@ final class AuroraBgm {
             if(instance==null)instance=new AuroraBgm(c);instance.bindTheme(AuroraThemes.current(c));instance.foreground=value;
             if(!value)instance.pauseInternal("desktop_hidden",true);
             else if(!saverEnabled(c)&&!instance.manualStop&&instance.prefs.getBoolean("enabled",false)&&instance.prefs.getBoolean("autoplay",instance.prefs.getBoolean("themeAutoplay",false))){
-                instance.wanted=true;try{instance.play();}catch(Exception error){instance.reason=error.getMessage();}
-            }else if(value&&instance.wanted&&instance.reason.equals("desktop_hidden"))try{instance.play();}catch(Exception e){instance.reason=e.getMessage();}
+                instance.wanted=true;try{instance.play();}catch(Exception error){instance.reason=String.valueOf(error.getMessage());}
+            }else if(value&&instance.wanted&&instance.reason.equals("desktop_hidden"))try{instance.play();}catch(Exception e){instance.reason=String.valueOf(e.getMessage());}
         });
     }
     static void silence(Context c){main.post(()->{if(instance==null)return;AuroraBgm self=instance;self.wanted=false;self.manualStop=true;self.operation++;self.releaseOutputs();self.audio.abandonAudioFocusRequest(self.request);self.focused=false;self.reason="saver_exit";});}
@@ -169,7 +169,7 @@ final class AuroraBgm {
                     AuroraSettings.only(body,"id","confirm");if(!body.optBoolean("confirm"))throw new IllegalArgumentException("请先确认删除音乐");
                     String id=body.getString("id");File file=file(c,id);
                     if(id.equals(self.selected))throw new IllegalArgumentException("请先切换其他音乐，或停止后清除当前选择再删除");
-                    if(!file.delete())throw new IOException("删除失败");SharedPreferences.Editor removed=self.prefs.edit().remove("name:"+id);if(id.equals(self.prefs.getString("selected","")))removed.remove("selected");removed.commit();break;
+                    if(!file.delete())throw new IOException("删除失败");c.getSharedPreferences("aurora_bgm",0).edit().remove("name:"+id).remove("head:"+id).commit();SharedPreferences.Editor removed=self.prefs.edit().remove("name:"+id);if(id.equals(self.prefs.getString("selected","")))removed.remove("selected");removed.commit();break;
                 default:throw new IllegalArgumentException("未知背景音乐操作");
             }
             return self.snapshot();
@@ -186,7 +186,7 @@ final class AuroraBgm {
         if(current==null||!source.getName().equals(selected)){
             if(outgoing!=null){outgoing.release();outgoing=null;}
             outgoing=current;outgoingPcm=pcm;if(outgoing!=null){ExoPlayer old=outgoing;fade(old,0f,revision,()->{old.release();if(outgoing==old){outgoing=null;outgoingPcm=null;}});}
-            discardPrepared();selected=source.getName();pcm=new AuroraPcmSpectrum();pcm.gain(softwareVolume());
+            discardPrepared();selected=source.getName();pcm=new AuroraPcmSpectrum();pcm.gain(softwareVolume());quietSince=0;learnTick=0;learning=!library().contains("head:"+selected);
             current=createPlayer(source,pcm);
             ExoPlayer player=current;
             player.addListener(new Player.Listener(){
@@ -217,19 +217,34 @@ final class AuroraBgm {
         return player;
     }
     private void discardPrepared(){if(preparedLoop!=null){preparedLoop.release();preparedLoop=null;}preparedPcm=null;}
+    private SharedPreferences library(){return context.getSharedPreferences("aurora_bgm",0);}
+    /** Remembers where the music really starts, so later loops can begin there instead of replaying leading silence. */
+    private void learnHead(long now,long position,boolean quiet){
+        if(!learning)return;
+        // Only trust an unbroken observation from the very start of the track.
+        if(learnTick==0&&!quiet&&position>=300||learnTick!=0&&now-learnTick>300||position>20000){learning=false;return;}
+        learnTick=now;if(quiet)return;
+        learning=false;library().edit().putLong("head:"+selected,LoopTiming.head(position)).apply();
+    }
     private void maintainLoop()throws Exception{
+        long now=android.os.SystemClock.elapsedRealtime();
+        boolean heard=current!=null&&pcm!=null&&current.isPlaying()&&pcm.renderedSamples>0,quiet=heard&&pcm.inputRms<LoopTiming.SILENCE;
+        if(heard)learnHead(now,current.getCurrentPosition(),quiet);
+        quietSince=quiet?(quietSince==0?now:quietSince):0;
         if(current==null||!wanted||!foreground||!focused||outgoing!=null||!current.isPlaying())return;
         long duration=current.getDuration();if(duration<=0)return;
         int overlap=(int)Math.min(prefs.getInt("fadeMs",1500),duration/4);
         if(overlap<=0){discardPrepared();return;}
-        long remaining=duration-current.getCurrentPosition();
-        if(preparedLoop==null&&remaining<=overlap+3000&&android.os.SystemClock.elapsedRealtime()>=loopRetryAt){
+        long remaining=duration-current.getCurrentPosition(),window=LoopTiming.tailWindow(duration);
+        // Prepared early enough to take over as soon as the recording falls silent, not only at its nominal end.
+        if(preparedLoop==null&&remaining<=overlap+3000+window&&now>=loopRetryAt){
             preparedPcm=new AuroraPcmSpectrum();preparedPcm.gain(softwareVolume());
-            preparedLoop=createPlayer(file(context,selected),preparedPcm);preparedLoop.prepare();
+            preparedLoop=createPlayer(file(context,selected),preparedPcm);long head=library().getLong("head:"+selected,0);if(head>0)preparedLoop.seekTo(head);preparedLoop.prepare();
         }
-        if(preparedLoop==null||preparedLoop.getPlaybackState()!=Player.STATE_READY||remaining>overlap)return;
+        boolean tail=LoopTiming.tailSilent(remaining,window,quietSince,now);
+        if(preparedLoop==null||preparedLoop.getPlaybackState()!=Player.STATE_READY||remaining>overlap&&!tail)return;
         final ExoPlayer old=current,next=preparedLoop;final AuroraPcmSpectrum oldPcm=pcm;
-        final int revision=++operation;final int durationMs=(int)Math.max(100,Math.min(overlap,remaining));
+        final int revision=++operation;final int durationMs=(int)Math.max(100,Math.min(tail?Math.min(overlap,500):overlap,remaining));quietSince=0;learning=false;
         outgoing=old;outgoingPcm=oldPcm;current=next;pcm=preparedPcm;preparedLoop=null;preparedPcm=null;
         next.play();reason="playing";loopCount++;
         // Wait for the decoder/audio sink to actually start before reducing the old output.
