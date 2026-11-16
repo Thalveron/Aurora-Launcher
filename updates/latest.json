@@ -1,15 +1,24 @@
 {
   "schema": 1,
   "latest": {
-    "version": "1.4.6",
-    "versionCode": 146,
+    "version": "1.4.7",
+    "versionCode": 147,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.4.6/Aurora-Launcher-v1.4.6.apk",
-    "sha256": "a1a30a8da27c99cf9c748d87010f3b118277643117ca78cb2bea7ca604cfbc2c",
-    "bytes": 22036491,
-    "notes": "Aurora Launcher 1.4.6\n\n- 修复屏保背景音乐文件丢失时无法进入屏保的问题；没有可播放的音乐时屏保照常进入。\n- 修复待机或长时间关机后开机，时间长时间停留在旧时间的问题：回到桌面、系统时钟变化时立即重新校时，开机联网前快速重试。\n- 电视时钟偏差很大时也能接受网络校时结果。\n- 优化屏保音乐淡化循环：歌曲首尾自带的静音不再造成循环时停顿几秒。\n- 修复删除背景音乐后歌名记录残留的问题。\n- 更新保留现有用户设置。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.4.7/Aurora-Launcher-v1.4.7.apk",
+    "sha256": "0ca549754b002fcda7497252200ddae961b346ba009aa46b267b94fa41257865",
+    "bytes": 21586635,
+    "notes": "Aurora Launcher 1.4.7\n\n- 新增：切换输入源后的遥控器提示图片可在控制台“连接与输入源”中自定义上传，并可随时恢复默认图片。\n- 屏保音乐文件丢失时，控制台会给出提示。\n- 降低桌面数据推送的开销：应用列表只在变化时发送。\n- 更新保留现有用户设置。\n"
   },
   "history": [
+    {
+      "version": "1.4.6",
+      "versionCode": 146,
+      "minSdk": 26,
+      "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.4.6/Aurora-Launcher-v1.4.6.apk",
+      "sha256": "a1a30a8da27c99cf9c748d87010f3b118277643117ca78cb2bea7ca604cfbc2c",
+      "bytes": 22036491,
+      "notes": "Aurora Launcher 1.4.6\n\n- 修复屏保背景音乐文件丢失时无法进入屏保的问题；没有可播放的音乐时屏保照常进入。\n- 修复待机或长时间关机后开机，时间长时间停留在旧时间的问题：回到桌面、系统时钟变化时立即重新校时，开机联网前快速重试。\n- 电视时钟偏差很大时也能接受网络校时结果。\n- 优化屏保音乐淡化循环：歌曲首尾自带的静音不再造成循环时停顿几秒。\n- 修复删除背景音乐后歌名记录残留的问题。\n- 更新保留现有用户设置。\n"
+    },
     {
       "version": "1.4.5",
       "versionCode": 145,
