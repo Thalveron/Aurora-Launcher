@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.27",
-    "versionCode": 175,
+    "version": "0.4.28",
+    "versionCode": 176,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.27/Aurora-Launcher-v0.4.27.apk",
-    "sha256": "6aec45aa38c5ab8c15b5140397e0a3719fc6176f00e723982d96e7d6c0367ddf",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.28/Aurora-Launcher-v0.4.28.apk",
+    "sha256": "b23f506f5566d8c820cc560adf4f2dbbc66470f30b1e9a7dfde16eb03c22e587",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.27\n\n- 歌词位置改为按屏幕计算：居中为屏幕中心，靠左/靠右各留 8% 边距，靠右不再贴边。\n- 侧边滚动歌词改为全屏宽度排版，修复“选居中看起来靠左、选靠左看起来居中”。\n- 下方两行错落：两行间距收紧，第二行相对第一行右移 8%，更紧凑。\n- 诊断文件增加当前歌词位置与样式字段。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.28\n\n- 靠左/靠右歌词不再是一条笔直的边：每行按自身长度向画面中间偏移，越短的行偏得越多，上下行自然错开，接近居中模式的参差感。\n- 下方两行的 8% 错位和紧凑间距保持不变。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
