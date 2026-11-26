@@ -29,11 +29,17 @@ public final class UploadService extends Service {
             AuroraHttp.initialize(getApplicationContext());IdleStandby.start(this);NetworkTraffic.start(this);
             try{ManagedWebAssets.sync(this);}catch(Exception e){android.util.Log.w("TvHome","Managed web assets unavailable",e);}
             BridgePreview.sync(this);
-            try {
-                BackgroundUploadServer created = new BackgroundUploadServer(this);
-                server = created;LauncherUpdater.start(this);
-                if (closed) created.close();
-            } catch (Exception e) { android.util.Log.w("TvHome", "Upload server unavailable", e); stopSelf(); }
+            BackgroundUploadServer created = null;
+            for (int attempt = 0; attempt < 10 && !closed; attempt++) {
+                try { created = new BackgroundUploadServer(this); break; }
+                catch (Exception busy) {
+                    if (attempt == 9) { android.util.Log.w("TvHome", "Upload server unavailable", busy); stopSelf(); return; }
+                    try { Thread.sleep(400); } catch (InterruptedException stopped) { Thread.currentThread().interrupt(); break; }
+                }
+            }
+            if (created == null) return;
+            server = created; LauncherUpdater.start(this);
+            if (closed) created.close();
         }, "upload-start").start();
     }
     static void reconfigure(Context c,int oldPort,boolean oldTls,int oldTlsPort){
@@ -53,7 +59,15 @@ public final class UploadService extends Service {
         },"console-rebind").start(),1000);
     }
     private BackgroundUploadServer newServer()throws java.io.IOException{
-        return new BackgroundUploadServer(this);
+        java.io.IOException last=null;
+        for(int attempt=0;attempt<3;attempt++){
+            try{return new BackgroundUploadServer(this);}
+            catch(java.io.IOException failure){
+                last=failure;
+                try{Thread.sleep(180);}catch(InterruptedException stopped){Thread.currentThread().interrupt();break;}
+            }
+        }
+        throw last==null?new java.io.IOException("控制台端口不可用"):last;
     }
     private void foreground(){
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel("lan_upload", "局域网上传", NotificationManager.IMPORTANCE_LOW));

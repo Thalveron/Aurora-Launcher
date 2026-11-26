@@ -41,7 +41,7 @@ final class BackgroundUploadServer implements AutoCloseable {
             else server.bind(new InetSocketAddress(ConsoleSettings.port(c)));
             if(!ConsoleSettings.https(c)&&ConsoleSettings.port(c)!=8899){internal=new ServerSocket();internal.setReuseAddress(true);internal.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"),8899));}
             if(ConsoleSettings.https(c)){
-                try{tls=ConsoleTls.factory().createServerSocket(ConsoleSettings.tlsPort(c));}
+                try{tls=ConsoleTls.listen(ConsoleSettings.tlsPort(c));}
                 catch(java.security.GeneralSecurityException e){throw new IOException("无法加载 HTTPS 证书",e);}
             }
         }catch(IOException failure){server.close();if(internal!=null)internal.close();throw failure;}

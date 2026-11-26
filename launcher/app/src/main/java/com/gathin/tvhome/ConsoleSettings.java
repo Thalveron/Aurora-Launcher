@@ -21,7 +21,7 @@ final class ConsoleSettings {
   boolean oldTls=https(c),tls=body.optBoolean("https",oldTls);
   int oldTlsPort=tlsPort(c),tlsPort=ConsoleAccessRules.port(body.optInt("httpsPort",oldTlsPort));
   if(tls&&(tlsPort==port||tlsPort==INTERNAL_PORT))throw new IllegalArgumentException("HTTPS 端口与 HTTP 或内部端口冲突");
-  if(tls&&(!oldTls||tlsPort!=oldTlsPort))try(ServerSocket check=ConsoleTls.factory().createServerSocket(tlsPort)){}catch(Exception e){throw new IllegalArgumentException("HTTPS 证书或端口不可用："+e.getMessage());}
+  if(tls&&(!oldTls||tlsPort!=oldTlsPort))try(ServerSocket check=ConsoleTls.listen(tlsPort)){}catch(java.net.BindException busy){throw new IllegalArgumentException("HTTPS 端口 "+tlsPort+" 已被其他程序占用，请换一个端口（如 9443）");}catch(Exception e){throw new IllegalArgumentException("HTTPS 证书或端口不可用："+e.getMessage());}
   boolean rebind=port!=oldPort||tls!=oldTls||(tls&&tlsPort!=oldTlsPort);
   String password=body.optString("password","");if(!password.isEmpty())ConsoleAccessRules.password(password,body.optString("passwordConfirm",""));
   if(!open&&!UploadSecurity.initialized(c)&&password.isEmpty())throw new IllegalStateException("关闭无密码访问前，请设置账号和至少8位密码");

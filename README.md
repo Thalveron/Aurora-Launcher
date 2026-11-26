@@ -4,7 +4,7 @@
 
 ## 下载
 
-在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases/latest) 下载 APK。当前版本 v0.4.57，已在雷鸟 65S515C PRO（Android 9）和 Android 11 电视盒子验证；其他型号需自行确认系统能力。
+在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases/latest) 下载 APK。当前版本 v0.4.58，已在雷鸟 65S515C PRO（Android 9）和 Android 11 电视盒子验证；其他型号需自行确认系统能力。
 
 ## 功能
 

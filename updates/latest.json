@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.57",
-    "versionCode": 205,
+    "version": "0.4.58",
+    "versionCode": 206,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.57/Aurora-Launcher-v0.4.57.apk",
-    "sha256": "a005f9c00d0b58b3602472f672e0e912b129454b1bc0331b0911e13c672fba2c",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.58/Aurora-Launcher-v0.4.58.apk",
+    "sha256": "e70b540b6187eac3d06aadba3b82ca604860de34c5e120a28a2c4377993a9b7c",
     "bytes": 47725040,
-    "notes": "Aurora Launcher 0.4.57\n\n- 内置当前电视的整套桌面设置与三套背景（桌面壁纸、屏保 4K 视频、全屏音乐视频）。\n- 保留 Wi-Fi 密码快捷方式本身，但只写入 enabled=true，不包含已保存的 Wi-Fi 名称和密码。\n- 保留输入源快捷方式，但不写入自定义遥控器图片（使用默认图标）。\n- 不包含控制台账号密码、播放历史、个人音乐文件名。\n- 天气默认上海。\n- 仅在全新安装时写入默认值；已有安装保留现有设置。\n"
+    "notes": "Aurora Launcher 0.4.58\n\n- HTTPS 证书端口改用 SO_REUSEADDR 绑定，重启/切换后不再因 TIME_WAIT 报 EADDRINUSE。\n- 端口被其他程序占用时提示具体端口，并建议更换端口。\n- 控制台启动失败会自动重试，安装更新后不会出现后台打不开的情况。\n- 保留 0.4.57 的内置桌面/屏保/全屏音乐设置与三套背景。\n"
   },
   "history": []
 }

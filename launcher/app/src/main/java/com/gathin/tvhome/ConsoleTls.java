@@ -20,6 +20,13 @@ final class ConsoleTls {
         }
         return verified;
     }
+    /** Bind with SO_REUSEADDR so a quick console restart can reuse a port that is still in TIME_WAIT. */
+    static SSLServerSocket listen(int port) throws GeneralSecurityException, java.io.IOException {
+        SSLServerSocket socket=(SSLServerSocket)factory().createServerSocket();
+        socket.setReuseAddress(true);
+        socket.bind(new java.net.InetSocketAddress(port));
+        return socket;
+    }
     private static SSLServerSocketFactory checked(String alias,boolean ec) throws GeneralSecurityException, java.io.IOException {
         KeyStore store = KeyStore.getInstance("AndroidKeyStore");
         store.load(null);
