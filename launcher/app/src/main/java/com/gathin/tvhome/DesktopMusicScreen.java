@@ -28,6 +28,8 @@ final class DesktopMusicScreen {
     private MediaMetadata previous;
     private final java.util.function.Supplier<PersonalBackground> desktop;
     private boolean running;
+    /** Settings snapshot the open dialog was built from, so console changes can rebuild it live. */
+    private String renderedSettings="";
     DesktopMusicScreen(Activity a,java.util.function.Supplier<PersonalBackground> desktop){activity=a;this.desktop=desktop;}
     static android.content.SharedPreferences prefs(Context c){return c.getSharedPreferences("fullscreen_"+AuroraThemes.current(c),0);}
     static JSONObject settings(Context c)throws Exception{
@@ -46,6 +48,14 @@ final class DesktopMusicScreen {
     private static JSONObject defaultSpectrum()throws Exception{
         return new JSONObject().put("style","wave").put("color","#55ddffff").put("color2","#8266ffff")
                 .put("opacity",50).put("size",100).put("angle",315).put("stops",new JSONArray());
+    }
+    /** Stable signature of the fullscreen options, so a console save rebuilds the open dialog once. */
+    private static String signature(JSONObject value){
+        JSONObject spec=value.optJSONObject("spectrum");
+        return value.optInt("minutes")+"|"+value.optString("background","")+"|"+value.optBoolean("hideCover")+"|"
+                +value.optBoolean("hideLyrics")+"|"+value.optString("lyricsAlign","")+"|"+value.optString("lyricsLayout","")+"|"
+                +(spec==null?"-":spec.optString("style","")+"|"+spec.optString("color","")+"|"+spec.optString("color2","")+"|"
+                +spec.optInt("opacity")+"|"+spec.optInt("size")+"|"+spec.optInt("angle")+"|"+spec.optJSONArray("stops"));
     }
     private static void validSpectrum(JSONObject value)throws Exception{
         AuroraSettings.only(value,"style","color","color2","opacity","size","angle","stops");
@@ -82,7 +92,14 @@ final class DesktopMusicScreen {
         PlaybackState state=controller==null?null:controller.getPlaybackState();
         if(state==null||state.getState()!=PlaybackState.STATE_PLAYING||AuroraSaver.active){
             reset();if(screen!=null)screen.dismiss();
-        }else if(screen!=null)update(controller);
+        }else if(screen!=null){
+            String signature="";
+            try{signature=signature(settings(activity));}catch(Exception ignored){}
+            if(!signature.isEmpty()&&!signature.equals(renderedSettings)){
+                Dialog stale=screen;screen=null;stale.dismiss();open(controller);return;
+            }
+            update(controller);
+        }
         else if(!activity.hasWindowFocus())reset();
         else if(SystemClock.elapsedRealtime()-idle>=minutes*60000L)open(controller);
         handler.postDelayed(this,1000);
@@ -138,6 +155,7 @@ final class DesktopMusicScreen {
         String lyricsLayout=config.optString("lyricsLayout","side");
         String lyricsAlign=config.optString("lyricsAlign","center");
         JSONObject spectrumSettings=config.optJSONObject("spectrum");
+        renderedSettings=signature(config);
         FrameLayout root=new FrameLayout(activity);root.setBackgroundColor(0xff101419);
         String id=prefs(activity).getString("background","");
         albumBackground=id.isEmpty()?root:null;
