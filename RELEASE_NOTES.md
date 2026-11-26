@@ -1,4 +1,5 @@
-Aurora Launcher v0.4.73
+Aurora Launcher v0.4.74
 
-- 从其他应用回到桌面时，在窗口重新获得焦点后重建一次背景 SurfaceView，修复部分 Android 11 盒子视频背景不显示。
-- 保留 0.4.72 的背景诊断接口 /api/v1/debug/background。
+- 从 HDMI/盒子信号源切回电视桌面时，窗口重新获得焦点后强制重建背景 SurfaceView，修复视频背景不显示。
+- 重建做了 1.5 秒节流，避免普通焦点变化造成闪烁。
+- 保留诊断接口 /api/v1/debug/background。

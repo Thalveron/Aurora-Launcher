@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.73",
-    "versionCode": 221,
+    "version": "0.4.74",
+    "versionCode": 222,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.73/Aurora-Launcher-v0.4.73.apk",
-    "sha256": "372af0b72ef703f7c291c9e7d86cbc1b22944015139eb9f430585d6eb10c14b9",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.74/Aurora-Launcher-v0.4.74.apk",
+    "sha256": "6bb8130bf43de3dfd722febfde5e37204db3724b22cfcc02a83cd3b38434390d",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.73\n\n- 从其他应用回到桌面时，在窗口重新获得焦点后重建一次背景 SurfaceView，修复部分 Android 11 盒子视频背景不显示。\n- 保留 0.4.72 的背景诊断接口 /api/v1/debug/background。\n"
+    "notes": "Aurora Launcher 0.4.74\n\n- 从 HDMI/盒子信号源切回电视桌面时，窗口重新获得焦点后强制重建背景 SurfaceView，修复视频背景不显示。\n- 重建做了 1.5 秒节流，避免普通焦点变化造成闪烁。\n- 保留诊断接口 /api/v1/debug/background。\n"
   },
   "history": []
 }
