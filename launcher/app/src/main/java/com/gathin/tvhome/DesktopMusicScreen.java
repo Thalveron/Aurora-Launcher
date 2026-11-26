@@ -36,6 +36,7 @@ final class DesktopMusicScreen {
                 .put("hideCover",prefs(c).getBoolean("hide_cover",false))
                 .put("lyricsAlign",prefs(c).getString("lyrics_align","center"))
                 .put("lyricsLayout",prefs(c).getString("lyrics_layout","side"))
+                .put("hideLyrics",prefs(c).getBoolean("hide_lyrics",false))
                 .put("spectrum",spectrum(c));
     }
     static JSONObject spectrum(Context c)throws Exception{
@@ -61,11 +62,12 @@ final class DesktopMusicScreen {
         }
     }
     static JSONObject save(Context c,JSONObject b)throws Exception{
-        AuroraSettings.only(b,"minutes","background","hideCover","lyricsAlign","lyricsLayout","spectrum");
+        AuroraSettings.only(b,"minutes","background","hideCover","hideLyrics","lyricsAlign","lyricsLayout","spectrum");
         android.content.SharedPreferences.Editor edit=prefs(c).edit();
         if(b.has("minutes")){int m=b.getInt("minutes");if(m!=0&&m!=1&&m!=3&&m!=5&&m!=8)throw new IllegalArgumentException("时间无效");edit.putInt("minutes",m);}
         if(b.has("background")){String id=b.getString("background");if(!id.isEmpty())AuroraLibrary.file(c,id,"background");edit.putString("background",id);}
         if(b.has("hideCover")){if(!(b.get("hideCover") instanceof Boolean))throw new IllegalArgumentException("隐藏专辑图片必须是开关值");edit.putBoolean("hide_cover",b.getBoolean("hideCover"));}
+        if(b.has("hideLyrics")){if(!(b.get("hideLyrics") instanceof Boolean))throw new IllegalArgumentException("隐藏歌词必须是开关值");edit.putBoolean("hide_lyrics",b.getBoolean("hideLyrics"));}
         if(b.has("lyricsAlign")){String value=b.getString("lyricsAlign");if(!java.util.Arrays.asList("center","left","right").contains(value))throw new IllegalArgumentException("歌词对齐方式无效");edit.putString("lyrics_align",value);}
         if(b.has("lyricsLayout")){String value=b.getString("lyricsLayout");if(!java.util.Arrays.asList("side","bottom-one","bottom-two").contains(value))throw new IllegalArgumentException("歌词样式无效");edit.putString("lyrics_layout",value);}
         if(b.has("spectrum")){JSONObject value=b.getJSONObject("spectrum");validSpectrum(value);edit.putString("spectrum",value.toString());}
@@ -86,6 +88,7 @@ final class DesktopMusicScreen {
         handler.postDelayed(this,1000);
     }};
     private final BroadcastReceiver receiver=new BroadcastReceiver(){public void onReceive(Context c,Intent i){
+        if(lyrics==null)return;
         lyrics.update(i.getStringArrayExtra("window"),i.getIntExtra("index",-1),i.getFloatExtra("progress",0),i.getStringExtra("song"),activity.getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_color",0xff79e8ff));
     }};
     private void update(MediaController controller){
@@ -131,6 +134,7 @@ final class DesktopMusicScreen {
         JSONObject config;
         try{config=settings(activity);}catch(Exception unavailable){config=new JSONObject();}
         boolean hideCover=config.optBoolean("hideCover",false);
+        boolean hideLyrics=config.optBoolean("hideLyrics",false);
         String lyricsLayout=config.optString("lyricsLayout","side");
         String lyricsAlign=config.optString("lyricsAlign","center");
         JSONObject spectrumSettings=config.optJSONObject("spectrum");
@@ -167,18 +171,20 @@ final class DesktopMusicScreen {
         if(hideCover)portrait.setVisibility(View.GONE);
         title=caption(info,23*scale);title.setPadding(0,Math.round(10*scale),0,0);
         album=caption(info,18*scale);artist=caption(info,18*scale);
-        lyrics=new ScrollingLyricsView(activity,scale);
-        lyrics.setStyle(lyricsLayout,lyricsAlign);
-        FrameLayout.LayoutParams lines;
-        if("bottom-one".equals(lyricsLayout)||"bottom-two".equals(lyricsLayout)){
-            int height="bottom-two".equals(lyricsLayout)?Math.round(300*scale):Math.round(190*scale);
-            lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.9f),height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-            lines.bottomMargin=Math.round(170*scale);
-        }else{
-            lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.49f),Math.round(824*scale));
-            lines.leftMargin=Math.round(metrics.widthPixels*.47f);lines.topMargin=Math.round((metrics.heightPixels-lines.height)/2f);
+        if(!hideLyrics){
+            lyrics=new ScrollingLyricsView(activity,scale);
+            lyrics.setStyle(lyricsLayout,lyricsAlign);
+            FrameLayout.LayoutParams lines;
+            if("bottom-one".equals(lyricsLayout)||"bottom-two".equals(lyricsLayout)){
+                int height="bottom-two".equals(lyricsLayout)?Math.round(300*scale):Math.round(190*scale);
+                lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.9f),height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+                lines.bottomMargin=Math.round(170*scale);
+            }else{
+                lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.49f),Math.round(824*scale));
+                lines.leftMargin=Math.round(metrics.widthPixels*.47f);lines.topMargin=Math.round((metrics.heightPixels-lines.height)/2f);
+            }
+            content.addView(lyrics,lines);
         }
-        content.addView(lyrics,lines);
         spectrum=new AudioSpectrumView(activity);
         FrameLayout.LayoutParams spectrumBox;
         if("side".equals(lyricsLayout)){
@@ -195,7 +201,7 @@ final class DesktopMusicScreen {
         Dialog opened=screen;
         PersonalBackground background=desktop.get();
         screen.setOnDismissListener(d->{
-            activity.unregisterReceiver(receiver);lyrics.stop();
+            activity.unregisterReceiver(receiver);if(lyrics!=null)lyrics.stop();
             if(spectrum!=null){spectrum.stop();spectrum=null;}
             if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();if(background!=null)background.finishFullscreen(opened,running);
         });

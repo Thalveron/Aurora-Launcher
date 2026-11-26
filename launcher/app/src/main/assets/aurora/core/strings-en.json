@@ -1984,5 +1984,11 @@
   "右侧滚动为原版；底部一行/两行错落适合沉浸歌词。": "Side scroll is the original layout; the bottom strips suit immersive lyrics.",
   "与屏保同一套 5 种频谱参数，单独保存。": "The same five spectrum styles as the screensaver, saved separately.",
   "0 为隐藏。": "0 hides it.",
-  "30～200。": "30–200."
+  "30～200。": "30–200.",
+  "歌词位置": "Lyric position",
+  "只保留专辑图片与频谱。": "Keep only album art and spectrum.",
+  "居中、靠左或靠右；右侧滚动时同样生效。": "Center, left or right; also applies to the side panel.",
+  "下方一行": "Bottom · one line",
+  "下方两行错落": "Bottom · two staggered lines",
+  "右侧滚动为原版；下方一行/两行错落适合沉浸歌词。": "Side scroll is the original layout; the bottom strips suit immersive lyrics."
 }
