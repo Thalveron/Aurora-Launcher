@@ -32,6 +32,7 @@ final class DesktopMusicScreen {
     private AudioSpectrumView spectrum;
     private boolean spectrumRunning,spectrumHintShown;
     private VideoView video;
+    private ImageView backgroundPoster;
     private TextView title, album, artist;
     private MediaMetadata previous;
     private final java.util.function.Supplier<PersonalBackground> desktop;
@@ -268,6 +269,7 @@ final class DesktopMusicScreen {
     /** Swaps only the fullscreen background layer, so a running video keeps the dialog alive. */
     private void replaceBackground(String id){
         if(video!=null){try{video.stopPlayback();}catch(Exception ignored){}video=null;}
+        if(backgroundPoster!=null){root.removeView(backgroundPoster);backgroundPoster=null;}
         if(backgroundView!=null){root.removeView(backgroundView);backgroundView=null;}
         backgroundId=id;albumBackground=id.isEmpty()?root:null;
         if(id.isEmpty()){tintBackground();return;}
@@ -279,6 +281,8 @@ final class DesktopMusicScreen {
                 view.setOnPreparedListener(mp->{if(view==video){mp.setVolume(0,0);mp.setLooping(true);view.start();}});
                 view.setOnErrorListener((mp,what,extra)->{albumBackground=root;tintBackground();return true;});
                 video=view;backgroundView=view;root.addView(view,0,new FrameLayout.LayoutParams(-1,-1,Gravity.CENTER));
+                addBackgroundPoster(file);
+                view.setOnInfoListener((mp,what,extra)->{if(what==android.media.MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)hideBackgroundPoster();return false;});
                 view.setVideoPath(file.getAbsolutePath());
             }else{
                 ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -289,6 +293,19 @@ final class DesktopMusicScreen {
             }
         }catch(Exception ignored){backgroundId="";albumBackground=root;tintBackground();}
     }
+    private void addBackgroundPoster(File file){
+        File preview=new File(file.getPath()+".jpg");
+        if(!preview.isFile())return;
+        Bitmap bitmap=BitmapFactory.decodeFile(preview.getPath());
+        if(bitmap==null)return;
+        ImageView poster=new ImageView(activity);
+        poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        poster.setImageBitmap(bitmap);
+        int index=video==null?0:root.indexOfChild(video)+1;
+        root.addView(poster,index,new FrameLayout.LayoutParams(-1,-1));
+        backgroundPoster=poster;
+    }
+    private void hideBackgroundPoster(){if(backgroundPoster!=null)backgroundPoster.setVisibility(View.GONE);}
     private void open(MediaController controller){
         if(activity instanceof MainActivity)((MainActivity)activity).pauseMusicCardForFullscreen();
         JSONObject config;
@@ -309,7 +326,10 @@ final class DesktopMusicScreen {
             File file=AuroraLibrary.file(activity,id,"background");
             if(id.matches(".*\\.(mp4|webm|mkv)")){
                 video=new VideoView(activity);backgroundView=video;root.addView(video,new FrameLayout.LayoutParams(-1,-1,Gravity.CENTER));video.setAudioFocusRequest(android.media.AudioManager.AUDIOFOCUS_NONE);
-                VideoView view=video;view.setOnPreparedListener(mp->{if(view==video){mp.setVolume(0,0);mp.setLooping(true);view.start();}});videoPath=file.getAbsolutePath();
+                VideoView view=video;view.setOnPreparedListener(mp->{if(view==video){mp.setVolume(0,0);mp.setLooping(true);view.start();}});
+                addBackgroundPoster(file);
+                view.setOnInfoListener((mp,what,extra)->{if(what==android.media.MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)hideBackgroundPoster();return false;});
+                videoPath=file.getAbsolutePath();
             }else{
                 ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getPath(),options);
@@ -355,7 +375,7 @@ final class DesktopMusicScreen {
         if(spectrum!=null)content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";
         if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,filter,permission,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,filter,permission,handler);
-        screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.getWindow().setWindowAnimations(0);screen.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);screen.setContentView(root);
+        screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.getWindow().setWindowAnimations(0);screen.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);screen.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xff101419));screen.setContentView(root);
         Dialog opened=screen;
         PersonalBackground background=desktop.get();
         screen.setOnDismissListener(d->{
