@@ -14,6 +14,25 @@ import java.io.File;
 
 /** Own media is displayed only while Home is visible; video decoding is released on pause. */
 final class PersonalBackground {
+    private static volatile PersonalBackground current;
+    static org.json.JSONObject diagnostics(){
+        PersonalBackground b=current;
+        org.json.JSONObject d=new org.json.JSONObject();
+        try{
+            if(b==null){d.put("instance",false);return d;}
+            android.view.Surface surface=b.surfaceView==null?null:b.surfaceView.getHolder().getSurface();
+            d.put("instance",true).put("active",b.active).put("needsRebuild",b.needsRebuild)
+             .put("surfaceReady",b.surfaceReady).put("surfaceValid",surface!=null&&surface.isValid())
+             .put("player",b.player!=null).put("poster",b.poster!=null)
+             .put("posterVisible",b.poster!=null&&b.poster.getVisibility()==View.VISIBLE)
+             .put("media",b.media!=null).put("mediaAttached",b.media!=null&&b.media.getParent()!=null)
+             .put("attempts",b.videoAttempts).put("rebuilds",b.videoRebuilds)
+             .put("mode",b.mode()).put("file",b.selected().getName())
+             .put("lastError",b.lastError).put("lastInfo",b.lastInfo);
+            if(b.player!=null)try{d.put("playing",b.player.isPlaying()).put("position",b.player.getCurrentPosition());}catch(RuntimeException ignored){}
+        }catch(Exception ignored){}
+        return d;
+    }
     // Vendor decoders can block release during prepare; never stall Home/input dispatch.
     private static final java.util.concurrent.ExecutorService releaser=java.util.concurrent.Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"aurora-video-release");t.setDaemon(true);return t;});
     private final Activity activity;
@@ -25,6 +44,7 @@ final class PersonalBackground {
     private boolean surfaceReady;
     private int videoAttempts;
     private int videoRebuilds;
+    private String lastError="",lastInfo="";
     private Runnable retryVideo;
     private final Runnable health=new Runnable(){public void run(){
         if(!active||fullscreenOwner!=null)return;
@@ -61,7 +81,7 @@ final class PersonalBackground {
     private long revision = -1;
     private int videoWidth, videoHeight;
     PersonalBackground(Activity a, FrameLayout root) {
-        this.activity = a; this.root = root;
+        this.activity = a; this.root = root;current=this;
         retryVideo=()->{if(active&&fullscreenOwner==null&&player==null&&surfaceReady)startVideo();};
         revision = a.getSharedPreferences("background", 0).getLong("revision", 0);
         show();
@@ -183,6 +203,7 @@ final class PersonalBackground {
             current.setLooping(true); current.setVolume(0f, 0f);
             current.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
             current.setOnInfoListener((p, what, extra) -> {
+                lastInfo=what+"/"+extra;
                 if (player == p && what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
                     ready = true;
                     if (poster != null) poster.setVisibility(View.INVISIBLE);
@@ -196,7 +217,7 @@ final class PersonalBackground {
                 videoAttempts=0;videoRebuilds=0;
                 if(surfaceView!=null)surfaceView.setVisibility(View.VISIBLE);
             });
-            current.setOnErrorListener((p, what, extra) -> { if(player==p)videoFailed(); return true; });
+            current.setOnErrorListener((p, what, extra) -> { lastError=what+"/"+extra;if(player==p)videoFailed(); return true; });
             current.prepareAsync();
         } catch (Exception failure) { videoFailed(); }
     }

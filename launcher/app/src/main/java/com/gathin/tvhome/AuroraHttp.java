@@ -154,7 +154,8 @@ final class AuroraHttp {
                     case "assets":data=AuroraLibrary.list(c);break;
                     case "actions":data=AuroraActions.list();break;
                     case "voice":data=AuroraVoice.state(c);break;
-                    case "backgrounds":JSONArray backgrounds=new JSONArray(),all=AuroraLibrary.list(c);for(int n=0;n<all.length();n++)if(all.getJSONObject(n).getString("kind").equals("background"))backgrounds.put(all.get(n));data=backgrounds;break;
+                    case "debug/background":data=PersonalBackground.diagnostics();break;
+                case "backgrounds":JSONArray backgrounds=new JSONArray(),all=AuroraLibrary.list(c);for(int n=0;n<all.length();n++)if(all.getJSONObject(n).getString("kind").equals("background"))backgrounds.put(all.get(n));data=backgrounds;break;
                     case "apps/jobs":data=AuroraLibrary.jobs();break;
                     case "services/cities":data=AuroraServices.cities(c,android.net.Uri.parse(request[1]).getQueryParameter("name")==null?"":android.net.Uri.parse(request[1]).getQueryParameter("name"));break;
                     case "services":data=AuroraServices.status(c);break;

@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.71",
-    "versionCode": 219,
+    "version": "0.4.72",
+    "versionCode": 220,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.71/Aurora-Launcher-v0.4.71.apk",
-    "sha256": "7d84ad614d939ffe2804f449eff703a322ddd31e6dd1fe77e211a649ef7d3b8a",
-    "bytes": 47720857,
-    "notes": "Aurora Launcher 0.4.71\n\n- 视频背景失败时强制重建 SurfaceView 和播放器，不再停留在黑帧。\n- 视频没有缩略图时自动截取首帧作为海报；截取失败也显示渐变底，不会纯黑。\n- 失败后每 5 秒继续尝试恢复视频；静态壁纸不受影响。\n- 保留 0.4.70 的恢复重建和 0.4.63 的 Web 设置统一。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.72/Aurora-Launcher-v0.4.72.apk",
+    "sha256": "0bc789bdbb8f50e00c7b66cedd276a71124495b2e128aa1d291f70e1cdbbe845",
+    "bytes": 47724953,
+    "notes": "Aurora Launcher 0.4.72\n\n- 新增背景诊断接口 /api/v1/debug/background，可返回播放器状态、Surface 有效性、错误码、海报状态。\n- 用于定位部分 Android 11 盒子视频背景黑屏；行为与 0.4.71 相同。\n"
   },
   "history": []
 }
