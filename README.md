@@ -4,58 +4,45 @@
 
 ## 下载
 
-在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v0.4.57，在雷鸟 65S515C PRO（Android 9）与Android 11 电视盒子验证，其他型号需自行验证系统能力。
+在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases/latest) 下载 APK。当前版本 v0.4.57，已在雷鸟 65S515C PRO（Android 9）和 Android 11 电视盒子验证；其他型号需自行确认系统能力。
 
-## 已有功能
+## 功能
 
-- 原生桌面与网页主题、独立主题设置、共享背景库。
-- 图片/视频背景、全局屏保与背景音乐、歌词与频谱。
-- 局域网 Web 后台、应用管理、截图与设备控制（部分能力需要额外系统权限）。
-- 时间天气服务、中文/英文界面、USB 音乐关联。
-- 全局无操作待机，可选15/20/30分钟，最后一分钟倒计时；播放检测与遥控按键取消。
-- 流量监控等设备功能；具体兼容情况以实际设备为准。
-
-- 电视“桌面信息”：动态后台地址、离线二维码和桌面更新。
-- GitHub HTTPS 在线更新，原地址与加速线路测速、校验和失败切换。
-- 自动检查默认开启，自动安装默认关闭；受支持设备可独立回退安装包与设置。
-- Web 手动上传 APK 更新保留设置；全新安装提供警告确认，不要求输入文字。0.2.1首次启动会一次性套用新版桌面配置；安全配置和位置保留，之后修改不会被重复覆盖。
-
-更新维护组件没有常驻服务或联网/录音权限，仅通过已授权本机 ADB 按需启动。恢复包保存在组件私有目录；当前调试构建允许已授权 ADB 读取恢复数据。安装或启动检查失败可自动回退，但不能保证识别所有功能异常或处理断电。普通设备需要系统安装确认，独立回退不可用时会提示原因。
+- 原生桌面与网页主题，独立主题设置、共享背景库。
+- 图片/视频背景（支持 4K，SurfaceView 硬件视频层）、屏保、背景音乐、歌词与频谱。
+- 局域网 Web 后台：应用管理、截图、设备控制（部分能力需要额外系统权限）。
+- 时间天气服务、中英文界面、USB 音乐关联。
+- 全局无操作待机，可选 15/20/30 分钟，最后一分钟倒计时。
+- 流量监控等设备功能，兼容性以实际设备为准。
+- 电视“桌面信息”：动态后台地址、离线二维码、桌面更新。
+- GitHub HTTPS 在线更新：测速、校验和、失败切换；自动检查默认开启，自动安装默认关闭。
+- 全新安装会写入内置的桌面、屏保、全屏音乐设置及三套背景；已有安装保留现有设置。
 
 ## 首次打开后台
 
-安装并启动桌面后，在同一局域网访问 `http://电视IP:8899/`（把“电视IP”替换成实际地址）。
-新安装默认端口8899、访问路径为空，首次自行创建用户名与密码（密码输入两次）。
-登录后可在安全设置修改账号、密码、端口及路径。0.2.1升级套用内置桌面配置，账号密码和位置保留；清除数据或普通卸载重装通常重新初始化。
-不要把电视管理后台直接开放到公网。
+安装并启动桌面后，在同一局域网访问 `http://电视IP:8899/`，首次自行创建用户名和密码。登录后可在安全设置修改账号、密码、端口及路径。不要把管理后台直接开放到公网。
 
 ## 编译
 
-需要 JDK 17、Android SDK 34。配置本机 Android SDK（ANDROID_HOME 或 launcher/local.properties），然后执行：
+需要 JDK 17 和 Android SDK 34。配置 `ANDROID_HOME`（或 `launcher/local.properties`）后执行：
 
     cd launcher
     ./gradlew testDebugUnitTest assembleDebug
 
-输出：launcher/app/build/outputs/apk/debug/app-debug.apk。
+输出：`launcher/app/build/outputs/apk/debug/app-debug.apk`。
 
-发布者必须自行保管签名密钥，仓库包含授权并去除身份信息的桌面默认模板及素材，不包含签名私钥、ADB密钥、位置或账号密码。
-当前构建使用本机 debug 签名；自行编译的 APK 签名通常不同，不能直接覆盖其他发布者的 APK。
-发布构建的签名配置应在发布者本地或受保护的 CI 凭据中管理。
+发布者需自行保管签名密钥；仓库不包含签名私钥、ADB 密钥、位置或账号密码。当前构建使用本机 debug 签名，自行编译的 APK 通常不能覆盖其他发布者的 APK。
 
 ## 设备权限与主页接管
 
-普通界面不依赖 root；系统控制、静默安装、跨应用按键、媒体读取等能力按设备权限开放。
-主页接管包含针对特定设备的适配，不保证所有电视安装后即可设为系统 HOME。相关桥接源码位于 launcher/tools/home-bridge-source/。
-不要照搬其他型号的系统组件停用方案。
+普通界面不依赖 root；系统控制、静默安装、跨应用按键、媒体读取等能力按设备权限开放。主页接管包含特定设备适配，不保证所有电视安装后都能设为系统 HOME，相关桥接源码位于 `launcher/tools/home-bridge-source/`。
 
 ## 源码与协议
 
-基于 [Gathin23/CleanYourTV](https://github.com/Gathin23/cleanyourtv) 继续开发，保留原作者版权声明和 MIT 许可证，详见 [LICENSE](LICENSE)。
-字体许可见 launcher/FONT-LICENSE-OFL.txt。此仓库不包含 Aurora Music 源码或安装包；音乐软件将按其自身许可证另行整理。
+基于 [Gathin23/CleanYourTV](https://github.com/Gathin23/cleanyourtv) 继续开发，保留原作者版权声明和 MIT 许可证，详见 [LICENSE](LICENSE)。字体许可见 `launcher/FONT-LICENSE-OFL.txt`。
 
-此公开副本不包含私人开发提交历史、内部测试记录、用户上传的壁纸/音乐、Web凭据或已登录设备数据。
-API 文档见 [docs/api.md](docs/api.md)。
+此公开副本不包含私人开发提交历史、内部测试记录、用户上传的壁纸/音乐、Web 凭据或已登录设备数据。API 文档见 [docs/api.md](docs/api.md)。
 
 ## 发布更新
 
-在源码提交并完成设备测试后，使用 launcher/tools/publish-release.py 发布 APK 与校验文件，再更新 updates/latest.json。需要官方 GitHub CLI 授权；脚本不保存凭据，也不替换已有版本。后续版本必须保持签名一致并递增 versionCode。
+提交源码并完成设备测试后，使用 `launcher/tools/publish-release.py` 发布 APK 与校验文件，再更新 `updates/latest.json`。需要官方 GitHub CLI 授权；脚本不保存凭据。后续版本必须保持签名一致并递增 versionCode。
