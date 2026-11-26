@@ -96,6 +96,19 @@ final class DesktopMusicScreen {
         if(b.has("spectrum")){JSONObject value=b.getJSONObject("spectrum");validSpectrum(value);edit.putString("spectrum",value.toString());}
         edit.apply();return settings(c);
     }
+    /** Console button: enter fullscreen now when something is really playing. */
+    static JSONObject requestNow(Context c)throws Exception{
+        if(!AuroraData.media(c).optBoolean("playing"))throw new IllegalArgumentException("当前没有正在播放的音乐");
+        boolean opened=MainActivity.openFullscreenNow()||AuroraActivity.openFullscreenNow();
+        if(!opened)throw new IllegalStateException("请先回到电视桌面再进入全屏");
+        return new JSONObject().put("opened",true);
+    }
+    void openNow(){
+        MediaController controller=AuroraData.controller(activity);
+        PlaybackState state=controller==null?null:controller.getPlaybackState();
+        if(state==null||state.getState()!=PlaybackState.STATE_PLAYING)return;
+        reset();if(screen!=null){update(controller);return;}open(controller);
+    }
     void reset(){idle=SystemClock.elapsedRealtime();}
     void start(){running=true;reset();handler.removeCallbacks(tick);handler.post(tick);}
     void stop(){running=false;handler.removeCallbacks(tick);if(screen!=null)screen.dismiss();}

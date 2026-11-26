@@ -75,6 +75,12 @@ public class AuroraActivity extends Activity {
         }},80);
     }
     @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus&&homeFocusPending)focusHome();}
+    static boolean openFullscreenNow(){
+        AuroraActivity a=current.get();
+        if(a==null||!visible||a.saverOnly||a.desktopMusicScreen==null)return false;
+        a.runOnUiThread(a.desktopMusicScreen::openNow);
+        return true;
+    }
     static boolean focusHomeInPlace(){
         AuroraActivity a=current.get();if(a==null||!visible||a.saverOnly||!a.ready||!java.util.Objects.equals(a.theme,AuroraThemes.current(a)))return false;
         a.main.post(()->{if(AuroraSaver.active)AuroraSaver.exit(a);a.focusHome();});return true;

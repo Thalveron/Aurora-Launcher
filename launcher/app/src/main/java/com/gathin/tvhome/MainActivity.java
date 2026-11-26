@@ -763,6 +763,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     /** The fullscreen player needs the single output-capture session; the card would hold it. */
+    static boolean openFullscreenNow(){
+        MainActivity home=visibleHome;
+        if(home==null||home.desktopMusicScreen==null)return false;
+        home.runOnUiThread(home.desktopMusicScreen::openNow);
+        return true;
+    }
     void pauseMusicCardForFullscreen(){if(musicCard!=null)musicCard.pause();}
     void resumeMusicCardAfterFullscreen(){if(musicCard!=null&&visibleHome==this)musicCard.resume();}
     @Override

@@ -115,8 +115,14 @@
   const specSize=element('input');specSize.type='number';specSize.min=30;specSize.max=200;
   const specAngle=element('input');specAngle.type='number';specAngle.min=0;specAngle.max=360;
   function patchSpectrum(patch){if(!full)return;full.patch({spectrum:Object.assign({},full.value.spectrum||{},patch)});}
+  const enterNow=button('进入全屏播放',async function(){
+    if(window.AuroraConsoleUI){await window.AuroraConsoleUI.save();if(window.AuroraConsoleUI.pending().length)throw Error('请先保存设置');}
+    await api.request('music/fullscreen/open',{});
+    themeStatus.textContent='已发送，电视正在进入全屏播放';
+  },themeStatus);
   const settings=ui.card('全屏音乐播放','在桌面播放音乐且没有遥控操作时进入全屏。',[
     ui.row('进入全屏','按当前主题保存。',delay),
+    ui.row('立即进入全屏','检测到正在播放音乐时马上进入，不受定时设置影响。',enterNow),
     ui.row('播放背景','可选择背景库中的图片或视频。',choose),
     ui.row('隐藏专辑图片','只显示背景、标题与歌词。',hideCover),
     ui.row('歌词位置','居中、靠左或靠右；右侧滚动时同样生效。',lyricsAlign),

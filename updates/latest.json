@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.36",
-    "versionCode": 184,
+    "version": "0.4.37",
+    "versionCode": 185,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.36/Aurora-Launcher-v0.4.36.apk",
-    "sha256": "42a11897d09cc448cdade8162a5df033da8104c850b253ccbe343cb004a0427c",
-    "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.36\n\n- 全屏频谱固定为屏幕底部居中：宽度约 55% 屏宽，距底边 24px，所有歌词样式一致。\n- 不再跟随歌词位置或歌词样式移动。\n- 更新保留现有用户设置。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.37/Aurora-Launcher-v0.4.37.apk",
+    "sha256": "8808ca5e39fa63fa657e57effa458d2c2199eb888fc44b3b5a2f5c5d5d26b983",
+    "bytes": 17500513,
+    "notes": "Aurora Launcher 0.4.37\n\n- 全屏音乐播放新增「立即进入全屏」按钮：控制台点击后，只要电视上确实有音乐正在播放，就立刻用当前设置进入全屏。\n- 没有正在播放的音乐时会提示，不会误开一个空的全屏页。\n- 与定时自动进入互不冲突：手动进入会重置无操作计时，退出后重新按设定时间计时。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

@@ -264,6 +264,7 @@ final class AuroraHttp {
                 case "music/local/settings":data=AuroraMusicSettings.call(c,"save",body);break;
                 case "music/library/play":data=WebSongLibrary.play(c,body);break;
                 case "music/fullscreen":data=DesktopMusicScreen.save(c,body);break;
+                case "music/fullscreen/open":data=DesktopMusicScreen.requestNow(c);break;
                 case "wifi/settings":data=DesktopSharing.save(c,body);break;
                 case "music/local/scan":data=AuroraMusicSettings.call(c,"scan",null);break;
                 case "inputs/name":data=AuroraInputs.name(c,body);break;
