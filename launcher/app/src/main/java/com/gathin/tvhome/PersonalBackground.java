@@ -117,6 +117,7 @@ final class PersonalBackground {
         }
         if (media != null) { shade = new View(activity); shade.setBackgroundColor(externalDim?0x00000000:0x55000000); add(shade); }
     }
+    Bitmap wallpaper(){return bitmap;}
     Bitmap glassSnapshot() {
         if (!active) return null;
         if (bitmap == null || bitmap.isRecycled()) return null;

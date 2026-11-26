@@ -214,11 +214,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private static MainActivity visibleHome;
+    private void recreateForLanguage(){
+        if(personalBackground!=null)languageCover=personalBackground.wallpaper();
+        android.graphics.Bitmap cover=languageCover;
+        if(cover!=null&&!cover.isRecycled())getWindow().setBackgroundDrawable(new android.graphics.drawable.BitmapDrawable(getResources(),cover));
+        getWindow().setWindowAnimations(0);
+        overridePendingTransition(0,0);
+        recreate();
+    }
+
+    private static android.graphics.Bitmap languageCover;
     private final BroadcastReceiver uploadChanged = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent intent) {
             String kind=intent.getStringExtra("kind");
             if("input-shortcut".equals(kind)||"apps-presentation".equals(kind)){reloadApps(false);return;}
-            if("settings-language".equals(kind)){if(visibleHome==MainActivity.this)recreate();return;}
+            if("settings-language".equals(kind)){if(visibleHome==MainActivity.this)recreateForLanguage();return;}
             if("settings-layout".equals(kind)){if(visibleHome==MainActivity.this)recreate();return;}
             if("settings".equals(kind)||"settings-ambient".equals(kind)){
                 DesktopAppearance.apply(root);
@@ -406,6 +416,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onCreate(Bundle savedInstanceState) {
         createdAt = android.os.SystemClock.elapsedRealtime();
         super.onCreate(savedInstanceState);
+        android.graphics.Bitmap cover=languageCover;languageCover=null;
+        if(cover!=null&&!cover.isRecycled())getWindow().setBackgroundDrawable(new android.graphics.drawable.BitmapDrawable(getResources(),cover));
+        getWindow().setWindowAnimations(0);
         if(BundledDefaults.showLoading(this)){preparingDefaults=true;return;}
         UpdateHealth.begin(this,getIntent());
         setContentView(R.layout.activity_main);
@@ -785,7 +798,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onResume() {
-        super.onResume();if(preparingDefaults)return;desktopMusicScreen=new DesktopMusicScreen(this,()->personalBackground);desktopMusicScreen.start();AuroraServices.resync();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
+        super.onResume();if(preparingDefaults)return;desktopMusicScreen=new DesktopMusicScreen(this,()->personalBackground);desktopMusicScreen.start();AuroraServices.resync();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreateForLanguage();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
         getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
