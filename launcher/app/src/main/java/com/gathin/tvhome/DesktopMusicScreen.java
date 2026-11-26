@@ -150,6 +150,7 @@ final class DesktopMusicScreen {
             text.append("lyrics=").append(lyrics==null?"null":lyrics.getVisibility()+" "+lyrics.getLeft()+","+lyrics.getTop()+" "+lyrics.getWidth()+"x"+lyrics.getHeight()).append('\n');
             android.util.DisplayMetrics m=activity.getResources().getDisplayMetrics();
             text.append("screen=").append(m.widthPixels).append('x').append(m.heightPixels).append('\n');
+            text.append("align=").append(prefs(activity).getString("lyrics_align","center")).append(" layout=").append(prefs(activity).getString("lyrics_layout","side")).append('\n');
             try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(dir,"fullscreen-debug.txt"))){out.write(text.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));}catch(Exception ignored){}
         }catch(Exception ignored){}
     }
@@ -209,8 +210,8 @@ final class DesktopMusicScreen {
             lines.bottomMargin=Math.round(170*scale);
             return lines;
         }
-        FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(Math.round(width*.49f),Math.round(824*scale));
-        lines.leftMargin=Math.round(width*.47f);lines.topMargin=Math.round((height-lines.height)/2f);
+        FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(width,Math.round(824*scale));
+        lines.topMargin=Math.round((height-lines.height)/2f);
         return lines;
     }
     private FrameLayout.LayoutParams spectrumParams(String layout){
@@ -303,8 +304,8 @@ final class DesktopMusicScreen {
                 lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.9f),height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
                 lines.bottomMargin=Math.round(170*scale);
             }else{
-                lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.49f),Math.round(824*scale));
-                lines.leftMargin=Math.round(metrics.widthPixels*.47f);lines.topMargin=Math.round((metrics.heightPixels-lines.height)/2f);
+                lines=new FrameLayout.LayoutParams(metrics.widthPixels,Math.round(824*scale));
+                lines.topMargin=Math.round((metrics.heightPixels-lines.height)/2f);
             }
             content.addView(lyrics,lines);
         }

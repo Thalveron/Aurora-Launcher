@@ -74,28 +74,31 @@ final class ScrollingLyricsView extends View {
    String line=lines[i];if(TextUtils.isEmpty(line))continue;
    float size=fullscreenScale>0?(i==current?36:30)*fullscreenScale:(i==current?17:14)*dp;
    float centerY=(i+.5f+offset)*step;
-   drawLine(c,line,size,centerY,i==current?base:0xFFD4E2EF,i==current?255:190,align,i==current);
+   drawLine(c,line,size,centerY,i==current?base:0xFFD4E2EF,i==current?255:190,align,i==current,0);
   }
   c.drawRect(0,0,getWidth(),getHeight(),mask);c.restoreToCount(layer);
  }
  private void drawBottomOne(Canvas c){
   int current=fullscreenScale>0?4:3;
   float size=Math.min(getHeight()*.58f,44*fullscreenScale);
-  drawLine(c,lines[current],size,getHeight()*.56f,base,255,align,true);
+  drawLine(c,lines[current],size,getHeight()*.56f,base,255,align,true,0);
  }
  private void drawBottomTwo(Canvas c){
   int current=fullscreenScale>0?4:3;
-  drawLine(c,lines[current],38*fullscreenScale,getHeight()*.30f,base,255,1,true);
-  drawLine(c,lines[current+1],27*fullscreenScale,getHeight()*.76f,0xFFD4E2EF,175,2,false);
+  float shift=getWidth()*.08f;
+  drawLine(c,lines[current],36*fullscreenScale,getHeight()*.46f,base,255,align,true,0);
+  drawLine(c,lines[current+1],26*fullscreenScale,getHeight()*.74f,0xFFD4E2EF,175,align,false,shift);
  }
  private float dp(){return getResources().getDisplayMetrics().density;}
- private void drawLine(Canvas c,String line,float size,float centerY,int color,int alpha,int alignMode,boolean highlight){
+ private void drawLine(Canvas c,String line,float size,float centerY,int color,int alpha,int alignMode,boolean highlight,float shift){
   if(TextUtils.isEmpty(line))return;
   text.setTypeface(Typeface.create("sans-serif",highlight?Typeface.BOLD:Typeface.NORMAL));
   text.setTextSize(Math.max(8f,size));
-  float max=getWidth()-16*dp(),width=text.measureText(line);
+  float inset=getWidth()*.08f;
+  float max=getWidth()-2*inset,width=text.measureText(line);
   if(width>max&&width>0){text.setTextSize(text.getTextSize()*max/width);width=max;}
-  float x=alignMode==1?8*dp():alignMode==2?getWidth()-width-8*dp():(getWidth()-width)/2f;
+  float x=alignMode==1?inset:alignMode==2?getWidth()-width-inset:(getWidth()-width)/2f;
+  if(shift!=0)x=Math.max(inset,Math.min(getWidth()-width-inset,x+shift));
   float y=centerY-(text.ascent()+text.descent())/2f;
   text.setColor(color);text.setAlpha(alpha);text.setShadowLayer(2*dp(),0,dp(),0xCC000000);
   c.drawText(line,x,y,text);
