@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.37",
-    "versionCode": 185,
+    "version": "0.4.38",
+    "versionCode": 186,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.37/Aurora-Launcher-v0.4.37.apk",
-    "sha256": "8808ca5e39fa63fa657e57effa458d2c2199eb888fc44b3b5a2f5c5d5d26b983",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.38/Aurora-Launcher-v0.4.38.apk",
+    "sha256": "53fbbabd1f9412e358010f18662fdfaad17ae33696a81128e6f308b9c400db56",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.37\n\n- 全屏音乐播放新增「立即进入全屏」按钮：控制台点击后，只要电视上确实有音乐正在播放，就立刻用当前设置进入全屏。\n- 没有正在播放的音乐时会提示，不会误开一个空的全屏页。\n- 与定时自动进入互不冲突：手动进入会重置无操作计时，退出后重新按设定时间计时。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.38\n\n- 「上传 LRC 歌词」从极简主题的「播放卡片与歌词」页移到「屏保 → 屏保音乐」，紧挨「绑定歌词」。\n- 上传成功后自动刷新并选中新歌词，点「保存音乐与歌词」后生效。\n- 修复上传控件取文件时的上下文错误（会导致上传无效）。\n- 功能链路不变：素材库歌词 → 绑定 → 屏保音乐 → 屏保显示歌词。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

@@ -21,7 +21,7 @@
     Object.keys(hosts).forEach(function(page){
       var sections=page==='style'?['appearance']:page==='advanced'?['advanced','system']:[page],rows=fields.filter(function(f){return sections.indexOf(f.section)>=0;}).map(fieldRow);
       hosts[page].replaceChildren(UI.card(page==='style'?'文字与默认背景':page==='layout'?'应用与桌面布局':page==='music'?'播放卡片与歌词':'电视适配','这些设置仅属于极简桌面，其他主题保持独立。',rows));
-      if(page==='style'||page==='music'){var upload=node('a',page==='style'?'上传中文／英文字体':'上传 LRC 歌词');upload.href='#assets';upload.className='ui-link-button';hosts[page].append(upload);}
+      if(page==='style'){var upload=node('a','上传中文／英文字体');upload.href='#assets';upload.className='ui-link-button';hosts[page].append(upload);}
     });render(initial);
   }
   async function show(page){
