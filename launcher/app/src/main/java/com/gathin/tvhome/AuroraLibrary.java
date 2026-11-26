@@ -29,7 +29,16 @@ final class AuroraLibrary {
         }
         Map<String,JSONArray> bindings=bindings(c);
         for(int i=0;i<all.length();i++){JSONObject item=all.getJSONObject(i);item.put("uses",bindings.get(item.getString("id")));}
-        return all;
+        // Backgrounds currently referenced by any theme, screensaver or fullscreen setting come first;
+        // unused assets keep their previous (newest-first) order afterwards.
+        java.util.List<JSONObject> sorted=new java.util.ArrayList<>();
+        for(int i=0;i<all.length();i++)sorted.add(all.getJSONObject(i));
+        sorted.sort((a,b)->{
+            boolean ua=bindings.containsKey(a.optString("id")),ub=bindings.containsKey(b.optString("id"));
+            return Boolean.compare(!ua,!ub);
+        });
+        JSONArray ordered=new JSONArray();for(JSONObject item:sorted)ordered.put(item);
+        return ordered;
     }
     static synchronized void inheritNativeBackground(Context c)throws Exception{
         android.content.SharedPreferences p=c.getSharedPreferences("aurora_library",0);
@@ -112,6 +121,7 @@ final class AuroraLibrary {
         Map<String,JSONArray> map=new HashMap<>();
         JSONObject current=AuroraSettings.get(c);
         bind(map,"屏保背景",current.opt("saverSlides"));bind(map,"屏保字体",current.opt("saverClockFont"));
+        try{JSONObject shared=AuroraThemes.config(c).optJSONObject("sharedSaver");if(shared!=null)bind(map,"共享屏保背景",shared.opt("saverSlides"));}catch(Exception ignored){}
         bind(map,"屏保歌词",AuroraBgm.themePrefs(c,AuroraThemes.current(c)).getString("lyrics",""));
         JSONArray themes=AuroraThemes.list(c);
         JSONObject profiles=AuroraThemes.config(c).optJSONObject("themeProfiles");

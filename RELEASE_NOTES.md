@@ -1,4 +1,4 @@
-Aurora Launcher v0.4.83
+Aurora Launcher v0.4.84
 
-- 修复部分 4K 视频背景只显示成小窗：移除 TextureView 的额外缩放矩阵，让视频铺满全屏。
-- 保留 0.4.82 的 TextureView 方案，HDMI 切回不再黑屏。
+- 背景库排序：当前主题、屏保、共享屏保、全屏音乐正在使用的背景自动排在前面，未使用的排在后面。
+- 保留 0.4.83 的 TextureView 全屏铺满与 HDMI 切换修复。
