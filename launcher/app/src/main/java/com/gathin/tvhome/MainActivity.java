@@ -968,6 +968,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);if(preparingDefaults)return;
         if (hasFocus) {
+            if(personalBackground!=null)personalBackground.onWindowFocusGained();
             if (libraryFocusPending && appLibrary == null) focusLibrary();
             showCardPrompt();
         }

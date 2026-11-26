@@ -64,6 +64,7 @@ final class PersonalBackground {
     private Bitmap bitmap;
     private boolean active;
     private boolean needsRebuild;
+    private boolean focusRebuild;
     private boolean ready;
     boolean isReady() { return ready; }
     private boolean ambient;private boolean externalDim;
@@ -102,6 +103,13 @@ final class PersonalBackground {
         if(surfaceReady)startVideo();
         handler.removeCallbacks(health);if(active)handler.postDelayed(health,1500);
     }
+    void onWindowFocusGained(){
+        if(!active||fullscreenOwner!=null||!focusRebuild)return;
+        focusRebuild=false;
+        // Some Android 11 TV boxes keep a valid-looking SurfaceView that no longer reaches the
+        // hardware video plane after returning from another app. Rebuild the view once on focus.
+        releasePlayer();clearViews();show();
+    }
     private Object fullscreenOwner;
     void suspendForFullscreen(Object owner,Runnable released){
         fullscreenOwner=owner;
@@ -116,7 +124,7 @@ final class PersonalBackground {
         fullscreenOwner=null;
         if(foreground&&active)resume();
     }
-    void pause() { active = false; needsRebuild = true; handler.removeCallbacks(rotate); handler.removeCallbacks(health); handler.postDelayed(delayedRelease, 400); }
+    void pause() { active = false; needsRebuild = true; focusRebuild = true; handler.removeCallbacks(rotate); handler.removeCallbacks(health); handler.postDelayed(delayedRelease, 400); }
     void close() { active = false; handler.removeCallbacks(rotate); handler.removeCallbacks(delayedRelease); handler.removeCallbacks(health); clearViews(); }
     private void add(View view) {
         root.addView(view, root.indexOfChild(root.findViewById(R.id.sky)),
