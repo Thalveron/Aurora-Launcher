@@ -1,3 +1,0 @@
-com.craftworks.music.tvcustom
-com.dangbeimarket
-com.exxammpea.a1

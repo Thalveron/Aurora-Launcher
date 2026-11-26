@@ -20,7 +20,8 @@ final class BundledDefaults {
    if(existing&&!upgrade&&!c.getSharedPreferences("bundled_defaults",0).getBoolean("pending",false)){c.getSharedPreferences("bundled_defaults",0).edit().putBoolean("done",true).putString("appliedTemplate",templateId).commit();return;}
    if(!c.getSharedPreferences("bundled_defaults",0).edit().putBoolean("pending",true).commit())throw new IOException("Cannot start default migration");running=true;error="";
    new Thread(()->{try{apply(c);if(!c.getSharedPreferences("bundled_defaults",0).edit().putBoolean("done",true).putString("appliedTemplate",templateId).remove("pending").commit())throw new IOException("Cannot finish default migration");}
-    catch(Exception failure){error="默认素材初始化失败，请检查可用空间后重新打开";android.util.Log.e("AuroraDefaults",error);}
+    catch(Exception failure){error="默认素材初始化失败，请检查可用空间后重新打开";android.util.Log.e("AuroraDefaults",error,failure);
+    try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(c.getFilesDir(),"defaults-error.txt"))){failure.printStackTrace(new java.io.PrintStream(out));}catch(Exception ignored){}}
     finally{running=false;}},"aurora-defaults").start();
   }catch(Exception unavailable){error="默认配置不可用";}
  }
@@ -46,7 +47,7 @@ final class BundledDefaults {
    if(!UpdatePolicy.sha(part).equals(item.getString("sha256"))||!part.renameTo(target))throw new IOException("Default file integrity failure");
   }
   JSONObject all=bundle.getJSONObject("preferences");
-  java.util.Set<String> allowed=new java.util.HashSet<>(java.util.Arrays.asList("launcher_settings","desktop_appearance","desktop_language","background","ambient_music","idle_standby","input_shortcut","aurora_bgm_shared_saver","aurora_bgm_theme_cards","aurora_bgm_theme_foundation","aurora_voice","aurora_library","aurora_bgm","network_monitor"));
+  java.util.Set<String> allowed=new java.util.HashSet<>(java.util.Arrays.asList("launcher_settings","desktop_appearance","desktop_language","desktop_location","background","fullscreen_legacy","fullscreen_cards","fullscreen_foundation","ambient_music","idle_standby","input_shortcut","aurora_bgm_shared_saver","aurora_bgm_theme_cards","aurora_bgm_theme_foundation","aurora_voice","aurora_library","aurora_bgm","network_monitor"));
   for(java.util.Iterator<String> names=all.keys();names.hasNext();){
    String name=names.next();if(!allowed.contains(name))throw new IOException("Forbidden preferences");SharedPreferences.Editor edit=c.getSharedPreferences(name,0).edit();if(bundle.optBoolean("applyOnUpgrade",false))edit.clear();JSONObject values=all.getJSONObject(name);
    for(java.util.Iterator<String> keys=values.keys();keys.hasNext();){String key=keys.next();JSONObject v=values.getJSONObject(key);switch(v.getString("type")){

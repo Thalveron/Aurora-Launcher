@@ -1,0 +1,11 @@
+tvhome-order 1
+dock com.exxammpea.a1,com.craftworks.music.tvcustom,com.dangbeimarket,com.cibn.tv,com.xiaodianshi.tv.yst
+com.exxammpea.a1/com.maxapp.tv.SplashActivity
+com.craftworks.music.tvcustom/com.craftworks.music.MainActivity
+com.gathin.tvhome/aurora-inputs-shortcut
+com.limelight/aurora.shortcut.f59effdddbce3fe2812b5a97b7ff9ee8
+com.cibn.tv/com.youku.tv.home.activity.HomeActivity
+com.xiaodianshi.tv.yst/.ui.main.MainActivity
+com.ktcp.video/.activity.MainActivity
+com.starcor.mango/com.mgtv.tv.launcher.ChannelHomeActivity
+com.gitvdemo.video/com.gala.video.app.epg.HomeActivity

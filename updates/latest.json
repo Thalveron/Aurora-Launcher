@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.55",
-    "versionCode": 203,
+    "version": "0.4.56",
+    "versionCode": 204,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.55/Aurora-Launcher-v0.4.55.apk",
-    "sha256": "edb274c22c8c6c0e97eea6db7119e5c2acd8119fb1c2f48e997303d1f9ee10ea",
-    "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.55\n\n- 修复打开「桌面信息」时背景黑屏：视频背景在仅暂停的半透明面板下继续播放，只有真正切到后台（onStop）才释放。\n- 4K 视频背景（SurfaceView 硬件层）和 4K 壁纸保持支持。\n- 实测打开桌面信息时左侧仍显示 4K 视频，返回桌面后正常。\n- 更新保留现有用户设置。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.56/Aurora-Launcher-v0.4.56.apk",
+    "sha256": "1347787cc3b67dcb94563810f2a42a3d02be54056d1fd77eb21865fb808ef90e",
+    "bytes": 47725040,
+    "notes": "Aurora Launcher 0.4.56\n\n- 内置当前电视的整套桌面设置：外观、布局、导航栏顺序、音乐卡片、屏保、全屏音乐、问候语、时钟、频谱等。\n- 内置三套正在使用的背景：桌面壁纸、屏保 4K 视频、全屏音乐视频，以及对应海报图。\n- 天气地区默认上海（31.22, 121.46，Asia/Shanghai）。\n- 不包含：Wi-Fi 密码快捷方式及 Wi-Fi 信息、输入源遥控器图片、控制台账号密码、播放历史、个人音乐文件名。\n- 仅在全新安装时写入默认值；已有安装保留用户现有设置。\n"
   },
   "history": []
 }
