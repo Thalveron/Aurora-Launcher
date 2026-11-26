@@ -131,14 +131,32 @@ final class DesktopMusicScreen {
         setDetail(artist,m,MediaMetadata.METADATA_KEY_ARTIST);
         portrait.setImageBitmap(cover);
         if(cover==null&&m!=null&&m.getDescription().getIconUri()!=null){
-            android.net.Uri uri=m.getDescription().getIconUri();if("content".equals(uri.getScheme()))portrait.setImageURI(uri);
+            android.net.Uri uri=m.getDescription().getIconUri();if("content".equals(uri.getScheme())){portrait.setImageURI(uri);portrait.postDelayed(this::tintBackground,300);portrait.postDelayed(this::tintBackground,1200);}
         }
         tintBackground();
+    }
+    private android.graphics.drawable.GradientDrawable fallbackGradient(){
+        return new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR,new int[]{0xff2b3f63,0xff16202f});
+    }
+    /** Small state dump for debugging the fullscreen layout on the TV. */
+    private void writeDebug(String stage){
+        try{
+            java.io.File dir=activity.getExternalFilesDir(null);if(dir==null)return;
+            StringBuilder text=new StringBuilder();
+            text.append("stage=").append(stage).append('\n');
+            text.append("backgroundId=").append(backgroundId).append('\n');
+            text.append("background=").append(backgroundView==null?"null":backgroundView.getClass().getSimpleName()+" vis="+backgroundView.getVisibility()+" "+backgroundView.getWidth()+"x"+backgroundView.getHeight()).append('\n');
+            text.append("info=").append(info==null?"null":String.valueOf(info.getVisibility())).append('\n');
+            text.append("lyrics=").append(lyrics==null?"null":lyrics.getVisibility()+" "+lyrics.getLeft()+","+lyrics.getTop()+" "+lyrics.getWidth()+"x"+lyrics.getHeight()).append('\n');
+            android.util.DisplayMetrics m=activity.getResources().getDisplayMetrics();
+            text.append("screen=").append(m.widthPixels).append('x').append(m.heightPixels).append('\n');
+            try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(dir,"fullscreen-debug.txt"))){out.write(text.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));}catch(Exception ignored){}
+        }catch(Exception ignored){}
     }
     private void tintBackground(){
         if(albumBackground==null)return;
         android.graphics.drawable.Drawable art=portrait.getDrawable();
-        if(art==null){albumBackground.setBackgroundColor(0xff172037);return;}
+        if(art==null){albumBackground.setBackground(fallbackGradient());return;}
         Bitmap sample=Bitmap.createBitmap(16,16,Bitmap.Config.ARGB_8888);
         Rect bounds=new Rect(art.getBounds());art.setBounds(0,0,16,16);art.draw(new Canvas(sample));art.setBounds(bounds);
         int red=0,green=0,blue=0,total=0;
@@ -147,7 +165,7 @@ final class DesktopMusicScreen {
             int weight=Color.alpha(pixel)*(32+Math.max(r,Math.max(g,b))-Math.min(r,Math.min(g,b)))/255;
             red+=r*weight;green+=g*weight;blue+=b*weight;total+=weight;
         }
-        sample.recycle();if(total==0){albumBackground.setBackgroundColor(0xff172037);return;}
+        sample.recycle();if(total==0){albumBackground.setBackground(fallbackGradient());return;}
         int r=red/total,g=green/total,b=blue/total;
         albumBackground.setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
                 new int[]{Color.rgb(32+r*3/4,32+g*3/4,32+b*3/4),Color.rgb(12+r/3,12+g/3,12+b/3)}));
@@ -163,7 +181,8 @@ final class DesktopMusicScreen {
     }
     /** Applies visibility, lyrics and spectrum options to the open dialog without rebuilding it. */
     private void applyOptions(JSONObject config){
-        if(info!=null)info.setVisibility(config.optBoolean("hideCover",false)?View.GONE:View.VISIBLE);
+        if(info!=null)info.setVisibility(config.optBoolean("hideCover",false)&&backgroundView!=null?View.GONE:View.VISIBLE);
+        tintBackground();
         boolean hideLyrics=config.optBoolean("hideLyrics",false);
         String layout=config.optString("lyricsLayout","side");
         String align=config.optString("lyricsAlign","center");
@@ -227,8 +246,8 @@ final class DesktopMusicScreen {
                 ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getPath(),options);
                 options.inSampleSize=1;while(options.outWidth/options.inSampleSize>3840||options.outHeight/options.inSampleSize>2160)options.inSampleSize*=2;
-                options.inJustDecodeBounds=false;image.setImageBitmap(BitmapFactory.decodeFile(file.getPath(),options));
-                backgroundView=image;root.addView(image,0,new FrameLayout.LayoutParams(-1,-1));
+                options.inJustDecodeBounds=false;Bitmap decoded=BitmapFactory.decodeFile(file.getPath(),options);if(decoded==null)throw new java.io.IOException("background decode failed");
+                image.setImageBitmap(decoded);backgroundView=image;root.addView(image,0,new FrameLayout.LayoutParams(-1,-1));
             }
         }catch(Exception ignored){backgroundId="";albumBackground=root;tintBackground();}
     }
@@ -255,7 +274,7 @@ final class DesktopMusicScreen {
                 ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getPath(),options);
                 options.inSampleSize=1;while(options.outWidth/options.inSampleSize>3840||options.outHeight/options.inSampleSize>2160)options.inSampleSize*=2;
-                options.inJustDecodeBounds=false;image.setImageBitmap(BitmapFactory.decodeFile(file.getPath(),options));backgroundView=image;root.addView(image,new FrameLayout.LayoutParams(-1,-1));
+                options.inJustDecodeBounds=false;Bitmap decoded=BitmapFactory.decodeFile(file.getPath(),options);if(decoded==null)throw new java.io.IOException("background decode failed");image.setImageBitmap(decoded);backgroundView=image;root.addView(image,new FrameLayout.LayoutParams(-1,-1));
             }
         }catch(Exception ignored){albumBackground=root;tintBackground();}
         android.util.DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
@@ -272,7 +291,7 @@ final class DesktopMusicScreen {
         android.graphics.drawable.GradientDrawable corners=new android.graphics.drawable.GradientDrawable();
         corners.setColor(Color.TRANSPARENT);corners.setCornerRadius(14*scale);
         portrait.setBackground(corners);portrait.setClipToOutline(true);info.addView(portrait,coverSize,coverSize);
-        if(hideCover)info.setVisibility(View.GONE);
+        if(hideCover&&backgroundView!=null)info.setVisibility(View.GONE);
         title=caption(info,23*scale);title.setPadding(0,Math.round(10*scale),0,0);
         album=caption(info,18*scale);artist=caption(info,18*scale);
         if(!hideLyrics){
@@ -319,5 +338,6 @@ final class DesktopMusicScreen {
         Runnable startBackground=()->{if(screen==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
         if(background==null)startBackground.run();
         else background.suspendForFullscreen(opened,startBackground);
+        writeDebug("open");
     }
 }
