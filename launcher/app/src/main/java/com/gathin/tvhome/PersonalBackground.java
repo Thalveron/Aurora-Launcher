@@ -65,6 +65,7 @@ final class PersonalBackground {
     private boolean active;
     private boolean needsRebuild;
     private boolean focusRebuild;
+    private long lastFocusRebuild;
     private boolean ready;
     boolean isReady() { return ready; }
     private boolean ambient;private boolean externalDim;
@@ -104,10 +105,12 @@ final class PersonalBackground {
         handler.removeCallbacks(health);if(active)handler.postDelayed(health,1500);
     }
     void onWindowFocusGained(){
-        if(!active||fullscreenOwner!=null||!focusRebuild)return;
-        focusRebuild=false;
-        // Some Android 11 TV boxes keep a valid-looking SurfaceView that no longer reaches the
-        // hardware video plane after returning from another app. Rebuild the view once on focus.
+        if(!active||fullscreenOwner!=null)return;
+        long now=android.os.SystemClock.elapsedRealtime();
+        if(!focusRebuild&&now-lastFocusRebuild<1500)return;
+        focusRebuild=false;lastFocusRebuild=now;
+        // Switching the TV away to HDMI and back can leave a valid-looking SurfaceView that no longer
+        // reaches the video plane. Rebuild the views once on focus gain, even when no onPause arrived.
         releasePlayer();clearViews();show();
     }
     private Object fullscreenOwner;
