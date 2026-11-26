@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.24",
-    "versionCode": 172,
+    "version": "0.4.25",
+    "versionCode": 173,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.24/Aurora-Launcher-v0.4.24.apk",
-    "sha256": "39e30efe1a472d672f78a5f43fb3b952b6ec6cdbe4a991faa113ca1f8a1fbdc2",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.25/Aurora-Launcher-v0.4.25.apk",
+    "sha256": "e308a59147b4252c1e8eb1a77fcf6b50b92f78a6d0494b980a054afeff9de07d",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.24\n\n- 回退全屏界面的渲染方式到 0.4.22 的稳定实现，修复 0.4.23 进入全屏黑屏、没有背景的问题。\n- 更换全屏背景只替换背景层，不重建窗口，不再黑屏，也不打断音乐播放。\n- 隐藏专辑图片现在同时隐藏歌名、专辑名与歌手。\n- 歌词位置、隐藏歌词、歌词样式、频谱参数保存后自动重新应用。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.25\n\n- 全屏播放的全部设置改为在原窗口内直接应用：换背景、隐藏专辑图片、歌词位置、隐藏歌词、歌词样式、频谱参数，都不再重建窗口。\n- 修复 0.4.23 进入全屏黑屏、没有背景的问题；背景只替换背景层，不中断音乐。\n- 隐藏专辑图片同时隐藏歌名、专辑名与歌手。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

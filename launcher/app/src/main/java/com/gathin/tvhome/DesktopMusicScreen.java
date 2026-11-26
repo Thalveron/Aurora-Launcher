@@ -20,6 +20,9 @@ final class DesktopMusicScreen {
     private long idle;
     private Dialog screen;
     private FrameLayout root;
+    private FrameLayout content;
+    private LinearLayout info;
+    private float scale=1f;
     private View backgroundView;
     private String backgroundId="";
     private String renderedOther="";
@@ -104,12 +107,10 @@ final class DesktopMusicScreen {
             try{next=settings(activity);signature=signature(next);}catch(Exception ignored){}
             if(next!=null&&!signature.isEmpty()&&!signature.equals(renderedSettings)){
                 String other=otherSignature(next);
-                if(!other.equals(renderedOther)){
-                    Dialog stale=screen;screen=null;stale.dismiss();open(controller);return;
-                }
+                if(!other.equals(renderedOther)){applyOptions(next);renderedOther=other;}
                 String background=next.optString("background","");
                 if(!background.equals(backgroundId))replaceBackground(background);
-                renderedSettings=signature;renderedOther=other;
+                renderedSettings=signature;
             }
             update(controller);
         }
@@ -159,6 +160,53 @@ final class DesktopMusicScreen {
     private void setDetail(TextView label,MediaMetadata metadata,String key){
         String value=metadata==null?null:metadata.getString(key);
         label.setText(value);label.setVisibility(android.text.TextUtils.isEmpty(value)?View.GONE:View.VISIBLE);
+    }
+    /** Applies visibility, lyrics and spectrum options to the open dialog without rebuilding it. */
+    private void applyOptions(JSONObject config){
+        if(info!=null)info.setVisibility(config.optBoolean("hideCover",false)?View.GONE:View.VISIBLE);
+        boolean hideLyrics=config.optBoolean("hideLyrics",false);
+        String layout=config.optString("lyricsLayout","side");
+        String align=config.optString("lyricsAlign","center");
+        if(hideLyrics){
+            if(lyrics!=null){content.removeView(lyrics);lyrics.stop();lyrics=null;}
+        }else{
+            if(lyrics==null){lyrics=new ScrollingLyricsView(activity,scale);content.addView(lyrics);}
+            lyrics.setStyle(layout,align);
+            lyrics.setLayoutParams(lyricsParams(layout));
+            lyrics.bringToFront();
+        }
+        if(spectrum!=null){
+            JSONObject spec=config.optJSONObject("spectrum");
+            if(spec!=null)spectrum.setSpectrum(spec);
+            spectrum.setLayoutParams(spectrumParams(layout));
+        }
+    }
+    private FrameLayout.LayoutParams lyricsParams(String layout){
+        android.util.DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
+        int width=metrics.widthPixels,height=metrics.heightPixels;
+        if("bottom-one".equals(layout)||"bottom-two".equals(layout)){
+            int box="bottom-two".equals(layout)?Math.round(300*scale):Math.round(190*scale);
+            FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(Math.round(width*.9f),box,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+            lines.bottomMargin=Math.round(170*scale);
+            return lines;
+        }
+        FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(Math.round(width*.49f),Math.round(824*scale));
+        lines.leftMargin=Math.round(width*.47f);lines.topMargin=Math.round((height-lines.height)/2f);
+        return lines;
+    }
+    private FrameLayout.LayoutParams spectrumParams(String layout){
+        android.util.DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
+        int width=metrics.widthPixels,height=metrics.heightPixels;
+        if("side".equals(layout)){
+            int coverSize=Math.round(398*scale);
+            FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
+            box.leftMargin=Math.round(width*.267f-coverSize/2f);
+            box.topMargin=Math.round(height*.74f);
+            return box;
+        }
+        FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(Math.round(width*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        box.bottomMargin=Math.round(30*scale);
+        return box;
     }
     /** Swaps only the fullscreen background layer, so a running video keeps the dialog alive. */
     private void replaceBackground(String id){
@@ -211,10 +259,10 @@ final class DesktopMusicScreen {
             }
         }catch(Exception ignored){albumBackground=root;tintBackground();}
         android.util.DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
-        float scale=Math.min(metrics.widthPixels/1920f,metrics.heightPixels/1080f);
-        FrameLayout content=new FrameLayout(activity);content.setBackgroundColor(0x66000000);
+        scale=Math.min(metrics.widthPixels/1920f,metrics.heightPixels/1080f);
+        content=new FrameLayout(activity);content.setBackgroundColor(0x66000000);
         root.addView(content,new FrameLayout.LayoutParams(-1,-1));
-        LinearLayout info=new LinearLayout(activity);info.setOrientation(LinearLayout.VERTICAL);info.setGravity(Gravity.CENTER_HORIZONTAL);
+        info=new LinearLayout(activity);info.setOrientation(LinearLayout.VERTICAL);info.setGravity(Gravity.CENTER_HORIZONTAL);
         int coverSize=Math.round(398*scale);
         FrameLayout.LayoutParams infoBox=new FrameLayout.LayoutParams(coverSize,-2);
         infoBox.leftMargin=Math.round(metrics.widthPixels*.267f-coverSize/2f);
