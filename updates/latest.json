@@ -5,7 +5,7 @@
     "versionCode": 224,
     "minSdk": 26,
     "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.76/Aurora-Launcher-v0.4.76.apk",
-    "sha256": "c5900689f710ee388972c88f27578964a1ff6b2bfc3ca98da8ad0e760cad122c",
+    "sha256": "365aacacb148d326e025f83296c1c819e19b0cf825d6afbe0d32a19f09d68dbe",
     "bytes": 47724953,
     "notes": "Aurora Launcher 0.4.76\n\n- 从 HDMI 切回电视后，把 MediaPlayer 重新绑定到当前 SurfaceView 的 Surface 并 seek 到当前位置，修复“解码在播但画面全黑”。\n- Surface 重新创建时也重新 setDisplay，不再继续渲染到已销毁的旧 Surface。\n"
   },
