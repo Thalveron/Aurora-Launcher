@@ -91,12 +91,14 @@ final class ScrollingLyricsView extends View {
   String upper=upperSlot>=0?lines[upperSlot]:"",lower=lowerSlot<lines.length?lines[lowerSlot]:"";
   if(TextUtils.isEmpty(upper)&&TextUtils.isEmpty(lower))return;
   float density=getResources().getDisplayMetrics().density;
-  float inset=getWidth()*.05f,maxWidth=getWidth()-2*inset;
+  float inset=getWidth()*.05f;
+  // Only use ~78% of the width so long pairs visibly step down instead of hugging the edges.
+  float maxWidth=getWidth()*.78f;
   float upperSize=32*fullscreenScale,lowerSize=32*fullscreenScale;
   float upperWidth=measure(upper,upperSize,true),lowerWidth=measure(lower,lowerSize,true);
   float total=upperWidth+lowerWidth;
   if(total>maxWidth&&total>0){
-   float factor=Math.max(.55f,maxWidth/total);
+   float factor=Math.max(.4f,maxWidth/total);
    upperSize*=factor;lowerSize*=factor;upperWidth*=factor;lowerWidth*=factor;
   }
   float start;
