@@ -100,10 +100,10 @@ final class ScrollingLyricsView extends View {
   if(align==1)start=inset;
   else if(align==2)start=Math.max(inset,getWidth()-inset-(upperWidth+lowerWidth));
   else start=Math.max(inset,(getWidth()-(upperWidth+lowerWidth))/2f);
-  drawAt(c,upper,upperSize,start,getHeight()*.46f,base,255,true);
+  drawAt(c,upper,upperSize,start,getHeight()*.52f,base,255,true);
   if(!TextUtils.isEmpty(lower)){
-   float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*1.5f);
-   drawAt(c,lower,lowerSize,x,getHeight()*.74f,0xFFD4E2EF,175,false);
+   float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*4f);
+   drawAt(c,lower,lowerSize,x,getHeight()*.71f,0xFFD4E2EF,175,false);
   }
  }
  private float measure(String line,float size,boolean bold){
