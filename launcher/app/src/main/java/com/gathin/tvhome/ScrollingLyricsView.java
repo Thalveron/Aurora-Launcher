@@ -94,7 +94,7 @@ final class ScrollingLyricsView extends View {
   if(TextUtils.isEmpty(line))return;
   text.setTypeface(Typeface.create("sans-serif",highlight?Typeface.BOLD:Typeface.NORMAL));
   text.setTextSize(Math.max(8f,size));
-  float inset=getWidth()*.08f;
+  float inset=getWidth()*.04f;
   float max=getWidth()-2*inset,width=text.measureText(line);
   if(width>max&&width>0){text.setTextSize(text.getTextSize()*max/width);width=max;}
   float x;

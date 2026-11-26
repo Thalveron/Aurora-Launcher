@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.28",
-    "versionCode": 176,
+    "version": "0.4.29",
+    "versionCode": 177,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.28/Aurora-Launcher-v0.4.28.apk",
-    "sha256": "b23f506f5566d8c820cc560adf4f2dbbc66470f30b1e9a7dfde16eb03c22e587",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.29/Aurora-Launcher-v0.4.29.apk",
+    "sha256": "61172483571a120d2d5a45690c447143dae098d47a41beafd8701b9caa972a88",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.28\n\n- 靠左/靠右歌词不再是一条笔直的边：每行按自身长度向画面中间偏移，越短的行偏得越多，上下行自然错开，接近居中模式的参差感。\n- 下方两行的 8% 错位和紧凑间距保持不变。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.29\n\n- 靠左/靠右歌词的整体位置更靠边：左右边距由屏宽 8% 收到 4%，靠左更靠左、靠右更靠右。\n- 保留按行长度向中间偏移的参差错落，不会变成一条硬边。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
