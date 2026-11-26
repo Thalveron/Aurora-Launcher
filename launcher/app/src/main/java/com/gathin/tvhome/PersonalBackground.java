@@ -110,6 +110,11 @@ final class PersonalBackground {
         long now=android.os.SystemClock.elapsedRealtime();
         if(!focusRebuild&&now-lastFocusRebuild<1500)return;
         focusRebuild=false;lastFocusRebuild=now;
+        // Reattach the decoder to whatever Surface the TV compositor currently exposes, then force a
+        // frame; some boxes keep the old (dead) Surface when the HDMI input comes back.
+        if(player!=null&&surfaceView!=null){
+            try{player.setDisplay(surfaceView.getHolder());player.seekTo(player.getCurrentPosition());}catch(RuntimeException ignored){}
+        }
         // Switching the TV away to HDMI and back can leave a valid-looking SurfaceView that no longer
         // reaches the video plane. Rebuild the views once on focus gain, even when no onPause arrived.
         releasePlayer();clearViews();show();
@@ -173,7 +178,12 @@ final class PersonalBackground {
             // SurfaceView uses the TV's hardware video plane, so 4K clips no longer go through the GPU.
             surfaceView = new SurfaceView(activity);
             surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-                public void surfaceCreated(SurfaceHolder holder) { surfaceReady = true; if (active) startVideo(); }
+                public void surfaceCreated(SurfaceHolder holder) {
+                    surfaceReady = true;
+                    if (player != null) {
+                        try { player.setDisplay(holder); if (active && !player.isPlaying()) player.start(); } catch (RuntimeException ignored) {}
+                    } else if (active) startVideo();
+                }
                 public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) { }
                 public void surfaceDestroyed(SurfaceHolder holder) { surfaceReady = false; releasePlayer(); }
             });
