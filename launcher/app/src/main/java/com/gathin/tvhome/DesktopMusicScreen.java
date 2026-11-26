@@ -355,7 +355,7 @@ final class DesktopMusicScreen {
         if(spectrum!=null)content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";
         if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,filter,permission,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,filter,permission,handler);
-        screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.setContentView(root);
+        screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.getWindow().setWindowAnimations(0);screen.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);screen.setContentView(root);
         Dialog opened=screen;
         PersonalBackground background=desktop.get();
         screen.setOnDismissListener(d->{

@@ -60,6 +60,8 @@ final class PersonalBackground {
     void suspendForFullscreen(Object owner,Runnable released){
         fullscreenOwner=owner;
         handler.removeCallbacks(rotate);
+        // Release the decoder for the fullscreen player, but leave the poster over the SurfaceView so the
+        // hole is never black while the 4K clip is restarted after leaving fullscreen.
         releasePlayer();
         releaser.execute(()->handler.post(()->{if(fullscreenOwner==owner)released.run();}));
     }

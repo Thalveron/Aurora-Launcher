@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.63",
-    "versionCode": 211,
+    "version": "0.4.64",
+    "versionCode": 212,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.63/Aurora-Launcher-v0.4.63.apk",
-    "sha256": "11608ccaa1011eafaae58047d25d31dd24d79aef12aa1b81687960a4c346bc91",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.64/Aurora-Launcher-v0.4.64.apk",
+    "sha256": "144bde888892b5229214acfd0fa4712558c587812b2b7032dfd28789136cb27b",
     "bytes": 47720857,
-    "notes": "Aurora Launcher 0.4.63\n\n- 移除电视端“极简桌面设置”Activity 及外部入口，桌面设置统一使用 Web 控制台（config/native 仍可用）。\n- 保留 0.4.62 的桌面信息按钮对齐与切换语言防闪屏处理。\n"
+    "notes": "Aurora Launcher 0.4.64\n\n- 全屏播放对话框取消窗口动画和背景变暗，退出时不再先暗一下再亮。\n- 退出全屏时使用背景海报盖住 SurfaceView，等原视频重新出帧后再隐藏，避免黑帧闪烁。\n- 保留 0.4.63 移除电视端极简桌面设置、统一 Web 设置的改动。\n"
   },
   "history": []
 }
