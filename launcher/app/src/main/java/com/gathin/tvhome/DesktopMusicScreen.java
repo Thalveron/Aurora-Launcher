@@ -195,7 +195,7 @@ final class DesktopMusicScreen {
         if(spectrumHintShown||content==null)return;
         spectrumHintShown=true;
         TextView hint=new TextView(activity);
-        hint.setText("频谱不可用：需要音频捕获权限");
+        hint.setText("频谱不可用：音频捕获被占用或未授权");
         hint.setTextColor(0x99FFFFFF);hint.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,12);
         FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
         box.bottomMargin=Math.round(8*scale);
@@ -278,6 +278,7 @@ final class DesktopMusicScreen {
         }catch(Exception ignored){backgroundId="";albumBackground=root;tintBackground();}
     }
     private void open(MediaController controller){
+        if(activity instanceof MainActivity)((MainActivity)activity).pauseMusicCardForFullscreen();
         JSONObject config;
         try{config=settings(activity);}catch(Exception unavailable){config=new JSONObject();}
         boolean hideCover=config.optBoolean("hideCover",false);
@@ -354,14 +355,14 @@ final class DesktopMusicScreen {
         screen.setOnDismissListener(d->{
             activity.unregisterReceiver(receiver);if(lyrics!=null)lyrics.stop();
             if(spectrum!=null){spectrum.stop();spectrum=null;}
-            if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();spectrumHintShown=false;if(background!=null)background.finishFullscreen(opened,running);
+            if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();spectrumHintShown=false;if(activity instanceof MainActivity)((MainActivity)activity).resumeMusicCardAfterFullscreen();if(background!=null)background.finishFullscreen(opened,running);
         });
         screen.setOnKeyListener((dialog,key,event)->{
             if(event.getAction()==KeyEvent.ACTION_UP)dialog.dismiss();
             return true;
         });
         screen.show();update(controller);
-        if(spectrum!=null&&spectrumSettings!=null){spectrum.setSpectrum(spectrumSettings);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}
+        if(spectrum!=null&&spectrumSettings!=null){JSONObject spec=spectrumSettings;handler.postDelayed(()->{if(screen==opened&&spectrum!=null){spectrum.setSpectrum(spec);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}},250);}
         String path=videoPath;
         Runnable startBackground=()->{if(screen==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
         if(background==null)startBackground.run();

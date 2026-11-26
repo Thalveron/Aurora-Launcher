@@ -762,6 +762,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         grid.post(() -> focusTile(0));
     }
 
+    /** The fullscreen player needs the single output-capture session; the card would hold it. */
+    void pauseMusicCardForFullscreen(){if(musicCard!=null)musicCard.pause();}
+    void resumeMusicCardAfterFullscreen(){if(musicCard!=null&&visibleHome==this)musicCard.resume();}
     @Override
     protected void onStart() {
         super.onStart();if(preparingDefaults)return;

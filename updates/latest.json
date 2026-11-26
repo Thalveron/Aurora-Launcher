@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.32",
-    "versionCode": 180,
+    "version": "0.4.33",
+    "versionCode": 181,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.32/Aurora-Launcher-v0.4.32.apk",
-    "sha256": "d56ded54adab92f3cce431b28d42be9625472ee22252119fb67241b50c0a6429",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.33/Aurora-Launcher-v0.4.33.apk",
+    "sha256": "dfbd0b2d0e4f5abd2050ce61578d0d456889c6e37d9dd672f68816fe87567b64",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.32\n\n- 新增「显示全屏音乐频谱」开关：关闭后不创建频谱视图，也不占用音频捕获。\n- 修复全屏频谱完全不显示：以前缺少音频捕获权限时静默失败；现在会尝试通过本机 ADB 自动授予 RECORD_AUDIO，仍不可用时在底部显示提示。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.33\n\n- 修复全屏频谱显示“不可用”：音频捕获会话被桌面播放卡片占用。进入全屏时先暂停卡片并释放 Visualizer，再启动全屏频谱；退出全屏后恢复卡片。\n- 频谱提示文案改为“音频捕获被占用或未授权”。\n- 保留“显示全屏音乐频谱”开关。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
