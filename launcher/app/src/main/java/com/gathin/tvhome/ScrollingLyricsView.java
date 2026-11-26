@@ -94,13 +94,13 @@ final class ScrollingLyricsView extends View {
   if(TextUtils.isEmpty(line))return;
   text.setTypeface(Typeface.create("sans-serif",highlight?Typeface.BOLD:Typeface.NORMAL));
   text.setTextSize(Math.max(8f,size));
-  float inset=getWidth()*.04f;
+  float inset=getWidth()*.01f;
   float max=getWidth()-2*inset,width=text.measureText(line);
   if(width>max&&width>0){text.setTextSize(text.getTextSize()*max/width);width=max;}
   float x;
   // Left/right keep the chosen side but drift towards the centre by line length, so
   // consecutive lines do not share one hard edge (the centre mode gets this for free).
-  float drift=(max-width)*.4f;
+  float drift=(max-width)*.18f;
   if(alignMode==1)x=inset+drift;
   else if(alignMode==2)x=getWidth()-width-inset-drift;
   else x=(getWidth()-width)/2f;
