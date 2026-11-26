@@ -1,5 +1,4 @@
-Aurora Launcher v0.4.82
+Aurora Launcher v0.4.83
 
-- 视频背景改用 TextureView 渲染，彻底绕开电视 HDMI 切换后 SurfaceView 视频层不恢复的问题。
-- 从盒子/HDMI 切回电视后，背景视频不再黑屏，不需要重新选背景或重启电视。
-- 纹理缓冲限制为 960×540，降低 4K 背景的 GPU 合成开销。
+- 修复部分 4K 视频背景只显示成小窗：移除 TextureView 的额外缩放矩阵，让视频铺满全屏。
+- 保留 0.4.82 的 TextureView 方案，HDMI 切回不再黑屏。

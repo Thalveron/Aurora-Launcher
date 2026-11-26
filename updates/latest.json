@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.82",
-    "versionCode": 230,
+    "version": "0.4.83",
+    "versionCode": 231,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.82/Aurora-Launcher-v0.4.82.apk",
-    "sha256": "1002e701627f7e9c74450126acc0c3fa2c74644e35a785f8af51bf320e9f1135",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.83/Aurora-Launcher-v0.4.83.apk",
+    "sha256": "91e54e64e76b0668e71c2fb12df5813c2e058f1c4b53dd1bb05759e3325e50dd",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.82\n\n- 视频背景改用 TextureView 渲染，彻底绕开电视 HDMI 切换后 SurfaceView 视频层不恢复的问题。\n- 从盒子/HDMI 切回电视后，背景视频不再黑屏，不需要重新选背景或重启电视。\n- 纹理缓冲限制为 960×540，降低 4K 背景的 GPU 合成开销。\n"
+    "notes": "Aurora Launcher 0.4.83\n\n- 修复部分 4K 视频背景只显示成小窗：移除 TextureView 的额外缩放矩阵，让视频铺满全屏。\n- 保留 0.4.82 的 TextureView 方案，HDMI 切回不再黑屏。\n"
   },
   "history": []
 }

@@ -235,7 +235,6 @@ final class PersonalBackground {
                 }
                 return false;
             });
-            current.setOnVideoSizeChangedListener((mp,w,h)->cropTexture(w,h));
             current.setOnPreparedListener(p -> {
                 if (player != p) return;
                 if (!active) { releasePlayer(); return; }
@@ -254,16 +253,6 @@ final class PersonalBackground {
         int w=activity.getResources().getDisplayMetrics().widthPixels,h=activity.getResources().getDisplayMetrics().heightPixels;
         texture.setDefaultBufferSize(Math.min(960,w),Math.min(540,h));
         playerSurface=new Surface(texture);return playerSurface;
-    }
-    private void cropTexture(int videoW,int videoH){
-        if(surfaceView==null||videoW<=0||videoH<=0)return;
-        int viewW=surfaceView.getWidth(),viewH=surfaceView.getHeight();
-        if(viewW<=0||viewH<=0)return;
-        float scale=Math.max(viewW/(float)videoW,viewH/(float)videoH);
-        float dx=(viewW-videoW*scale)/2f,dy=(viewH-videoH*scale)/2f;
-        android.graphics.Matrix matrix=new android.graphics.Matrix();
-        matrix.setScale(scale,scale);matrix.postTranslate(dx,dy);
-        surfaceView.setTransform(matrix);
     }
     private void videoFailed() {
         releasePlayer();
