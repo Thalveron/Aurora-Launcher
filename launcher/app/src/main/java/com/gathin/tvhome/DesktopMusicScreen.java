@@ -249,8 +249,9 @@ final class DesktopMusicScreen {
             box.topMargin=Math.round(height*.74f);
             return box;
         }
+        int lyricsHeight="bottom-two".equals(layout)?Math.round(300*scale):Math.round(190*scale);
         FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(Math.round(width*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        box.bottomMargin=Math.round(30*scale);
+        box.bottomMargin=Math.round(170*scale)+lyricsHeight+Math.round(24*scale);
         return box;
     }
     /** Swaps only the fullscreen background layer, so a running video keeps the dialog alive. */
@@ -343,8 +344,9 @@ final class DesktopMusicScreen {
             spectrumBox=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
             spectrumBox.leftMargin=infoBox.leftMargin;spectrumBox.topMargin=Math.round(metrics.heightPixels*.74f);
         }else{
+            int lyricsHeight="bottom-two".equals(lyricsLayout)?Math.round(300*scale):Math.round(190*scale);
             spectrumBox=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-            spectrumBox.bottomMargin=Math.round(30*scale);
+            spectrumBox.bottomMargin=Math.round(170*scale)+lyricsHeight+Math.round(24*scale);
         }
         if(spectrum!=null)content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";

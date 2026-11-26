@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.33",
-    "versionCode": 181,
+    "version": "0.4.34",
+    "versionCode": 182,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.33/Aurora-Launcher-v0.4.33.apk",
-    "sha256": "dfbd0b2d0e4f5abd2050ce61578d0d456889c6e37d9dd672f68816fe87567b64",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.34/Aurora-Launcher-v0.4.34.apk",
+    "sha256": "dc71b73f3a7e3c20f69f0246b426ec1cc7d5c54f2b0f582f4d223e35ba7905f9",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.33\n\n- 修复全屏频谱显示“不可用”：音频捕获会话被桌面播放卡片占用。进入全屏时先暂停卡片并释放 Visualizer，再启动全屏频谱；退出全屏后恢复卡片。\n- 频谱提示文案改为“音频捕获被占用或未授权”。\n- 保留“显示全屏音乐频谱”开关。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.34\n\n- 全屏频谱不再贴在屏幕最下边：选择下方一行/下方两行歌词时，频谱移到歌词块上方，与歌词保留 24px 间距。\n- 右侧滚动歌词时频谱仍在封面下方，位置不变。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
