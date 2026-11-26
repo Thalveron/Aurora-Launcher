@@ -228,6 +228,9 @@ final class NowPlayingCard {
         if(idleLocal)return;
         if(controller==null||!active)return;
         if(!enabled()){hide();return;}
+        PlaybackStateCompat playback=controller.getPlaybackState();
+        int playState=playback==null?PlaybackStateCompat.STATE_NONE:playback.getState();
+        if(playState==PlaybackStateCompat.STATE_NONE||playState==PlaybackStateCompat.STATE_STOPPED||playState==PlaybackStateCompat.STATE_ERROR){hide();return;}
         MediaMetadataCompat m=controller.getMetadata();
         CharSequence song=m==null?null:m.getText(MediaMetadataCompat.METADATA_KEY_TITLE);
         if(TextUtils.isEmpty(song)&&m!=null)song=m.getText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE);

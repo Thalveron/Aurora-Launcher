@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.58",
-    "versionCode": 206,
+    "version": "0.4.59",
+    "versionCode": 207,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.58/Aurora-Launcher-v0.4.58.apk",
-    "sha256": "e70b540b6187eac3d06aadba3b82ca604860de34c5e120a28a2c4377993a9b7c",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.59/Aurora-Launcher-v0.4.59.apk",
+    "sha256": "2e5b7842dfee3ec9f07b3af21d7edeb98270b2615c8caaadd36d765411e3797d",
     "bytes": 47725040,
-    "notes": "Aurora Launcher 0.4.58\n\n- HTTPS 证书端口改用 SO_REUSEADDR 绑定，重启/切换后不再因 TIME_WAIT 报 EADDRINUSE。\n- 端口被其他程序占用时提示具体端口，并建议更换端口。\n- 控制台启动失败会自动重试，安装更新后不会出现后台打不开的情况。\n- 保留 0.4.57 的内置桌面/屏保/全屏音乐设置与三套背景。\n"
+    "notes": "Aurora Launcher 0.4.59\n\n- 播放卡片不再把已停止的媒体会话（或本机历史）当成正在播放的歌曲显示：无播放时显示“桌面音乐 / 点击播放，继续上次音乐”。\n- 默认配置包内不包含任何歌曲名、歌手或播放历史。\n- 保留 0.4.58 的 HTTPS 端口复用与启动重试修复。\n"
   },
   "history": []
 }
