@@ -25,10 +25,24 @@ final class PersonalBackground {
     private boolean surfaceReady;
     private int videoAttempts;
     private Runnable retryVideo;
+    private final Runnable health=new Runnable(){public void run(){
+        if(!active||fullscreenOwner!=null)return;
+        boolean reschedule=true;
+        try{
+            if(media==null||media.getParent()==null){clearViews();show();}
+            else if(surfaceView!=null){
+                android.view.Surface surface=surfaceView.getHolder().getSurface();
+                if(!surfaceReady||surface==null||!surface.isValid()){clearViews();show();}
+                else if(player==null)startVideo();
+            }
+        }catch(RuntimeException ignored){}
+        if(reschedule&&active)handler.postDelayed(this,2000);
+    }};
     private MediaPlayer player;
 
     private Bitmap bitmap;
     private boolean active;
+    private boolean needsRebuild;
     private boolean ready;
     boolean isReady() { return ready; }
     private boolean ambient;private boolean externalDim;
@@ -57,13 +71,15 @@ final class PersonalBackground {
         scheduleSlides();
         long next = activity.getSharedPreferences("background", 0).getLong("revision", 0);
         if (next != revision) { revision = next;slide=null;slideIndex=0;java.util.List<File> files=playlist();if(!files.isEmpty())slide=files.get(0);scheduleSlides();if(!contentKey.equals(key())){clearViews();show();} }
-        // An activity that was recreated or whose view was detached can come back with no media view.
-        if (media == null || media.getParent() == null) { clearViews(); show(); }
+        // After the activity was stopped the SurfaceView producer may never come back. Rebuild the views
+        // once on return; an existing ImageView/SurfaceView is not proof that it still renders.
+        if (needsRebuild || media == null || media.getParent() == null) { needsRebuild=false; clearViews(); show(); }
         // The SurfaceView's producer may have been destroyed while the app was in the background while
         // the old MediaPlayer stayed attached. Rebuild the player so the first frame is drawn again.
         if (player != null) releasePlayer();
         videoAttempts = 0;
         if(surfaceReady)startVideo();
+        handler.removeCallbacks(health);if(active)handler.postDelayed(health,1500);
     }
     private Object fullscreenOwner;
     void suspendForFullscreen(Object owner,Runnable released){
@@ -79,8 +95,8 @@ final class PersonalBackground {
         fullscreenOwner=null;
         if(foreground&&active)resume();
     }
-    void pause() { active = false; handler.removeCallbacks(rotate); handler.postDelayed(delayedRelease, 400); }
-    void close() { active = false; handler.removeCallbacks(rotate); handler.removeCallbacks(delayedRelease); clearViews(); }
+    void pause() { active = false; needsRebuild = true; handler.removeCallbacks(rotate); handler.removeCallbacks(health); handler.postDelayed(delayedRelease, 400); }
+    void close() { active = false; handler.removeCallbacks(rotate); handler.removeCallbacks(delayedRelease); handler.removeCallbacks(health); clearViews(); }
     private void add(View view) {
         root.addView(view, root.indexOfChild(root.findViewById(R.id.sky)),
                 new FrameLayout.LayoutParams(-1, -1));
