@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.62",
-    "versionCode": 210,
+    "version": "0.4.63",
+    "versionCode": 211,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.62/Aurora-Launcher-v0.4.62.apk",
-    "sha256": "488d111887b6fb5358c2dfe2d13142351e59542f45b0d56d410006a64cf55369",
-    "bytes": 47729136,
-    "notes": "Aurora Launcher 0.4.62\n\n- 桌面信息顶部四个按钮统一高度、垂直居中并强制单行，修复后两个按钮高低不一致。\n- 切换语言只重建一次；重建时用当前壁纸作为窗口背景并关闭窗口动画，避免两次闪屏。\n- 保留 0.4.61 的英文补齐与 0.4.59 的播放卡片占位。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.63/Aurora-Launcher-v0.4.63.apk",
+    "sha256": "11608ccaa1011eafaae58047d25d31dd24d79aef12aa1b81687960a4c346bc91",
+    "bytes": 47720857,
+    "notes": "Aurora Launcher 0.4.63\n\n- 移除电视端“极简桌面设置”Activity 及外部入口，桌面设置统一使用 Web 控制台（config/native 仍可用）。\n- 保留 0.4.62 的桌面信息按钮对齐与切换语言防闪屏处理。\n"
   },
   "history": []
 }

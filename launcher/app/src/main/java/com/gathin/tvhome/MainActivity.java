@@ -85,9 +85,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override protected void attachBaseContext(android.content.Context base){desktopLocaleAtCreation=DesktopLanguage.code(base);super.attachBaseContext(DesktopLanguage.wrap(DesktopViewport.wrap(base)));}
 
 
-    private static final int LAUNCHER_SETTINGS_REQUEST = 42;
-    /** Sent by QuickSettingsActivity: open Launcher settings from here so Home rebuilds when they close. */
-    static final String ACTION_LAUNCHER_SETTINGS = "com.gathin.tvhome.action.LAUNCHER_SETTINGS";
     /** Tiles per row and dock slots (res/values/config.xml, columns). Set in onCreate. */
     static int COLUMNS = 4;
     private boolean rtlAppGrid;
@@ -714,10 +711,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             startActivity(new Intent(this, BackgroundActivity.class));
             return true;
         }
-        if (intent == null || !ACTION_LAUNCHER_SETTINGS.equals(intent.getAction())) return false;
-        setIntent(new Intent(Intent.ACTION_MAIN));
-        startActivityForResult(new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
-        return true;
+        return false;
     }
 
     /**
@@ -863,12 +857,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 handler.postDelayed(this::playPetalShower, 450);
             }
         }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == LAUNCHER_SETTINGS_REQUEST && resultCode == RESULT_OK) recreate();
     }
 
     /** Rebuilds the tiles (and the module cards), then puts focus back where it was. */
