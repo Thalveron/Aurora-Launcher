@@ -9,7 +9,7 @@ import android.view.View;
 /** Real output FFT only. No microphone recording or simulated spectrum. */
 final class AudioSpectrumView extends View {
     private static final int BARS=28;
-    private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final android.graphics.Path wavePath=new android.graphics.Path();private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float[] levels=new float[BARS],targets=new float[BARS];
     private final Handler handler=new Handler(Looper.getMainLooper());
     private Visualizer visualizer;
@@ -21,8 +21,13 @@ final class AudioSpectrumView extends View {
     void setSharedSaver(){sharedSaver=true;updateColors();}
     /** True when the device refused the output capture (usually a missing RECORD_AUDIO grant). */
     boolean failed(){return failed;}
-    AudioSpectrumView(Context c){super(c);setLayerType(View.LAYER_TYPE_SOFTWARE,null);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
-    void setPlaying(boolean value){playing=value;if(!value){java.util.Arrays.fill(levels,0);java.util.Arrays.fill(targets,0);release();}invalidate();}
+    AudioSpectrumView(Context c){super(c);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
+    void setPlaying(boolean value){
+        playing=value;
+        if(value){if(!active)start();}
+        else{stop();}
+        invalidate();
+    }
     void start(){updateColors();if(active)return;active=true;failed=false;frames=0;handler.post(tick);}
     void stop(){active=false;handler.removeCallbacks(tick);release();java.util.Arrays.fill(levels,0);java.util.Arrays.fill(targets,0);invalidate();}
     private void release(){if(visualizer!=null){try{visualizer.release();}catch(RuntimeException ignored){}visualizer=null;}}
@@ -49,7 +54,7 @@ final class AudioSpectrumView extends View {
     private final Runnable tick=new Runnable(){public void run(){
         if(!active)return;if(frames++%3==0)capture();
         for(int i=0;i<BARS;i++)levels[i]+=(targets[i]-levels[i])*(targets[i]>levels[i]?.65f:.18f);
-        invalidate();handler.postDelayed(this,33);
+        invalidate();handler.postDelayed(this,50);
     }};
     @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
         updateColors();
@@ -109,9 +114,9 @@ final class AudioSpectrumView extends View {
         float left=(getWidth()-width)/2,centerX=getWidth()/2f,centerY=getHeight()/2f,step=width/BARS;
         paint.clearShadowLayer();paint.setStrokeWidth(Math.max(1.5f*density,width/160));paint.setStyle(Paint.Style.FILL);
         if(style==1){
-            Path path=new Path();
-            for(int i=0;i<BARS;i++){float x=left+i*width/(BARS-1),y=centerY-(float)Math.sin(i*.6)*levels[i]*height*.48f;if(i==0)path.moveTo(x,y);else path.lineTo(x,y);}
-            paint.setStyle(Paint.Style.STROKE);c.drawPath(path,paint);
+            wavePath.reset();
+            for(int i=0;i<BARS;i++){float x=left+i*width/(BARS-1),y=centerY-(float)Math.sin(i*.6)*levels[i]*height*.48f;if(i==0)wavePath.moveTo(x,y);else wavePath.lineTo(x,y);}
+            paint.setStyle(Paint.Style.STROKE);c.drawPath(wavePath,paint);
         }else if(style==4){
             float radius=Math.min(width,height)*.27f;
             for(int i=0;i<BARS;i++){double a=i*2*Math.PI/BARS;float length=levels[i]*height*.22f;if(length<density*.4f)continue;

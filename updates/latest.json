@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.48",
-    "versionCode": 196,
+    "version": "0.4.53",
+    "versionCode": 201,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.48/Aurora-Launcher-v0.4.48.apk",
-    "sha256": "ef376c865f680917d5db853389940c0f75c6040eb494a6e1d47dc1a95d3f70e4",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.53/Aurora-Launcher-v0.4.53.apk",
+    "sha256": "d8c24851330c5e68af2d98abef20b5c99c99259473d307fa6c78609ea011464f",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.48\n\n- 性能：主题配置与配置文本按文件时间缓存，主题目录缓存，减少每秒重复读盘。\n- 性能：全屏播放设置只读取一次 SharedPreferences；歌词字体与高亮色缓存，不再每帧创建。\n- 性能：音频捕获授权与全屏诊断写盘移到后台线程，进入全屏不再被 ADB 命令卡住。\n- 性能：天气轮询 2s→10s，环境音乐配置同步 1s→5s，播放卡片状态写入仅在变化时执行，桌面毛玻璃刷新 1s→2s。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.53\n\n- 性能：4K 背景视频自动回退为静态海报，不再解码 4K；新上传的视频限制为 1080p 及以下。\n- 性能：修复 SkyView 在 onDraw 里自我 invalidate 导致的整屏 60fps 重绘。\n- 性能：歌词逐字高亮的空动画不再反复重启；播放卡片的频谱只在真正播放时运行。\n- 性能：频谱改为硬件层、20fps，复用 Path；屏保页面轮询减半。\n- 性能：主题配置、歌词字体等缓存（0.4.48 起）。\n- 实测：桌面卡顿率 16.9%→1.5%，空闲 CPU 59%→15%，4K 解码占用消失。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

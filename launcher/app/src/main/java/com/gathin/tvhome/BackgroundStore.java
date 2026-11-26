@@ -106,6 +106,7 @@ final class BackgroundStore {
                 int h = Integer.parseInt(m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
                 if (duration <= 0 || duration > 30_000) throw new IOException("请上传 30 秒以内的视频");
                 if (w <= 0 || h <= 0) throw new IOException("无法读取视频分辨率");
+                if (w > 1920 || h > 1080) throw new IOException("背景视频请使用 1080p 及以下，4K 视频在电视上会卡顿");
                 e.setDataSource(temp.getPath()); boolean supported = false;
                 for (int i = 0; i < e.getTrackCount(); i++) {
                     String mime = e.getTrackFormat(i).getString(MediaFormat.KEY_MIME);

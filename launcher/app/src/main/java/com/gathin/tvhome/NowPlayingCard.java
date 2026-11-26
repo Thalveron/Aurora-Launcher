@@ -141,7 +141,7 @@ final class NowPlayingCard {
     void resume(){
         if(closed)return;active=true;
         place();
-        if(showCard())spectrum.start();else spectrum.stop();
+        spectrum.stop();   // render() starts it only while something is really playing
         if(!registered){IntentFilter f=new IntentFilter(MusicNotificationListener.CHANGED);if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,f,Context.RECEIVER_NOT_EXPORTED);else activity.registerReceiver(receiver,f);registered=true;}
         try{if(!listening){sessions.addOnActiveSessionsChangedListener(changed,listener,main);listening=true;}}catch(SecurityException ignored){}
         if(!lyricsRegistered){IntentFilter lf=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(lyricReceiver,lf,"com.gathin.tvhome.permission.DESKTOP_LYRICS",main,Context.RECEIVER_EXPORTED);else activity.registerReceiver(lyricReceiver,lf,"com.gathin.tvhome.permission.DESKTOP_LYRICS",main);lyricsRegistered=true;}

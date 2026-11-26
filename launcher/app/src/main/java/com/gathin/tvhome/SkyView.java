@@ -99,6 +99,7 @@ public class SkyView extends View {
             drawable.setGravity(Gravity.FILL);
             setBackground(drawable);
         }
+        // Redraw from render() only; invalidating inside onDraw pinned the whole launcher at 60 fps.
         invalidate();
     }
 }

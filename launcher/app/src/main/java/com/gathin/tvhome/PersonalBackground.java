@@ -105,15 +105,36 @@ final class PersonalBackground {
                     image.setImageBitmap(bitmap); poster = image; add(image);
                 }
             }
-            texture = new TextureView(activity); texture.setOpaque(false); texture.setAlpha(0f); media = texture; add(texture);
-            texture.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-                public void onSurfaceTextureAvailable(SurfaceTexture s, int w, int h) { if (active) startVideo(s); }
-                public void onSurfaceTextureSizeChanged(SurfaceTexture s, int w, int h) { crop(); }
-                public boolean onSurfaceTextureDestroyed(SurfaceTexture s) { releasePlayer(); return true; }
-                public void onSurfaceTextureUpdated(SurfaceTexture s) {}
-            });
+            if (tooLarge(file)) {
+                // A 4K clip decodes far too slowly on TV hardware; keep the still poster instead.
+                ready = true; if (poster != null) media = poster;
+            } else {
+                texture = new TextureView(activity); texture.setOpaque(false); texture.setAlpha(0f); media = texture; add(texture);
+                texture.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                    public void onSurfaceTextureAvailable(SurfaceTexture s, int w, int h) { if (active) startVideo(s); }
+                    public void onSurfaceTextureSizeChanged(SurfaceTexture s, int w, int h) { crop(); }
+                    public boolean onSurfaceTextureDestroyed(SurfaceTexture s) { releasePlayer(); return true; }
+                    public void onSurfaceTextureUpdated(SurfaceTexture s) {}
+                });
+            }
         }
         if (media != null) { shade = new View(activity); shade.setBackgroundColor(externalDim?0x00000000:0x55000000); add(shade); }
+    }
+    private static boolean tooLarge(File file) {
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        try {
+            extractor.setDataSource(file.getPath());
+            for (int i = 0; i < extractor.getTrackCount(); i++) {
+                android.media.MediaFormat format = extractor.getTrackFormat(i);
+                String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+                if (mime != null && mime.startsWith("video/")) {
+                    return format.getInteger(android.media.MediaFormat.KEY_WIDTH) > 1920
+                            || format.getInteger(android.media.MediaFormat.KEY_HEIGHT) > 1080;
+                }
+            }
+        } catch (Exception ignored) {
+        } finally { try { extractor.release(); } catch (Exception ignored) {} }
+        return false;
     }
     Bitmap glassSnapshot() {
         if (!active) return null;

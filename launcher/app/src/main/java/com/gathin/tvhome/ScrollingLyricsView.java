@@ -50,11 +50,11 @@ final class ScrollingLyricsView extends View {
   amount=Float.isNaN(amount)?0:Math.max(0,Math.min(1,amount));
   if(highlight!=null)highlight.cancel();
   if(newRow||Math.abs(amount-progress)>.3f)progress=amount;
-  else{
+  else if(Math.abs(amount-progress)>.01f){
    highlight=ValueAnimator.ofFloat(progress,amount);highlight.setDuration(180);
    highlight.setInterpolator(new android.view.animation.LinearInterpolator());
    highlight.addUpdateListener(a->{progress=(float)a.getAnimatedValue();invalidate();});highlight.start();
-  }
+  }else progress=amount;
   invalidate();
  }
  void clear(){Arrays.fill(lines,"");index=Integer.MIN_VALUE;stop();invalidate();}
