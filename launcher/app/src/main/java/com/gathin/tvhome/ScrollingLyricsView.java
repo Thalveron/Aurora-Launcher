@@ -86,8 +86,8 @@ final class ScrollingLyricsView extends View {
  private void drawBottomTwo(Canvas c){
   int current=fullscreenScale>0?4:3;
   float shift=getWidth()*.08f;
-  drawLine(c,lines[current],36*fullscreenScale,getHeight()*.46f,base,255,align,true,0);
-  drawLine(c,lines[current+1],26*fullscreenScale,getHeight()*.74f,0xFFD4E2EF,175,align,false,shift);
+  drawLine(c,lines[current],36*fullscreenScale,getHeight()*.43f,base,255,align,true,0);
+  drawLine(c,lines[current+1],26*fullscreenScale,getHeight()*.79f,0xFFD4E2EF,175,align,false,shift);
  }
  private float dp(){return getResources().getDisplayMetrics().density;}
  private void drawLine(Canvas c,String line,float size,float centerY,int color,int alpha,int alignMode,boolean highlight,float shift){

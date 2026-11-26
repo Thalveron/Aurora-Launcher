@@ -286,7 +286,7 @@ final class DesktopMusicScreen {
         int coverSize=Math.round(398*scale);
         FrameLayout.LayoutParams infoBox=new FrameLayout.LayoutParams(coverSize,-2);
         infoBox.leftMargin=Math.round(metrics.widthPixels*.267f-coverSize/2f);
-        infoBox.topMargin=Math.round(metrics.heightPixels*(hideCover ? .36f : .24f));
+        infoBox.topMargin=Math.round(metrics.heightPixels*(hideCover ? .30f : .20f));
         content.addView(info,infoBox);
         portrait=new ImageView(activity);portrait.setScaleType(ImageView.ScaleType.CENTER_CROP);
         android.graphics.drawable.GradientDrawable corners=new android.graphics.drawable.GradientDrawable();
