@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.44",
-    "versionCode": 192,
+    "version": "0.4.45",
+    "versionCode": 193,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.44/Aurora-Launcher-v0.4.44.apk",
-    "sha256": "f3f5c1d31cebd62fd2f874f6f4f4d910e80980ec027673801249e1a4fa588dfe",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.45/Aurora-Launcher-v0.4.45.apk",
+    "sha256": "41b237dcb7da6f401b554650863ba22a456e62cc4bc8f5bef3df39eeb9dbd7fa",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.44\n\n- 「下方一行」歌词字号由 44 调到 32，与下方两行错落保持一致。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.45\n\n- 「下方一行」歌词整体下移：文字位置由视图 56% 调到 70%，歌词块底部留白由 170 收到 150，约下移 35px（1080p）。\n- 下方两行、频谱位置不受影响。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
