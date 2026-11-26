@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.31",
-    "versionCode": 179,
+    "version": "0.4.32",
+    "versionCode": 180,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.31/Aurora-Launcher-v0.4.31.apk",
-    "sha256": "55b7a2ab51bf6628a470ee1400fb4586303cf30163f41930baf81606be4154a0",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.32/Aurora-Launcher-v0.4.32.apk",
+    "sha256": "d56ded54adab92f3cce431b28d42be9625472ee22252119fb67241b50c0a6429",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 0.4.31\n\n- 全屏专辑封面与歌曲信息整块上移：顶部距从画面 24% 收到 20%，隐藏封面时从 36% 收到 30%。\n- 下方两行歌词的间距加大：两行位置由 46%/74% 调整为 43%/79%，上下更分明。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.32\n\n- 新增「显示全屏音乐频谱」开关：关闭后不创建频谱视图，也不占用音频捕获。\n- 修复全屏频谱完全不显示：以前缺少音频捕获权限时静默失败；现在会尝试通过本机 ADB 自动授予 RECORD_AUDIO，仍不可用时在底部显示提示。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

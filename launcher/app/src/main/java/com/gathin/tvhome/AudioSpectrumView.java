@@ -19,6 +19,8 @@ final class AudioSpectrumView extends View {
     /** A caller-supplied spectrum (fullscreen player); overrides the saved desktop/saver colours. */
     private org.json.JSONObject customSpectrum;
     void setSharedSaver(){sharedSaver=true;updateColors();}
+    /** True when the device refused the output capture (usually a missing RECORD_AUDIO grant). */
+    boolean failed(){return failed;}
     AudioSpectrumView(Context c){super(c);setLayerType(View.LAYER_TYPE_SOFTWARE,null);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
     void setPlaying(boolean value){playing=value;if(!value){java.util.Arrays.fill(levels,0);java.util.Arrays.fill(targets,0);release();}invalidate();}
     void start(){updateColors();if(active)return;active=true;failed=false;frames=0;handler.post(tick);}

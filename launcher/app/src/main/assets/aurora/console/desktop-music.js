@@ -102,6 +102,7 @@
   },themeStatus);
   const hideCover=element('input');hideCover.type='checkbox';hideCover.id='fullscreen-hide-cover';
   const hideLyrics=element('input');hideLyrics.type='checkbox';hideLyrics.id='fullscreen-hide-lyrics';
+  const spectrumEnabled=element('input');spectrumEnabled.type='checkbox';spectrumEnabled.id='fullscreen-spectrum-enabled';
   const lyricsAlign=element('select');lyricsAlign.id='fullscreen-lyrics-align';
   [['center','居中'],['left','靠左'],['right','靠右']].forEach(function(pair){var option=element('option',pair[1]);option.value=pair[0];lyricsAlign.append(option);});
   const lyricsLayout=element('select');lyricsLayout.id='fullscreen-lyrics-layout';
@@ -123,6 +124,7 @@
     ui.row('歌词样式','右侧滚动为原版；下方一行/两行错落适合沉浸歌词。',lyricsLayout),
     themeStatus]);
   const spectrumCard=ui.card('全屏音乐频谱','与屏保同一套 5 种频谱参数，单独保存。',[
+    ui.row('显示全屏音乐频谱','关闭后全屏不显示频谱，也不占用音频捕获。',spectrumEnabled),
     ui.row('频谱样式','',specStyle),
     ui.row('渐变起始色','',specColor),
     ui.row('渐变结束色','',specColor2),
@@ -175,12 +177,13 @@
     const plain=element('div');plain.className='asset';plain.append(element('label','默认背景'));pick(plain,'','默认背景');
     items.filter(a=>a.id!==selected).forEach(a=>pick(tileFor(a),a.id,a.name));
   };
-  [delay,hideCover,hideLyrics,lyricsAlign,lyricsLayout,specStyle,specColor,specColor2,specOpacity,specSize,specAngle].forEach(function(control){control.disabled=true;});
+  [delay,hideCover,hideLyrics,spectrumEnabled,lyricsAlign,lyricsLayout,specStyle,specColor,specColor2,specOpacity,specSize,specAngle].forEach(function(control){control.disabled=true;});
   api.request('music/fullscreen').then(initial=>{
     full=ui.draft('fullscreen-music',{label:'全屏音乐播放',initial,render(value){
       delay.value=value.minutes;
       hideCover.checked=!!value.hideCover;
       hideLyrics.checked=!!value.hideLyrics;
+      spectrumEnabled.checked=value.spectrumEnabled!==false;
       lyricsAlign.value=value.lyricsAlign||'center';
       lyricsLayout.value=value.lyricsLayout||'side';
       const spec=value.spectrum||{};
@@ -192,12 +195,13 @@
       specAngle.value=spec.angle==null?315:spec.angle;
       window.AuroraFullscreenGallery();
     },save:value=>api.request('music/fullscreen',value)});
-    [delay,hideCover,hideLyrics,lyricsAlign,lyricsLayout,specStyle,specColor,specColor2,specOpacity,specSize,specAngle].forEach(function(control){control.disabled=false;});
+    [delay,hideCover,hideLyrics,spectrumEnabled,lyricsAlign,lyricsLayout,specStyle,specColor,specColor2,specOpacity,specSize,specAngle].forEach(function(control){control.disabled=false;});
     full.set(full.value);window.AuroraFullscreenGallery();
   }).catch(error=>{themeStatus.textContent=error.message;window.AuroraFullscreenGallery();});
   delay.onchange=()=>full.patch({minutes:Number(delay.value)});
   hideCover.onchange=()=>full&&full.patch({hideCover:hideCover.checked});
   hideLyrics.onchange=()=>full&&full.patch({hideLyrics:hideLyrics.checked});
+  spectrumEnabled.onchange=()=>full&&full.patch({spectrumEnabled:spectrumEnabled.checked});
   lyricsAlign.onchange=()=>full&&full.patch({lyricsAlign:lyricsAlign.value});
   lyricsLayout.onchange=()=>full&&full.patch({lyricsLayout:lyricsLayout.value});
   specStyle.onchange=()=>patchSpectrum({style:specStyle.value});

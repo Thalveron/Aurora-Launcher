@@ -30,6 +30,7 @@ final class DesktopMusicScreen {
     private ImageView portrait;
     private ScrollingLyricsView lyrics;
     private AudioSpectrumView spectrum;
+    private boolean spectrumRunning,spectrumHintShown;
     private VideoView video;
     private TextView title, album, artist;
     private MediaMetadata previous;
@@ -46,6 +47,7 @@ final class DesktopMusicScreen {
                 .put("lyricsAlign",prefs(c).getString("lyrics_align","center"))
                 .put("lyricsLayout",prefs(c).getString("lyrics_layout","side"))
                 .put("hideLyrics",prefs(c).getBoolean("hide_lyrics",false))
+                .put("spectrumEnabled",prefs(c).getBoolean("spectrum_enabled",true))
                 .put("spectrum",spectrum(c));
     }
     static JSONObject spectrum(Context c)throws Exception{
@@ -63,7 +65,7 @@ final class DesktopMusicScreen {
     private static String signature(JSONObject value){
         JSONObject spec=value.optJSONObject("spectrum");
         return value.optInt("minutes")+"|"+value.optString("background","")+"|"+value.optBoolean("hideCover")+"|"
-                +value.optBoolean("hideLyrics")+"|"+value.optString("lyricsAlign","")+"|"+value.optString("lyricsLayout","")+"|"
+                +value.optBoolean("hideLyrics")+"|"+value.optBoolean("spectrumEnabled",true)+"|"+value.optString("lyricsAlign","")+"|"+value.optString("lyricsLayout","")+"|"
                 +(spec==null?"-":spec.optString("style","")+"|"+spec.optString("color","")+"|"+spec.optString("color2","")+"|"
                 +spec.optInt("opacity")+"|"+spec.optInt("size")+"|"+spec.optInt("angle")+"|"+spec.optJSONArray("stops"));
     }
@@ -82,11 +84,12 @@ final class DesktopMusicScreen {
         }
     }
     static JSONObject save(Context c,JSONObject b)throws Exception{
-        AuroraSettings.only(b,"minutes","background","hideCover","hideLyrics","lyricsAlign","lyricsLayout","spectrum");
+        AuroraSettings.only(b,"minutes","background","hideCover","hideLyrics","lyricsAlign","lyricsLayout","spectrum","spectrumEnabled");
         android.content.SharedPreferences.Editor edit=prefs(c).edit();
         if(b.has("minutes")){int m=b.getInt("minutes");if(m!=0&&m!=1&&m!=3&&m!=5&&m!=8)throw new IllegalArgumentException("时间无效");edit.putInt("minutes",m);}
         if(b.has("background")){String id=b.getString("background");if(!id.isEmpty())AuroraLibrary.file(c,id,"background");edit.putString("background",id);}
         if(b.has("hideCover")){if(!(b.get("hideCover") instanceof Boolean))throw new IllegalArgumentException("隐藏专辑图片必须是开关值");edit.putBoolean("hide_cover",b.getBoolean("hideCover"));}
+        if(b.has("spectrumEnabled")){if(!(b.get("spectrumEnabled") instanceof Boolean))throw new IllegalArgumentException("频谱开关必须是布尔值");edit.putBoolean("spectrum_enabled",b.getBoolean("spectrumEnabled"));}
         if(b.has("hideLyrics")){if(!(b.get("hideLyrics") instanceof Boolean))throw new IllegalArgumentException("隐藏歌词必须是开关值");edit.putBoolean("hide_lyrics",b.getBoolean("hideLyrics"));}
         if(b.has("lyricsAlign")){String value=b.getString("lyricsAlign");if(!java.util.Arrays.asList("center","left","right").contains(value))throw new IllegalArgumentException("歌词对齐方式无效");edit.putString("lyrics_align",value);}
         if(b.has("lyricsLayout")){String value=b.getString("lyricsLayout");if(!java.util.Arrays.asList("side","bottom-one","bottom-two").contains(value))throw new IllegalArgumentException("歌词样式无效");edit.putString("lyrics_layout",value);}
@@ -113,6 +116,7 @@ final class DesktopMusicScreen {
                 renderedSettings=signature;
             }
             update(controller);
+            if(spectrum!=null&&spectrum.failed())spectrumUnavailableHint();
         }
         else if(!activity.hasWindowFocus())reset();
         else if(SystemClock.elapsedRealtime()-idle>=minutes*60000L)open(controller);
@@ -180,6 +184,23 @@ final class DesktopMusicScreen {
         String value=metadata==null?null:metadata.getString(key);
         label.setText(value);label.setVisibility(android.text.TextUtils.isEmpty(value)?View.GONE:View.VISIBLE);
     }
+    /** Local ADB can grant the capture permission the spectrum needs, without a manual dialog. */
+    private void ensureAudioCapture(){
+        try{
+            if(activity.checkSelfPermission("android.permission.RECORD_AUDIO")==android.content.pm.PackageManager.PERMISSION_GRANTED)return;
+            if(TvAdb.status().optBoolean("connected"))TvAdb.shell(activity,"pm grant "+activity.getPackageName()+" android.permission.RECORD_AUDIO");
+        }catch(Exception ignored){}
+    }
+    private void spectrumUnavailableHint(){
+        if(spectrumHintShown||content==null)return;
+        spectrumHintShown=true;
+        TextView hint=new TextView(activity);
+        hint.setText("频谱不可用：需要音频捕获权限");
+        hint.setTextColor(0x99FFFFFF);hint.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP,12);
+        FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        box.bottomMargin=Math.round(8*scale);
+        content.addView(hint,box);
+    }
     /** Applies visibility, lyrics and spectrum options to the open dialog without rebuilding it. */
     private void applyOptions(JSONObject config){
         if(info!=null)info.setVisibility(config.optBoolean("hideCover",false)&&backgroundView!=null?View.GONE:View.VISIBLE);
@@ -195,10 +216,14 @@ final class DesktopMusicScreen {
             lyrics.setLayoutParams(lyricsParams(layout));
             lyrics.bringToFront();
         }
-        if(spectrum!=null){
+        boolean spectrumEnabled=config.optBoolean("spectrumEnabled",true);
+        if(!spectrumEnabled){if(spectrum!=null){content.removeView(spectrum);spectrum.stop();spectrum=null;spectrumRunning=false;}}
+        else{
+            if(spectrum==null){ensureAudioCapture();spectrum=new AudioSpectrumView(activity);content.addView(spectrum);spectrumRunning=false;}
             JSONObject spec=config.optJSONObject("spectrum");
             if(spec!=null)spectrum.setSpectrum(spec);
             spectrum.setLayoutParams(spectrumParams(layout));
+            if(!spectrumRunning){spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}
         }
     }
     private FrameLayout.LayoutParams lyricsParams(String layout){
@@ -260,6 +285,7 @@ final class DesktopMusicScreen {
         String lyricsLayout=config.optString("lyricsLayout","side");
         String lyricsAlign=config.optString("lyricsAlign","center");
         JSONObject spectrumSettings=config.optJSONObject("spectrum");
+        boolean spectrumEnabled=config.optBoolean("spectrumEnabled",true);
         renderedSettings=signature(config);renderedOther=otherSignature(config);
         root=new FrameLayout(activity);root.setBackgroundColor(0xff101419);
         String id=prefs(activity).getString("background","");
@@ -309,7 +335,8 @@ final class DesktopMusicScreen {
             }
             content.addView(lyrics,lines);
         }
-        spectrum=new AudioSpectrumView(activity);
+        if(spectrumEnabled)ensureAudioCapture();
+        if(spectrumEnabled)spectrum=new AudioSpectrumView(activity);
         FrameLayout.LayoutParams spectrumBox;
         if("side".equals(lyricsLayout)){
             spectrumBox=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
@@ -318,7 +345,7 @@ final class DesktopMusicScreen {
             spectrumBox=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
             spectrumBox.bottomMargin=Math.round(30*scale);
         }
-        content.addView(spectrum,spectrumBox);
+        if(spectrum!=null)content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";
         if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,filter,permission,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,filter,permission,handler);
         screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.setContentView(root);
@@ -327,14 +354,14 @@ final class DesktopMusicScreen {
         screen.setOnDismissListener(d->{
             activity.unregisterReceiver(receiver);if(lyrics!=null)lyrics.stop();
             if(spectrum!=null){spectrum.stop();spectrum=null;}
-            if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();if(background!=null)background.finishFullscreen(opened,running);
+            if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();spectrumHintShown=false;if(background!=null)background.finishFullscreen(opened,running);
         });
         screen.setOnKeyListener((dialog,key,event)->{
             if(event.getAction()==KeyEvent.ACTION_UP)dialog.dismiss();
             return true;
         });
         screen.show();update(controller);
-        if(spectrumSettings!=null){spectrum.setSpectrum(spectrumSettings);spectrum.start();spectrum.setPlaying(true);}
+        if(spectrum!=null&&spectrumSettings!=null){spectrum.setSpectrum(spectrumSettings);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}
         String path=videoPath;
         Runnable startBackground=()->{if(screen==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
         if(background==null)startBackground.run();
