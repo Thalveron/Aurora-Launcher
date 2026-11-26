@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.53",
-    "versionCode": 201,
+    "version": "0.4.54",
+    "versionCode": 202,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.53/Aurora-Launcher-v0.4.53.apk",
-    "sha256": "d8c24851330c5e68af2d98abef20b5c99c99259473d307fa6c78609ea011464f",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.54/Aurora-Launcher-v0.4.54.apk",
+    "sha256": "6dee705e897572b5d3988a3b7b716d721de2113af7e608f0c1af873e2fc87a0a",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.53\n\n- 性能：4K 背景视频自动回退为静态海报，不再解码 4K；新上传的视频限制为 1080p 及以下。\n- 性能：修复 SkyView 在 onDraw 里自我 invalidate 导致的整屏 60fps 重绘。\n- 性能：歌词逐字高亮的空动画不再反复重启；播放卡片的频谱只在真正播放时运行。\n- 性能：频谱改为硬件层、20fps，复用 Path；屏保页面轮询减半。\n- 性能：主题配置、歌词字体等缓存（0.4.48 起）。\n- 实测：桌面卡顿率 16.9%→1.5%，空闲 CPU 59%→15%，4K 解码占用消失。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.54\n\n- 4K 视频背景恢复支持：改用 SurfaceView 走电视硬件视频层，不再经 GPU 合成；移除 1080p 上传限制。\n- 4K 壁纸仍按原尺寸采样显示，不做压缩。\n- 保留 0.4.53 的其余优化：修复 SkyView 60fps 重绘、歌词/频谱空闲空转、轮询降频。\n- 实测 4K 背景播放时应用 CPU 由约 59% 降到约 17%，显示服务占用消失，稳态卡顿约 6.5%。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
