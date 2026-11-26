@@ -5,8 +5,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.MediaPlayer;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -20,9 +22,9 @@ final class PersonalBackground {
         org.json.JSONObject d=new org.json.JSONObject();
         try{
             if(b==null){d.put("instance",false);return d;}
-            android.view.Surface surface=b.surfaceView==null?null:b.surfaceView.getHolder().getSurface();
+            boolean surfaceValid=b.surfaceView!=null&&b.surfaceView.isAvailable();
             d.put("instance",true).put("active",b.active).put("needsRebuild",b.needsRebuild)
-             .put("surfaceReady",b.surfaceReady).put("surfaceValid",surface!=null&&surface.isValid())
+             .put("surfaceReady",b.surfaceReady).put("surfaceValid",surfaceValid)
              .put("player",b.player!=null).put("poster",b.poster!=null)
              .put("posterVisible",b.poster!=null&&b.poster.getVisibility()==View.VISIBLE)
              .put("media",b.media!=null).put("mediaAttached",b.media!=null&&b.media.getParent()!=null)
@@ -40,8 +42,9 @@ final class PersonalBackground {
     private View media, shade, poster;
     private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable delayedRelease = () -> { if (!this.active) releasePlayer(); };
-    private SurfaceView surfaceView;
+    private TextureView surfaceView;
     private boolean surfaceReady;
+    private Surface playerSurface;
     private int videoAttempts;
     private int videoRebuilds;
     private String lastError="",lastInfo="";
@@ -52,8 +55,7 @@ final class PersonalBackground {
         try{
             if(media==null||media.getParent()==null){clearViews();show();}
             else if(surfaceView!=null){
-                android.view.Surface surface=surfaceView.getHolder().getSurface();
-                if(!surfaceReady||surface==null||!surface.isValid()){clearViews();show();}
+                if(!surfaceReady||!surfaceView.isAvailable()){clearViews();show();}
                 else if(player==null)startVideo();
             }
         }catch(RuntimeException ignored){}
@@ -112,8 +114,8 @@ final class PersonalBackground {
         focusRebuild=false;lastFocusRebuild=now;
         // Reattach the decoder to whatever Surface the TV compositor currently exposes, then force a
         // frame; some boxes keep the old (dead) Surface when the HDMI input comes back.
-        if(player!=null&&surfaceView!=null){
-            try{player.setDisplay(surfaceView.getHolder());player.seekTo(player.getCurrentPosition());}catch(RuntimeException ignored){}
+        if(player!=null&&surfaceView!=null&&surfaceView.isAvailable()){
+            try{player.setSurface(attachSurface());player.seekTo(player.getCurrentPosition());}catch(RuntimeException ignored){}
         }
         // Switching the TV away to HDMI and back can leave a valid-looking SurfaceView that no longer
         // reaches the video plane. Rebuild the views once on focus gain, even when no onPause arrived.
@@ -176,16 +178,17 @@ final class PersonalBackground {
                 else{ImageView image=new ImageView(activity);image.setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR,new int[]{0xff2b3f63,0xff16202f}));poster=image;}
             }
             // SurfaceView uses the TV's hardware video plane, so 4K clips no longer go through the GPU.
-            surfaceView = new SurfaceView(activity);
-            surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-                public void surfaceCreated(SurfaceHolder holder) {
+            surfaceView = new TextureView(activity);
+            surfaceView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                public void onSurfaceTextureAvailable(android.graphics.SurfaceTexture texture, int width, int height) {
                     surfaceReady = true;
                     if (player != null) {
-                        try { player.setDisplay(holder); if (active && !player.isPlaying()) player.start(); } catch (RuntimeException ignored) {}
+                        try { player.setSurface(attachSurface()); if (active && !player.isPlaying()) player.start(); } catch (RuntimeException ignored) {}
                     } else if (active) startVideo();
                 }
-                public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) { }
-                public void surfaceDestroyed(SurfaceHolder holder) { surfaceReady = false; releasePlayer(); }
+                public void onSurfaceTextureSizeChanged(android.graphics.SurfaceTexture texture, int width, int height) { }
+                public boolean onSurfaceTextureDestroyed(android.graphics.SurfaceTexture texture) { surfaceReady = false; releasePlayer(); return true; }
+                public void onSurfaceTextureUpdated(android.graphics.SurfaceTexture texture) { }
             });
             media = surfaceView; add(surfaceView);
             if (poster != null) { root.removeView(poster); add(poster); }
@@ -220,7 +223,7 @@ final class PersonalBackground {
             if (poster != null) poster.setVisibility(View.VISIBLE);
             player = new MediaPlayer(); final MediaPlayer current = player;
             current.setAudioStreamType(android.media.AudioManager.STREAM_SYSTEM);
-            current.setDisplay(surfaceView.getHolder());
+            current.setSurface(attachSurface());
             current.setDataSource(selected().getPath());
             current.setLooping(true); current.setVolume(0f, 0f);
             current.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
@@ -232,6 +235,7 @@ final class PersonalBackground {
                 }
                 return false;
             });
+            current.setOnVideoSizeChangedListener((mp,w,h)->cropTexture(w,h));
             current.setOnPreparedListener(p -> {
                 if (player != p) return;
                 if (!active) { releasePlayer(); return; }
@@ -242,6 +246,24 @@ final class PersonalBackground {
             current.setOnErrorListener((p, what, extra) -> { lastError=what+"/"+extra;if(player==p)videoFailed(); return true; });
             current.prepareAsync();
         } catch (Exception failure) { videoFailed(); }
+    }
+    private Surface attachSurface(){
+        if(playerSurface!=null){try{playerSurface.release();}catch(RuntimeException ignored){}playerSurface=null;}
+        android.graphics.SurfaceTexture texture=surfaceView==null?null:surfaceView.getSurfaceTexture();
+        if(texture==null)return null;
+        int w=activity.getResources().getDisplayMetrics().widthPixels,h=activity.getResources().getDisplayMetrics().heightPixels;
+        texture.setDefaultBufferSize(Math.min(960,w),Math.min(540,h));
+        playerSurface=new Surface(texture);return playerSurface;
+    }
+    private void cropTexture(int videoW,int videoH){
+        if(surfaceView==null||videoW<=0||videoH<=0)return;
+        int viewW=surfaceView.getWidth(),viewH=surfaceView.getHeight();
+        if(viewW<=0||viewH<=0)return;
+        float scale=Math.max(viewW/(float)videoW,viewH/(float)videoH);
+        float dx=(viewW-videoW*scale)/2f,dy=(viewH-videoH*scale)/2f;
+        android.graphics.Matrix matrix=new android.graphics.Matrix();
+        matrix.setScale(scale,scale);matrix.postTranslate(dx,dy);
+        surfaceView.setTransform(matrix);
     }
     private void videoFailed() {
         releasePlayer();
@@ -259,6 +281,7 @@ final class PersonalBackground {
     }
     private void releasePlayer() {
         MediaPlayer old=player;player=null;
+        if(playerSurface!=null){try{playerSurface.release();}catch(RuntimeException ignored){}playerSurface=null;}
         // Keep the poster over the SurfaceView while the next player is preparing, otherwise a
         // released 4K video leaves a black frame (two flashes when leaving fullscreen).
         if(poster!=null)poster.setVisibility(View.VISIBLE);
@@ -269,7 +292,7 @@ final class PersonalBackground {
         if (media != null) root.removeView(media);
         if (shade != null) root.removeView(shade);
         if (poster != null) root.removeView(poster);
-        media = null; shade = null; surfaceView = null; surfaceReady = false; poster = null; videoAttempts = 0; handler.removeCallbacks(retryVideo);
+        media = null; shade = null; surfaceView = null; surfaceReady = false; playerSurface = null; poster = null; videoAttempts = 0; handler.removeCallbacks(retryVideo);
         if (bitmap != null) { bitmap.recycle(); bitmap = null; }
     }
 }

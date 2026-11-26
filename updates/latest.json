@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.76",
-    "versionCode": 224,
+    "version": "0.4.82",
+    "versionCode": 230,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.76/Aurora-Launcher-v0.4.76.apk",
-    "sha256": "365aacacb148d326e025f83296c1c819e19b0cf825d6afbe0d32a19f09d68dbe",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.82/Aurora-Launcher-v0.4.82.apk",
+    "sha256": "1002e701627f7e9c74450126acc0c3fa2c74644e35a785f8af51bf320e9f1135",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.76\n\n- 从 HDMI 切回电视后，把 MediaPlayer 重新绑定到当前 SurfaceView 的 Surface 并 seek 到当前位置，修复“解码在播但画面全黑”。\n- Surface 重新创建时也重新 setDisplay，不再继续渲染到已销毁的旧 Surface。\n"
+    "notes": "Aurora Launcher 0.4.82\n\n- 视频背景改用 TextureView 渲染，彻底绕开电视 HDMI 切换后 SurfaceView 视频层不恢复的问题。\n- 从盒子/HDMI 切回电视后，背景视频不再黑屏，不需要重新选背景或重启电视。\n- 纹理缓冲限制为 960×540，降低 4K 背景的 GPU 合成开销。\n"
   },
   "history": []
 }
