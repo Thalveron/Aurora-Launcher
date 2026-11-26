@@ -936,7 +936,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         handler.removeCallbacks(globalClockTick);
         if(WebPreview.window==getWindow())WebPreview.window=null;
         if (ambientMusic != null) ambientMusic.pause();
-        if (personalBackground != null) personalBackground.pause();
         if (weatherHeader != null) weatherHeader.pause();
 
         endReorder();   // Home or another app while reordering keeps the order so far
@@ -956,6 +955,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onStop() {
         super.onStop();if(preparingDefaults)return;
+        // Paused is not hidden: translucent panels (desktop information, quick settings) still show the video.
+        if (personalBackground != null) personalBackground.pause();
         handler.removeCallbacks(ambientLyricTick);if(musicCard!=null)musicCard.pause();
         unregisterReceiver(packageReceiver);
         unregisterReceiver(uploadChanged);

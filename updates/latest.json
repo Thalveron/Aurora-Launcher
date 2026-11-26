@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.54",
-    "versionCode": 202,
+    "version": "0.4.55",
+    "versionCode": 203,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.54/Aurora-Launcher-v0.4.54.apk",
-    "sha256": "6dee705e897572b5d3988a3b7b716d721de2113af7e608f0c1af873e2fc87a0a",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.55/Aurora-Launcher-v0.4.55.apk",
+    "sha256": "edb274c22c8c6c0e97eea6db7119e5c2acd8119fb1c2f48e997303d1f9ee10ea",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.54\n\n- 4K 视频背景恢复支持：改用 SurfaceView 走电视硬件视频层，不再经 GPU 合成；移除 1080p 上传限制。\n- 4K 壁纸仍按原尺寸采样显示，不做压缩。\n- 保留 0.4.53 的其余优化：修复 SkyView 60fps 重绘、歌词/频谱空闲空转、轮询降频。\n- 实测 4K 背景播放时应用 CPU 由约 59% 降到约 17%，显示服务占用消失，稳态卡顿约 6.5%。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.55\n\n- 修复打开「桌面信息」时背景黑屏：视频背景在仅暂停的半透明面板下继续播放，只有真正切到后台（onStop）才释放。\n- 4K 视频背景（SurfaceView 硬件层）和 4K 壁纸保持支持。\n- 实测打开桌面信息时左侧仍显示 4K 视频，返回桌面后正常。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
