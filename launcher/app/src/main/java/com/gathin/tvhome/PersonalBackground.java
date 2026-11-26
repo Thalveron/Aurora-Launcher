@@ -23,6 +23,8 @@ final class PersonalBackground {
     private final Runnable delayedRelease = () -> { if (!this.active) releasePlayer(); };
     private SurfaceView surfaceView;
     private boolean surfaceReady;
+    private int videoAttempts;
+    private Runnable retryVideo;
     private MediaPlayer player;
 
     private Bitmap bitmap;
@@ -45,6 +47,7 @@ final class PersonalBackground {
     private int videoWidth, videoHeight;
     PersonalBackground(Activity a, FrameLayout root) {
         this.activity = a; this.root = root;
+        retryVideo=()->{if(active&&fullscreenOwner==null&&player==null&&surfaceReady)startVideo();};
         revision = a.getSharedPreferences("background", 0).getLong("revision", 0);
         show();
     }
@@ -151,16 +154,23 @@ final class PersonalBackground {
                 if (player != p) return;
                 if (!active) { releasePlayer(); return; }
                 p.start();
+                videoAttempts=0;
+                if(surfaceView!=null)surfaceView.setVisibility(View.VISIBLE);
             });
             current.setOnErrorListener((p, what, extra) -> { if(player==p)videoFailed(); return true; });
             current.prepareAsync();
         } catch (Exception failure) { videoFailed(); }
     }
     private void videoFailed() {
-        ready = true;
         releasePlayer();
-        if (surfaceView != null) surfaceView.setVisibility(View.INVISIBLE);
         if (poster != null) poster.setVisibility(View.VISIBLE);
+        // A 4K decoder can still be releasing when Home comes back from fullscreen or the saver.
+        // Retry instead of leaving a permanent black SurfaceView.
+        if(active&&fullscreenOwner==null&&surfaceReady&&videoAttempts<6){
+            videoAttempts++;handler.postDelayed(retryVideo,700);return;
+        }
+        ready = true;
+        if (surfaceView != null) surfaceView.setVisibility(View.INVISIBLE);
         android.widget.Toast.makeText(activity, "电视无法播放这段视频，请在背景管理里换一个。", android.widget.Toast.LENGTH_LONG).show();
     }
     private void releasePlayer() {
@@ -175,7 +185,7 @@ final class PersonalBackground {
         if (media != null) root.removeView(media);
         if (shade != null) root.removeView(shade);
         if (poster != null) root.removeView(poster);
-        media = null; shade = null; surfaceView = null; surfaceReady = false; poster = null;
+        media = null; shade = null; surfaceView = null; surfaceReady = false; poster = null; videoAttempts = 0; handler.removeCallbacks(retryVideo);
         if (bitmap != null) { bitmap.recycle(); bitmap = null; }
     }
 }

@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.65",
-    "versionCode": 213,
+    "version": "0.4.66",
+    "versionCode": 214,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.65/Aurora-Launcher-v0.4.65.apk",
-    "sha256": "2f3e90181602ec85db5321dd6054815abc45d34c98739391a990221683539d6d",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.66/Aurora-Launcher-v0.4.66.apk",
+    "sha256": "ab09428d578a13399bb255e5f1a7da5be7d52b4e58a934247504bfa98d25e232",
     "bytes": 47720857,
-    "notes": "Aurora Launcher 0.4.65\n\n- 进入全屏时先显示背景海报，视频解码完成后再隐藏，避免进入时约 1 秒黑屏。\n- 退出全屏取消对话框动画和背景变暗，并用海报盖住背景 SurfaceView，避免退出闪黑。\n- 保留 0.4.63 移除电视端极简桌面设置、统一 Web 设置的改动。\n"
+    "notes": "Aurora Launcher 0.4.66\n\n- 全屏播放改为桌面窗口内的覆盖层，不再新建 Dialog 窗口，进入/退出不再有窗口切换黑屏。\n- 背景视频解码失败会自动重试，避免退出全屏或屏保后背景永久黑屏。\n- 全屏视频背景先显示海报，解码出帧后再隐藏。\n- 保留 0.4.63 移除电视端极简桌面设置。\n"
   },
   "history": []
 }

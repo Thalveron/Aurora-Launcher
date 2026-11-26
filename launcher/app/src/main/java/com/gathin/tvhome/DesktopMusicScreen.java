@@ -18,8 +18,10 @@ final class DesktopMusicScreen {
     private final Activity activity;
     private final Handler handler=new Handler(Looper.getMainLooper());
     private long idle;
-    private Dialog screen;
+    private Object host;
+    private FrameLayout overlay;
     private FrameLayout root;
+    private PersonalBackground backgroundRef;
     private FrameLayout content;
     private LinearLayout info;
     private float scale=1f;
@@ -111,18 +113,18 @@ final class DesktopMusicScreen {
         MediaController controller=AuroraData.controller(activity);
         PlaybackState state=controller==null?null:controller.getPlaybackState();
         if(state==null||state.getState()!=PlaybackState.STATE_PLAYING)return;
-        reset();if(screen!=null){update(controller);return;}open(controller);
+        reset();if(host!=null){update(controller);return;}open(controller);
     }
     void reset(){idle=SystemClock.elapsedRealtime();}
     void start(){running=true;reset();handler.removeCallbacks(tick);handler.post(tick);}
-    void stop(){running=false;handler.removeCallbacks(tick);if(screen!=null)screen.dismiss();}
+    void stop(){running=false;handler.removeCallbacks(tick);dismiss();}
     private final Runnable tick=new Runnable(){public void run(){
         int minutes=prefs(activity).getInt("minutes",0);
         MediaController controller=minutes==0?null:AuroraData.controller(activity);
         PlaybackState state=controller==null?null:controller.getPlaybackState();
         if(state==null||state.getState()!=PlaybackState.STATE_PLAYING||AuroraSaver.active){
-            reset();if(screen!=null)screen.dismiss();
-        }else if(screen!=null){
+            reset();dismiss();
+        }else if(host!=null){
             JSONObject next=null;String signature="";
             try{next=settings(activity);signature=signature(next);}catch(Exception ignored){}
             if(next!=null&&!signature.isEmpty()&&!signature.equals(renderedSettings)){
@@ -375,26 +377,34 @@ final class DesktopMusicScreen {
         if(spectrum!=null)content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";
         if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,filter,permission,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,filter,permission,handler);
-        screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.getWindow().setWindowAnimations(0);screen.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);screen.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xff101419));screen.setContentView(root);
-        Dialog opened=screen;
-        PersonalBackground background=desktop.get();
-        screen.setOnDismissListener(d->{
-            activity.unregisterReceiver(receiver);if(lyrics!=null)lyrics.stop();
-            if(spectrum!=null){spectrum.stop();spectrum=null;}
-            if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();spectrumHintShown=false;if(activity instanceof MainActivity)((MainActivity)activity).resumeMusicCardAfterFullscreen();if(background!=null)background.finishFullscreen(opened,running);
-        });
-        screen.setOnKeyListener((dialog,key,event)->{
-            if(event.getAction()==KeyEvent.ACTION_UP)dialog.dismiss();
-            return true;
-        });
-        screen.show();update(controller);
+        PersonalBackground background=desktop.get();backgroundRef=background;
+        final Object opened=new Object();host=opened;overlay=new FrameLayout(activity);
+        overlay.setBackgroundColor(0xff101419);
+        overlay.addView(root,new FrameLayout.LayoutParams(-1,-1));
+        overlay.setFocusable(true);overlay.setFocusableInTouchMode(true);
+        overlay.setOnKeyListener((v,key,event)->{if(event.getAction()==KeyEvent.ACTION_UP)dismiss();return true;});
+        android.view.ViewGroup contentView=activity.findViewById(android.R.id.content);
+        contentView.addView(overlay,new FrameLayout.LayoutParams(-1,-1));
+        overlay.requestFocus();
+        update(controller);
         if(spectrum!=null&&spectrumSettings!=null){JSONObject spec=spectrumSettings;
             long captureDelay=activity.checkSelfPermission("android.permission.RECORD_AUDIO")==android.content.pm.PackageManager.PERMISSION_GRANTED?250:1600;
-            handler.postDelayed(()->{if(screen==opened&&spectrum!=null){spectrum.setSpectrum(spec);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}},captureDelay);}
+            handler.postDelayed(()->{if(host==opened&&spectrum!=null){spectrum.setSpectrum(spec);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}},captureDelay);}
         String path=videoPath;
-        Runnable startBackground=()->{if(screen==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
+        Runnable startBackground=()->{if(host==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
         if(background==null)startBackground.run();
         else background.suspendForFullscreen(opened,startBackground);
         writeDebug("open");
+    }
+    private void dismiss(){
+        Object opened=host;if(opened==null)return;
+        host=null;
+        FrameLayout view=overlay;overlay=null;
+        if(view!=null&&view.getParent() instanceof android.view.ViewGroup)((android.view.ViewGroup)view.getParent()).removeView(view);
+        if(lyrics!=null)lyrics.stop();
+        if(spectrum!=null){spectrum.stop();spectrum=null;}
+        if(video!=null){try{video.stopPlayback();}catch(Exception ignored){}video=null;}previous=null;reset();spectrumHintShown=false;
+        if(activity instanceof MainActivity)((MainActivity)activity).resumeMusicCardAfterFullscreen();
+        if(backgroundRef!=null)backgroundRef.finishFullscreen(opened,running);
     }
 }
