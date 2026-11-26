@@ -24,6 +24,7 @@ final class PersonalBackground {
     private SurfaceView surfaceView;
     private boolean surfaceReady;
     private int videoAttempts;
+    private int videoRebuilds;
     private Runnable retryVideo;
     private final Runnable health=new Runnable(){public void run(){
         if(!active||fullscreenOwner!=null)return;
@@ -132,6 +133,11 @@ final class PersonalBackground {
                     image.setImageBitmap(bitmap); poster = image;
                 }
             }
+            if(poster==null){
+                Bitmap frame=posterFrame(file);
+                if(frame!=null){bitmap=frame;ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);image.setImageBitmap(frame);poster=image;}
+                else{ImageView image=new ImageView(activity);image.setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR,new int[]{0xff2b3f63,0xff16202f}));poster=image;}
+            }
             // SurfaceView uses the TV's hardware video plane, so 4K clips no longer go through the GPU.
             surfaceView = new SurfaceView(activity);
             surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -143,6 +149,17 @@ final class PersonalBackground {
             if (poster != null) { root.removeView(poster); add(poster); }
         }
         if (media != null) { shade = new View(activity); shade.setBackgroundColor(externalDim?0x00000000:0x55000000); add(shade); }
+    }
+    private Bitmap posterFrame(File file){
+        android.media.MediaMetadataRetriever retriever=new android.media.MediaMetadataRetriever();
+        try{
+            retriever.setDataSource(file.getPath());
+            Bitmap frame=retriever.getFrameAtTime(0,android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+            if(frame==null)return null;
+            int max=1920;float scale=Math.min(1f,max/(float)Math.max(frame.getWidth(),frame.getHeight()));
+            if(scale<1f){Bitmap small=Bitmap.createScaledBitmap(frame,Math.round(frame.getWidth()*scale),Math.round(frame.getHeight()*scale),true);frame.recycle();frame=small;}
+            return frame;
+        }catch(Exception ignored){return null;}finally{try{retriever.release();}catch(Exception ignored){}}
     }
     Bitmap wallpaper(){return bitmap;}
     Bitmap glassSnapshot() {
@@ -176,7 +193,7 @@ final class PersonalBackground {
                 if (player != p) return;
                 if (!active) { releasePlayer(); return; }
                 p.start();
-                videoAttempts=0;
+                videoAttempts=0;videoRebuilds=0;
                 if(surfaceView!=null)surfaceView.setVisibility(View.VISIBLE);
             });
             current.setOnErrorListener((p, what, extra) -> { if(player==p)videoFailed(); return true; });
@@ -188,11 +205,13 @@ final class PersonalBackground {
         if (poster != null) poster.setVisibility(View.VISIBLE);
         // A 4K decoder can still be releasing when Home comes back from fullscreen or the saver.
         // Retry instead of leaving a permanent black SurfaceView.
-        if(active&&fullscreenOwner==null&&surfaceReady&&videoAttempts<6){
-            videoAttempts++;handler.postDelayed(retryVideo,700);return;
+        if(active&&fullscreenOwner==null&&videoRebuilds<3){videoRebuilds++;clearViews();show();return;}
+        if(active&&fullscreenOwner==null&&surfaceReady&&videoAttempts<8){
+            videoAttempts++;handler.postDelayed(retryVideo,900);return;
         }
         ready = true;
         if (surfaceView != null) surfaceView.setVisibility(View.INVISIBLE);
+        if(active&&fullscreenOwner==null)handler.postDelayed(retryVideo,5000);
         android.widget.Toast.makeText(activity, "电视无法播放这段视频，请在背景管理里换一个。", android.widget.Toast.LENGTH_LONG).show();
     }
     private void releasePlayer() {
