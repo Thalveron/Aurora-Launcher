@@ -105,6 +105,7 @@ final class PersonalBackground {
         handler.removeCallbacks(health);if(active)handler.postDelayed(health,1500);
     }
     void onWindowFocusGained(){
+        if(!active)resume();
         if(!active||fullscreenOwner!=null)return;
         long now=android.os.SystemClock.elapsedRealtime();
         if(!focusRebuild&&now-lastFocusRebuild<1500)return;

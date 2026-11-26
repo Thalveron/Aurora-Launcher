@@ -1,5 +1,4 @@
-Aurora Launcher v0.4.74
+Aurora Launcher v0.4.75
 
-- 从 HDMI/盒子信号源切回电视桌面时，窗口重新获得焦点后强制重建背景 SurfaceView，修复视频背景不显示。
-- 重建做了 1.5 秒节流，避免普通焦点变化造成闪烁。
-- 保留诊断接口 /api/v1/debug/background。
+- 从 HDMI/盒子切回电视后，窗口获得焦点时若背景仍处于暂停状态会先恢复再重建 SurfaceView。
+- 针对诊断中 active=false、surfaceValid=false 的状态。
