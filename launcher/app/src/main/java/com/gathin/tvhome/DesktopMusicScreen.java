@@ -10,6 +10,7 @@ import android.os.*;
 import android.view.*;
 import android.widget.*;
 import java.io.File;
+import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,26 +20,36 @@ final class DesktopMusicScreen {
     private final Handler handler=new Handler(Looper.getMainLooper());
     private long idle;
     private Dialog screen;
-    private FrameLayout albumBackground;
+    private FrameLayout root, content, backgroundLayer;
+    private View backgroundView;
     private ImageView portrait;
     private ScrollingLyricsView lyrics;
     private AudioSpectrumView spectrum;
+    private boolean spectrumRunning;
     private VideoView video;
+    private String pendingVideoPath;
     private TextView title, album, artist;
+    private LinearLayout info;
     private MediaMetadata previous;
     private final java.util.function.Supplier<PersonalBackground> desktop;
     private boolean running;
-    /** Settings snapshot the open dialog was built from, so console changes can rebuild it live. */
+    private float scale=1f;
+    private int screenWidth,screenHeight;
+    /** Settings snapshot the open dialog was built from, so console changes apply live. */
     private String renderedSettings="";
+    private String backgroundId="";
+    private boolean uiHideCover,uiHideLyrics;
+    private String uiLayout="side",uiAlign="center";
+    private JSONObject uiSpectrum;
     DesktopMusicScreen(Activity a,java.util.function.Supplier<PersonalBackground> desktop){activity=a;this.desktop=desktop;}
     static android.content.SharedPreferences prefs(Context c){return c.getSharedPreferences("fullscreen_"+AuroraThemes.current(c),0);}
     static JSONObject settings(Context c)throws Exception{
         return new JSONObject().put("minutes",prefs(c).getInt("minutes",0))
                 .put("background",prefs(c).getString("background",""))
                 .put("hideCover",prefs(c).getBoolean("hide_cover",false))
+                .put("hideLyrics",prefs(c).getBoolean("hide_lyrics",false))
                 .put("lyricsAlign",prefs(c).getString("lyrics_align","center"))
                 .put("lyricsLayout",prefs(c).getString("lyrics_layout","side"))
-                .put("hideLyrics",prefs(c).getBoolean("hide_lyrics",false))
                 .put("spectrum",spectrum(c));
     }
     static JSONObject spectrum(Context c)throws Exception{
@@ -49,7 +60,7 @@ final class DesktopMusicScreen {
         return new JSONObject().put("style","wave").put("color","#55ddffff").put("color2","#8266ffff")
                 .put("opacity",50).put("size",100).put("angle",315).put("stops",new JSONArray());
     }
-    /** Stable signature of the fullscreen options, so a console save rebuilds the open dialog once. */
+    /** Stable signature of the fullscreen options, so a console save applies once. */
     private static String signature(JSONObject value){
         JSONObject spec=value.optJSONObject("spectrum");
         return value.optInt("minutes")+"|"+value.optString("background","")+"|"+value.optBoolean("hideCover")+"|"
@@ -96,7 +107,8 @@ final class DesktopMusicScreen {
             String signature="";
             try{signature=signature(settings(activity));}catch(Exception ignored){}
             if(!signature.isEmpty()&&!signature.equals(renderedSettings)){
-                Dialog stale=screen;screen=null;stale.dismiss();open(controller);return;
+                renderedSettings=signature;
+                applySettings();
             }
             update(controller);
         }
@@ -122,9 +134,9 @@ final class DesktopMusicScreen {
         tintBackground();
     }
     private void tintBackground(){
-        if(albumBackground==null)return;
-        android.graphics.drawable.Drawable art=portrait.getDrawable();
-        if(art==null){albumBackground.setBackgroundColor(0xff172037);return;}
+        if(albumBackground()==null)return;
+        android.graphics.drawable.Drawable art=portrait==null?null:portrait.getDrawable();
+        if(art==null){albumBackground().setBackgroundColor(0xff172037);return;}
         Bitmap sample=Bitmap.createBitmap(16,16,Bitmap.Config.ARGB_8888);
         Rect bounds=new Rect(art.getBounds());art.setBounds(0,0,16,16);art.draw(new Canvas(sample));art.setBounds(bounds);
         int red=0,green=0,blue=0,total=0;
@@ -133,11 +145,13 @@ final class DesktopMusicScreen {
             int weight=Color.alpha(pixel)*(32+Math.max(r,Math.max(g,b))-Math.min(r,Math.min(g,b)))/255;
             red+=r*weight;green+=g*weight;blue+=b*weight;total+=weight;
         }
-        sample.recycle();if(total==0){albumBackground.setBackgroundColor(0xff172037);return;}
+        sample.recycle();if(total==0){albumBackground().setBackgroundColor(0xff172037);return;}
         int r=red/total,g=green/total,b=blue/total;
-        albumBackground.setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+        albumBackground().setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
                 new int[]{Color.rgb(32+r*3/4,32+g*3/4,32+b*3/4),Color.rgb(12+r/3,12+g/3,12+b/3)}));
     }
+    /** The tinted surface: root when no custom background is selected. */
+    private FrameLayout albumBackground(){return backgroundId.isEmpty()?root:null;}
     private TextView caption(LinearLayout parent,float pixels){
         TextView label=new TextView(activity);label.setGravity(Gravity.CENTER);label.setTextColor(Color.WHITE);
         label.setSingleLine();label.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -150,88 +164,135 @@ final class DesktopMusicScreen {
     private void open(MediaController controller){
         JSONObject config;
         try{config=settings(activity);}catch(Exception unavailable){config=new JSONObject();}
-        boolean hideCover=config.optBoolean("hideCover",false);
-        boolean hideLyrics=config.optBoolean("hideLyrics",false);
-        String lyricsLayout=config.optString("lyricsLayout","side");
-        String lyricsAlign=config.optString("lyricsAlign","center");
-        JSONObject spectrumSettings=config.optJSONObject("spectrum");
-        renderedSettings=signature(config);
-        FrameLayout root=new FrameLayout(activity);root.setBackgroundColor(0xff101419);
-        String id=prefs(activity).getString("background","");
-        albumBackground=id.isEmpty()?root:null;
-        String videoPath=null;
-        if(!id.isEmpty())try{
-            File file=AuroraLibrary.file(activity,id,"background");
-            if(id.matches(".*\\.(mp4|webm|mkv)")){
-                video=new VideoView(activity);root.addView(video,new FrameLayout.LayoutParams(-1,-1,Gravity.CENTER));video.setAudioFocusRequest(android.media.AudioManager.AUDIOFOCUS_NONE);
-                VideoView view=video;view.setOnPreparedListener(mp->{if(view==video){mp.setVolume(0,0);mp.setLooping(true);view.start();}});videoPath=file.getAbsolutePath();
-            }else{
-                ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getPath(),options);
-                options.inSampleSize=1;while(options.outWidth/options.inSampleSize>3840||options.outHeight/options.inSampleSize>2160)options.inSampleSize*=2;
-                options.inJustDecodeBounds=false;image.setImageBitmap(BitmapFactory.decodeFile(file.getPath(),options));root.addView(image,new FrameLayout.LayoutParams(-1,-1));
-            }
-        }catch(Exception ignored){}
+        root=new FrameLayout(activity);root.setBackgroundColor(0xff101419);
         android.util.DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
-        float scale=Math.min(metrics.widthPixels/1920f,metrics.heightPixels/1080f);
-        FrameLayout content=new FrameLayout(activity);content.setBackgroundColor(0x66000000);
+        screenWidth=metrics.widthPixels;screenHeight=metrics.heightPixels;
+        scale=Math.min(screenWidth/1920f,screenHeight/1080f);
+        backgroundLayer=new FrameLayout(activity);
+        root.addView(backgroundLayer,new FrameLayout.LayoutParams(-1,-1));
+        content=new FrameLayout(activity);content.setBackgroundColor(0x66000000);
         root.addView(content,new FrameLayout.LayoutParams(-1,-1));
-        LinearLayout info=new LinearLayout(activity);info.setOrientation(LinearLayout.VERTICAL);info.setGravity(Gravity.CENTER_HORIZONTAL);
+        info=new LinearLayout(activity);info.setOrientation(LinearLayout.VERTICAL);info.setGravity(Gravity.CENTER_HORIZONTAL);
         int coverSize=Math.round(398*scale);
         FrameLayout.LayoutParams infoBox=new FrameLayout.LayoutParams(coverSize,-2);
-        infoBox.leftMargin=Math.round(metrics.widthPixels*.267f-coverSize/2f);
-        infoBox.topMargin=Math.round(metrics.heightPixels*(hideCover ? .36f : .24f));
+        infoBox.leftMargin=Math.round(screenWidth*.267f-coverSize/2f);
+        infoBox.topMargin=Math.round(screenHeight*.24f);
         content.addView(info,infoBox);
         portrait=new ImageView(activity);portrait.setScaleType(ImageView.ScaleType.CENTER_CROP);
         android.graphics.drawable.GradientDrawable corners=new android.graphics.drawable.GradientDrawable();
         corners.setColor(Color.TRANSPARENT);corners.setCornerRadius(14*scale);
         portrait.setBackground(corners);portrait.setClipToOutline(true);info.addView(portrait,coverSize,coverSize);
-        if(hideCover)portrait.setVisibility(View.GONE);
         title=caption(info,23*scale);title.setPadding(0,Math.round(10*scale),0,0);
         album=caption(info,18*scale);artist=caption(info,18*scale);
-        if(!hideLyrics){
-            lyrics=new ScrollingLyricsView(activity,scale);
-            lyrics.setStyle(lyricsLayout,lyricsAlign);
-            FrameLayout.LayoutParams lines;
-            if("bottom-one".equals(lyricsLayout)||"bottom-two".equals(lyricsLayout)){
-                int height="bottom-two".equals(lyricsLayout)?Math.round(300*scale):Math.round(190*scale);
-                lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.9f),height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-                lines.bottomMargin=Math.round(170*scale);
-            }else{
-                lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.49f),Math.round(824*scale));
-                lines.leftMargin=Math.round(metrics.widthPixels*.47f);lines.topMargin=Math.round((metrics.heightPixels-lines.height)/2f);
-            }
-            content.addView(lyrics,lines);
-        }
-        spectrum=new AudioSpectrumView(activity);
-        FrameLayout.LayoutParams spectrumBox;
-        if("side".equals(lyricsLayout)){
-            spectrumBox=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
-            spectrumBox.leftMargin=infoBox.leftMargin;spectrumBox.topMargin=Math.round(metrics.heightPixels*.74f);
-        }else{
-            spectrumBox=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-            spectrumBox.bottomMargin=Math.round(30*scale);
-        }
-        content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";
         if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,filter,permission,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,filter,permission,handler);
         screen=new Dialog(activity,android.R.style.Theme_Material_NoActionBar_Fullscreen);screen.setContentView(root);
         Dialog opened=screen;
         PersonalBackground background=desktop.get();
         screen.setOnDismissListener(d->{
-            activity.unregisterReceiver(receiver);if(lyrics!=null)lyrics.stop();
-            if(spectrum!=null){spectrum.stop();spectrum=null;}
-            if(video!=null){video.stopPlayback();video=null;}previous=null;screen=null;reset();if(background!=null)background.finishFullscreen(opened,running);
+            activity.unregisterReceiver(receiver);
+            if(lyrics!=null){lyrics.stop();lyrics=null;}
+            if(spectrum!=null){spectrum.stop();spectrum=null;}spectrumRunning=false;
+            stopBackgroundVideo();
+            previous=null;screen=null;reset();if(background!=null)background.finishFullscreen(opened,running);
         });
         screen.setOnKeyListener((dialog,key,event)->{
             if(event.getAction()==KeyEvent.ACTION_UP)dialog.dismiss();
             return true;
         });
         screen.show();update(controller);
-        if(spectrumSettings!=null){spectrum.setSpectrum(spectrumSettings);spectrum.start();spectrum.setPlaying(true);}
-        String path=videoPath;
-        Runnable startBackground=()->{if(screen==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
+        renderedSettings=signature(config);
+        applySettings();
+        Runnable startBackground=()->{if(screen==opened&&running)startBackgroundVideo();};
         if(background==null)startBackground.run();
         else background.suspendForFullscreen(opened,startBackground);
+    }
+    /** Applies every option in place; nothing is torn down except the layer that really changed. */
+    private void applySettings(){
+        JSONObject config;
+        try{config=settings(activity);}catch(Exception unavailable){return;}
+        uiHideCover=config.optBoolean("hideCover",false);
+        uiHideLyrics=config.optBoolean("hideLyrics",false);
+        uiLayout=config.optString("lyricsLayout","side");
+        uiAlign=config.optString("lyricsAlign","center");
+        uiSpectrum=config.optJSONObject("spectrum");
+        applyBackground(config.optString("background",""));
+        if(info!=null)info.setVisibility(uiHideCover?View.GONE:View.VISIBLE);
+        applyLyrics();
+        applySpectrum();
+    }
+    private void applyBackground(String id){
+        if(Objects.equals(id,backgroundId)&&(backgroundView!=null||id.isEmpty()))return;
+        backgroundId=id;
+        stopBackgroundVideo();
+        if(backgroundView!=null){backgroundLayer.removeView(backgroundView);backgroundView=null;}
+        if(id.isEmpty()){tintBackground();return;}
+        try{
+            File file=AuroraLibrary.file(activity,id,"background");
+            if(id.matches(".*\\.(mp4|webm|mkv)")){
+                VideoView view=new VideoView(activity);
+                view.setAudioFocusRequest(android.media.AudioManager.AUDIOFOCUS_NONE);
+                view.setOnPreparedListener(mp->{if(view==video){mp.setVolume(0,0);mp.setLooping(true);view.start();}});
+                video=view;backgroundView=view;
+                backgroundLayer.addView(view,new FrameLayout.LayoutParams(-1,-1,Gravity.CENTER));
+                pendingVideoPath=file.getAbsolutePath();
+                startBackgroundVideo();
+            }else{
+                ImageView image=new ImageView(activity);image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getPath(),options);
+                options.inSampleSize=1;while(options.outWidth/options.inSampleSize>3840||options.outHeight/options.inSampleSize>2160)options.inSampleSize*=2;
+                options.inJustDecodeBounds=false;image.setImageBitmap(BitmapFactory.decodeFile(file.getPath(),options));
+                backgroundView=image;backgroundLayer.addView(image,new FrameLayout.LayoutParams(-1,-1));
+            }
+        }catch(Exception ignored){backgroundId="";tintBackground();}
+    }
+    private void startBackgroundVideo(){
+        if(video==null||pendingVideoPath==null||screen==null)return;
+        String path=pendingVideoPath;pendingVideoPath=null;
+        video.setVideoPath(path);
+    }
+    private void stopBackgroundVideo(){
+        if(video!=null){try{video.stopPlayback();}catch(Exception ignored){}video=null;}
+        pendingVideoPath=null;
+    }
+    private void applyLyrics(){
+        if(uiHideLyrics){if(lyrics!=null){content.removeView(lyrics);lyrics.stop();lyrics=null;}return;}
+        if(lyrics==null){lyrics=new ScrollingLyricsView(activity,scale);content.addView(lyrics);}
+        lyrics.setStyle(uiLayout,uiAlign);
+        lyrics.setLayoutParams(lyricsParams());
+    }
+    private FrameLayout.LayoutParams lyricsParams(){
+        if("bottom-one".equals(uiLayout)||"bottom-two".equals(uiLayout)){
+            int height="bottom-two".equals(uiLayout)?Math.round(300*scale):Math.round(190*scale);
+            FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(Math.round(screenWidth*.9f),height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+            lines.bottomMargin=Math.round(170*scale);
+            return lines;
+        }
+        FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(Math.round(screenWidth*.49f),Math.round(824*scale));
+        lines.leftMargin=Math.round(screenWidth*.47f);lines.topMargin=Math.round((screenHeight-lines.height)/2f);
+        return lines;
+    }
+    private void applySpectrum(){
+        if(spectrum==null){
+            spectrum=new AudioSpectrumView(activity);
+            content.addView(spectrum);
+        }
+        spectrum.setLayoutParams(spectrumParams());
+        if(uiSpectrum!=null){
+            spectrum.setSpectrum(uiSpectrum);
+            if(!spectrumRunning){spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}
+        }
+    }
+    private FrameLayout.LayoutParams spectrumParams(){
+        if("side".equals(uiLayout)){
+            int coverSize=Math.round(398*scale);
+            FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
+            box.leftMargin=Math.round(screenWidth*.267f-coverSize/2f);
+            box.topMargin=Math.round(screenHeight*.74f);
+            return box;
+        }
+        FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(Math.round(screenWidth*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        box.bottomMargin=Math.round(30*scale);
+        return box;
     }
 }
