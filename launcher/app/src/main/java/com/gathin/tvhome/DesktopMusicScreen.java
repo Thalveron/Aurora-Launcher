@@ -242,22 +242,8 @@ final class DesktopMusicScreen {
     }
     private FrameLayout.LayoutParams spectrumParams(String layout){
         android.util.DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
-        int width=metrics.widthPixels,height=metrics.heightPixels;
-        if("side".equals(layout)){
-            int coverSize=Math.round(398*scale);
-            FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
-            box.leftMargin=Math.round(width*.267f-coverSize/2f);
-            box.topMargin=Math.round(height*.74f);
-            return box;
-        }
-        int lyricsHeight="bottom-two".equals(layout)?Math.round(300*scale):Math.round(190*scale);
-        String align=prefs(activity).getString("lyrics_align","center");
-        int gravity="left".equals(align)?Gravity.BOTTOM|Gravity.LEFT:"right".equals(align)?Gravity.BOTTOM|Gravity.RIGHT:Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL;
-        FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(Math.round(width*.55f),Math.round(110*scale),gravity);
-        box.bottomMargin=Math.round(170*scale)+lyricsHeight+Math.round(24*scale);
-        int sideMargin=Math.round(width*.06f);
-        if("left".equals(align))box.leftMargin=sideMargin;
-        if("right".equals(align))box.rightMargin=sideMargin;
+        FrameLayout.LayoutParams box=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        box.bottomMargin=Math.round(24*scale);
         return box;
     }
     /** Swaps only the fullscreen background layer, so a running video keeps the dialog alive. */
@@ -345,19 +331,8 @@ final class DesktopMusicScreen {
         }
         if(spectrumEnabled)ensureAudioCapture();
         if(spectrumEnabled)spectrum=new AudioSpectrumView(activity);
-        FrameLayout.LayoutParams spectrumBox;
-        if("side".equals(lyricsLayout)){
-            spectrumBox=new FrameLayout.LayoutParams(coverSize,Math.round(110*scale));
-            spectrumBox.leftMargin=infoBox.leftMargin;spectrumBox.topMargin=Math.round(metrics.heightPixels*.74f);
-        }else{
-            int lyricsHeight="bottom-two".equals(lyricsLayout)?Math.round(300*scale):Math.round(190*scale);
-            int gravity="left".equals(lyricsAlign)?Gravity.BOTTOM|Gravity.LEFT:"right".equals(lyricsAlign)?Gravity.BOTTOM|Gravity.RIGHT:Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL;
-            spectrumBox=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.55f),Math.round(110*scale),gravity);
-            spectrumBox.bottomMargin=Math.round(170*scale)+lyricsHeight+Math.round(24*scale);
-            int sideMargin=Math.round(metrics.widthPixels*.06f);
-            if("left".equals(lyricsAlign))spectrumBox.leftMargin=sideMargin;
-            if("right".equals(lyricsAlign))spectrumBox.rightMargin=sideMargin;
-        }
+        FrameLayout.LayoutParams spectrumBox=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.55f),Math.round(110*scale),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        spectrumBox.bottomMargin=Math.round(24*scale);
         if(spectrum!=null)content.addView(spectrum,spectrumBox);
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LYRICS");String permission="com.gathin.tvhome.permission.DESKTOP_LYRICS";
         if(Build.VERSION.SDK_INT>=33)activity.registerReceiver(receiver,filter,permission,handler,Context.RECEIVER_EXPORTED);else activity.registerReceiver(receiver,filter,permission,handler);

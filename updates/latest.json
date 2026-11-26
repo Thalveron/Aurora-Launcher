@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.35",
-    "versionCode": 183,
+    "version": "0.4.36",
+    "versionCode": 184,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.35/Aurora-Launcher-v0.4.35.apk",
-    "sha256": "a13a5b17a66ddcf41d60225ac68d4da4c9f7f4116ce124dc0feada7895495d30",
-    "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.35\n\n- 全屏频谱跟随歌词位置：选择下方一行/下方两行时，频谱按靠左/居中/靠右与歌词同一水平位置排列，并位于歌词块上方。\n- 频谱几何信息写入 fullscreen-debug.txt，便于排查位置异常。\n- 右侧滚动歌词时频谱仍在封面下方。\n- 更新保留现有用户设置。\n"
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.36/Aurora-Launcher-v0.4.36.apk",
+    "sha256": "42a11897d09cc448cdade8162a5df033da8104c850b253ccbe343cb004a0427c",
+    "bytes": 17496417,
+    "notes": "Aurora Launcher 0.4.36\n\n- 全屏频谱固定为屏幕底部居中：宽度约 55% 屏宽，距底边 24px，所有歌词样式一致。\n- 不再跟随歌词位置或歌词样式移动。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
