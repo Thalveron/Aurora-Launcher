@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "1.5.0",
-    "versionCode": 167,
+    "version": "0.4.20",
+    "versionCode": 168,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v1.5.0/Aurora-Launcher-v1.5.0.apk",
-    "sha256": "8c08e1cb069d55f7cd86b968b90b2658f17912d34fee973a3ac146fada13cb8c",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.20/Aurora-Launcher-v0.4.20.apk",
+    "sha256": "7baba1d943008154a4f5f394c7fe04c968caab6c2d1f921d321e4247dccc8d61",
     "bytes": 17496417,
-    "notes": "Aurora Launcher 1.5.0\n\n- 全屏音乐新增：隐藏专辑封面；歌词居中/靠左/靠右；歌词样式支持右侧滚动、底部一行、底部两行错落。\n- 全屏音乐新增频谱：屏保同款 5 种样式，可设置起止色、透明度、尺寸和渐变角度。\n- 适配 Android 11+：应用可见性声明，应用管理不再漏应用，也不会误判可停用当前桌面。\n- 适配 Android 14：控制台服务声明前台服务类型，避免启动崩溃。\n- 修复 HTTPS + 自定义端口时更新被误回退；本机调试一次超时后功能被永久禁用。\n- 修复预览超时泄漏位图、播放卡片封面空白、Dock 删除快捷方式后错位、视频素材 MIME 空指针、节日问候语颜色被覆盖。\n- 音乐应用名称统一为 Aurora Music，并读取实际安装名称。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.20\n\n- 全屏音乐新增：隐藏专辑封面；歌词居中/靠左/靠右；歌词样式支持右侧滚动、底部一行、底部两行错落。\n- 全屏音乐新增频谱：屏保同款 5 种样式，可设置起止色、透明度、尺寸和渐变角度。\n- 适配 Android 11+：应用可见性声明，应用管理不再漏应用，也不会误判可停用当前桌面。\n- 适配 Android 14：控制台服务声明前台服务类型，避免启动崩溃。\n- 修复 HTTPS + 自定义端口时更新被误回退；本机调试一次超时后功能被永久禁用。\n- 修复预览超时泄漏位图、播放卡片封面空白、Dock 删除快捷方式后错位、视频素材 MIME 空指针、节日问候语颜色被覆盖。\n- 音乐应用名称统一为 Aurora Music，并读取实际安装名称。\n- 更新保留现有用户设置。\n"
   },
   "history": [
     {
