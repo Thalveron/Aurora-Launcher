@@ -47,7 +47,7 @@ final class BundledDefaults {
    if(!UpdatePolicy.sha(part).equals(item.getString("sha256"))||!part.renameTo(target))throw new IOException("Default file integrity failure");
   }
   JSONObject all=bundle.getJSONObject("preferences");
-  java.util.Set<String> allowed=new java.util.HashSet<>(java.util.Arrays.asList("launcher_settings","desktop_appearance","desktop_language","desktop_location","background","fullscreen_legacy","fullscreen_cards","fullscreen_foundation","ambient_music","idle_standby","input_shortcut","aurora_bgm_shared_saver","aurora_bgm_theme_cards","aurora_bgm_theme_foundation","aurora_voice","aurora_library","aurora_bgm","network_monitor"));
+  java.util.Set<String> allowed=new java.util.HashSet<>(java.util.Arrays.asList("launcher_settings","desktop_appearance","desktop_language","desktop_location","background","fullscreen_legacy","fullscreen_cards","fullscreen_foundation","ambient_music","idle_standby","input_shortcut","wifi_shortcut","aurora_bgm_shared_saver","aurora_bgm_theme_cards","aurora_bgm_theme_foundation","aurora_voice","aurora_library","aurora_bgm","network_monitor"));
   for(java.util.Iterator<String> names=all.keys();names.hasNext();){
    String name=names.next();if(!allowed.contains(name))throw new IOException("Forbidden preferences");SharedPreferences.Editor edit=c.getSharedPreferences(name,0).edit();if(bundle.optBoolean("applyOnUpgrade",false))edit.clear();JSONObject values=all.getJSONObject(name);
    for(java.util.Iterator<String> keys=values.keys();keys.hasNext();){String key=keys.next();JSONObject v=values.getJSONObject(key);switch(v.getString("type")){

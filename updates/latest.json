@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.56",
-    "versionCode": 204,
+    "version": "0.4.57",
+    "versionCode": 205,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.56/Aurora-Launcher-v0.4.56.apk",
-    "sha256": "1347787cc3b67dcb94563810f2a42a3d02be54056d1fd77eb21865fb808ef90e",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.57/Aurora-Launcher-v0.4.57.apk",
+    "sha256": "a005f9c00d0b58b3602472f672e0e912b129454b1bc0331b0911e13c672fba2c",
     "bytes": 47725040,
-    "notes": "Aurora Launcher 0.4.56\n\n- 内置当前电视的整套桌面设置：外观、布局、导航栏顺序、音乐卡片、屏保、全屏音乐、问候语、时钟、频谱等。\n- 内置三套正在使用的背景：桌面壁纸、屏保 4K 视频、全屏音乐视频，以及对应海报图。\n- 天气地区默认上海（31.22, 121.46，Asia/Shanghai）。\n- 不包含：Wi-Fi 密码快捷方式及 Wi-Fi 信息、输入源遥控器图片、控制台账号密码、播放历史、个人音乐文件名。\n- 仅在全新安装时写入默认值；已有安装保留用户现有设置。\n"
+    "notes": "Aurora Launcher 0.4.57\n\n- 内置当前电视的整套桌面设置与三套背景（桌面壁纸、屏保 4K 视频、全屏音乐视频）。\n- 保留 Wi-Fi 密码快捷方式本身，但只写入 enabled=true，不包含已保存的 Wi-Fi 名称和密码。\n- 保留输入源快捷方式，但不写入自定义遥控器图片（使用默认图标）。\n- 不包含控制台账号密码、播放历史、个人音乐文件名。\n- 天气默认上海。\n- 仅在全新安装时写入默认值；已有安装保留现有设置。\n"
   },
   "history": []
 }
