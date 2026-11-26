@@ -55,7 +55,7 @@ final class AuroraData {
         List<ApplicationInfo> list=new ArrayList<>(installed.values());
         Collections.sort(list,(a,b)->a.loadLabel(c.getPackageManager()).toString().compareToIgnoreCase(b.loadLabel(c.getPackageManager()).toString()));
         JSONArray result=new JSONArray();
-        if(DesktopSharing.enabled(c))result.put(new JSONObject().put("package",DesktopSharing.SHORTCUT).put("name","Wi-Fi 密码").put("icon","/api/v1/icons/"+DesktopSharing.SHORTCUT));
+        if(DesktopSharing.enabled(c))result.put(new JSONObject().put("package",DesktopSharing.SHORTCUT).put("name",DesktopLanguage.t(c,"Wi-Fi 密码")).put("icon","/api/v1/icons/"+DesktopSharing.SHORTCUT));
         for(ApplicationInfo app:list) result.put(new JSONObject().put("package",app.packageName)
                 .put("name",AppManagement.label(c,app.packageName,app.loadLabel(c.getPackageManager()).toString())).put("icon",AppManagement.iconUrl(c,app.packageName)));
         return result;

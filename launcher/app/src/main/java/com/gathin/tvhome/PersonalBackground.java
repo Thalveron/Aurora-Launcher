@@ -162,6 +162,9 @@ final class PersonalBackground {
     }
     private void releasePlayer() {
         MediaPlayer old=player;player=null;
+        // Keep the poster over the SurfaceView while the next player is preparing, otherwise a
+        // released 4K video leaves a black frame (two flashes when leaving fullscreen).
+        if(poster!=null)poster.setVisibility(View.VISIBLE);
         if(old!=null)releaser.execute(()->{try{old.release();}catch(RuntimeException ignored){} });
     }
     private void clearViews() {
