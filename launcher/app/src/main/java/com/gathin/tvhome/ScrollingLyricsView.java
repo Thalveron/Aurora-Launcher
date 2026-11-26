@@ -85,9 +85,51 @@ final class ScrollingLyricsView extends View {
  }
  private void drawBottomTwo(Canvas c){
   int current=fullscreenScale>0?4:3;
-  float shift=getWidth()*.08f;
-  drawLine(c,lines[current],36*fullscreenScale,getHeight()*.43f,base,255,align,true,0);
-  drawLine(c,lines[current+1],26*fullscreenScale,getHeight()*.79f,0xFFD4E2EF,175,align,false,shift);
+  String upper=lines[current],lower=lines[current+1];
+  if(TextUtils.isEmpty(upper))return;
+  float density=getResources().getDisplayMetrics().density;
+  float inset=getWidth()*.05f,maxWidth=getWidth()-2*inset;
+  float upperSize=36*fullscreenScale,lowerSize=26*fullscreenScale;
+  float upperWidth=measure(upper,upperSize,true),lowerWidth=TextUtils.isEmpty(lower)?0:measure(lower,lowerSize,false);
+  float total=upperWidth+lowerWidth;
+  if(total>maxWidth&&total>0){
+   float factor=Math.max(.55f,maxWidth/total);
+   upperSize*=factor;lowerSize*=factor;upperWidth*=factor;lowerWidth*=factor;
+  }
+  float start;
+  if(align==1)start=inset;
+  else if(align==2)start=Math.max(inset,getWidth()-inset-(upperWidth+lowerWidth));
+  else start=Math.max(inset,(getWidth()-(upperWidth+lowerWidth))/2f);
+  drawAt(c,upper,upperSize,start,getHeight()*.46f,base,255,true);
+  if(!TextUtils.isEmpty(lower)){
+   float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*1.5f);
+   drawAt(c,lower,lowerSize,x,getHeight()*.74f,0xFFD4E2EF,175,false);
+  }
+ }
+ private float measure(String line,float size,boolean bold){
+  if(TextUtils.isEmpty(line))return 0;
+  text.setTypeface(Typeface.create("sans-serif",bold?Typeface.BOLD:Typeface.NORMAL));
+  text.setTextSize(Math.max(8f,size));
+  return text.measureText(line);
+ }
+ private void drawAt(Canvas c,String line,float size,float x,float centerY,int color,int alpha,boolean highlight){
+  if(TextUtils.isEmpty(line))return;
+  float density=getResources().getDisplayMetrics().density;
+  text.setTypeface(Typeface.create("sans-serif",highlight?Typeface.BOLD:Typeface.NORMAL));
+  text.setTextSize(Math.max(8f,size));
+  float width=text.measureText(line),max=getWidth()-2*getWidth()*.01f;
+  if(width>max&&width>0){text.setTextSize(text.getTextSize()*max/width);width=max;}
+  float y=centerY-(text.ascent()+text.descent())/2f;
+  text.setColor(color);text.setAlpha(alpha);text.setShadowLayer(2*density,0,density,0xCC000000);
+  c.drawText(line,x,y,text);
+  if(highlight&&progress>0){
+   float chars=line.length()*progress;int at=Math.min(line.length(),(int)chars);
+   float completed=text.measureText(line,0,at);
+   if(at<line.length())completed+=text.measureText(line,at,at+1)*(chars-at);
+   int save=c.save();c.clipRect(x,y+text.ascent()-density,x+completed,y+text.descent()+density);
+   text.setColor(getContext().getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166));text.setAlpha(255);
+   c.drawText(line,x,y,text);c.restoreToCount(save);
+  }
  }
  private float dp(){return getResources().getDisplayMetrics().density;}
  private void drawLine(Canvas c,String line,float size,float centerY,int color,int alpha,int alignMode,boolean highlight,float shift){
