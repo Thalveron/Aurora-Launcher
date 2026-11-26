@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.46",
-    "versionCode": 194,
+    "version": "0.4.47",
+    "versionCode": 195,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.46/Aurora-Launcher-v0.4.46.apk",
-    "sha256": "d7e1637e2c16f839de4ce3bb01666f885a92a77cd0b6ee910ad83209d9ace03c",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.47/Aurora-Launcher-v0.4.47.apk",
+    "sha256": "22455b9aa7dd31c056f755f0187a4c0a5c79386fd2d400cab4389efe6363f8af",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.46\n\n- 下方两行歌词的长句收缩更积极：两行总宽超过屏宽 78% 就开始按比例缩小（原来要超过 90%）。\n- 最小可缩到原字号 40%，保证很长的两句也能完整显示在画面内。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.47\n\n- 撤销下方两行的字号自动缩小：两行固定 32 号。\n- 长歌词改为横向收缩：下行整体往左挤到上行下方，两行不再超出屏幕；最挤时下行与上行左对齐。\n- 歌词位置（靠左/居中/靠右）仍对整组生效。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

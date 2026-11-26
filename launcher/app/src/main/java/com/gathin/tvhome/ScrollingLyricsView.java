@@ -85,31 +85,26 @@ final class ScrollingLyricsView extends View {
  }
  private void drawBottomTwo(Canvas c){
   int current=fullscreenScale>0?4:3;
-  // Fixed pairs: show two lines together, light the first, then the second, and only then advance.
   boolean second=(index&1)!=0;
   int upperSlot=second?current-1:current,lowerSlot=second?current:current+1;
   String upper=upperSlot>=0?lines[upperSlot]:"",lower=lowerSlot<lines.length?lines[lowerSlot]:"";
   if(TextUtils.isEmpty(upper)&&TextUtils.isEmpty(lower))return;
   float density=getResources().getDisplayMetrics().density;
-  float inset=getWidth()*.05f;
-  // Only use ~78% of the width so long pairs visibly step down instead of hugging the edges.
-  float maxWidth=getWidth()*.78f;
+  float inset=getWidth()*.05f,available=Math.max(1f,getWidth()-2*inset),gap=density*4f;
   float upperSize=32*fullscreenScale,lowerSize=32*fullscreenScale;
   float upperWidth=measure(upper,upperSize,true),lowerWidth=measure(lower,lowerSize,true);
-  float total=upperWidth+lowerWidth;
-  if(total>maxWidth&&total>0){
-   float factor=Math.max(.4f,maxWidth/total);
-   upperSize*=factor;lowerSize*=factor;upperWidth*=factor;lowerWidth*=factor;
-  }
+  float span=upperWidth+(TextUtils.isEmpty(lower)?0:gap+lowerWidth);
+  // No font shrinking: when the pair is too wide, the lower row slides left under the upper one.
+  float fit=Math.min(span,available);
   float start;
   if(align==1)start=inset;
-  else if(align==2)start=Math.max(inset,getWidth()-inset-(upperWidth+lowerWidth));
-  else start=Math.max(inset,(getWidth()-(upperWidth+lowerWidth))/2f);
+  else if(align==2)start=Math.max(inset,getWidth()-inset-fit);
+  else start=Math.max(inset,(getWidth()-fit)/2f);
   int sung=getContext().getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166);
-  // A finished row keeps the sung colour; the next row stays as bright as the upper one.
   drawAt(c,upper,upperSize,start,getHeight()*.72f,second?sung:base,255,!second);
   if(!TextUtils.isEmpty(lower)){
-   float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*4f);
+   float x=start+upperWidth+gap;
+   if(x+lowerWidth>start+available)x=Math.max(start,start+available-lowerWidth);
    drawAt(c,lower,lowerSize,x,getHeight()*.90f,base,255,second);
   }
  }
@@ -124,8 +119,7 @@ final class ScrollingLyricsView extends View {
   float density=getResources().getDisplayMetrics().density;
   text.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));
   text.setTextSize(Math.max(8f,size));
-  float width=text.measureText(line),max=getWidth()-2*getWidth()*.01f;
-  if(width>max&&width>0){text.setTextSize(text.getTextSize()*max/width);width=max;}
+  float width=text.measureText(line);
   float y=centerY-(text.ascent()+text.descent())/2f;
   text.setColor(color);text.setAlpha(alpha);text.setShadowLayer(2*density,0,density,0xCC000000);
   c.drawText(line,x,y,text);
