@@ -27,6 +27,8 @@ final class AuroraLibrary {
             String id="native-"+f.getName();boolean video=BackgroundStore.kind(f).equals("video");index++;
             all.put(new JSONObject().put("id",id).put("name",(video?"视频":"图片")+" · 原背景库 "+index).put("bytes",f.length()).put("kind","background").put("video",video).put("source","legacy").put("url","/api/v1/assets/file/"+id).put("thumbnail","/api/v1/assets/thumbnail/"+id));
         }
+        Map<String,JSONArray> bindings=bindings(c);
+        for(int i=0;i<all.length();i++){JSONObject item=all.getJSONObject(i);item.put("uses",bindings.get(item.getString("id")));}
         return all;
     }
     static synchronized void inheritNativeBackground(Context c)throws Exception{
@@ -50,7 +52,7 @@ final class AuroraLibrary {
         try{try(FileOutputStream out=new FileOutputStream(temp)){byte[] b=new byte[65536];long left=size;while(left>0){int n=in.read(b,0,(int)Math.min(b.length,left));if(n<0)throw new EOFException("上传中断");out.write(b,0,n);left-=n;}out.getFD().sync();}
             if(ext.matches("jpg|jpeg|png|webp")){android.graphics.BitmapFactory.Options o=new android.graphics.BitmapFactory.Options();o.inJustDecodeBounds=true;android.graphics.BitmapFactory.decodeFile(temp.getPath(),o);if(o.outWidth<=0||o.outHeight<=0)throw new IOException("无法识别图片");}
             if(ext.matches("ttf|otf"))android.graphics.Typeface.createFromFile(temp);
-            if(ext.matches("mp4|webm|mkv")){android.media.MediaExtractor m=new android.media.MediaExtractor();boolean video=false;try{m.setDataSource(temp.getPath());for(int i=0;i<m.getTrackCount();i++)if(m.getTrackFormat(i).getString("mime").startsWith("video/"))video=true;}finally{m.release();}if(!video)throw new IOException("无法识别视频轨道");}
+            if(ext.matches("mp4|webm|mkv")){android.media.MediaExtractor m=new android.media.MediaExtractor();boolean video=false;try{m.setDataSource(temp.getPath());for(int i=0;i<m.getTrackCount();i++){String trackMime=m.getTrackFormat(i).getString(android.media.MediaFormat.KEY_MIME);if(trackMime!=null&&trackMime.startsWith("video/"))video=true;}}finally{m.release();}if(!video)throw new IOException("无法识别视频轨道");}
             if(!temp.renameTo(dest))throw new IOException("保存素材失败");saved=true;c.getSharedPreferences("aurora_library",0).edit().putString(id,name.substring(0,Math.min(160,name.length()))).commit();return new JSONObject().put("id",id).put("name",name).put("bytes",size);
         }finally{if(!saved)temp.delete();}
     }
@@ -63,10 +65,23 @@ final class AuroraLibrary {
                 if(original.length()==f.length()&&preview.isFile()&&Arrays.equals(digest(original),digest(f))){java.nio.file.Files.copy(preview.toPath(),cache.toPath());break;}
             }
         }
-        if(!cache.isFile()){
+        if(!cache.isFile()||cache.length()==0){
             android.graphics.Bitmap image=null;boolean video=id.endsWith(".mp4")||id.endsWith(".webm")||id.endsWith(".mkv");
             try{
-                if(video){android.media.MediaMetadataRetriever reader=new android.media.MediaMetadataRetriever();try{reader.setDataSource(f.getPath());image=reader.getScaledFrameAtTime(0,android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC,480,270);}finally{reader.release();}}
+                if(video){android.media.MediaMetadataRetriever reader=new android.media.MediaMetadataRetriever();try{reader.setDataSource(f.getPath());for(long time:new long[]{1000000,-1,0,3000000}){
+                    if(android.os.Build.VERSION.SDK_INT>=27)try{
+                        image=reader.getScaledFrameAtTime(time,android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC,480,270);
+                    }catch(RuntimeException ignored){}
+                    if(image==null)try{
+                        android.graphics.Bitmap frame=reader.getFrameAtTime(time,android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                        if(frame!=null){
+                            float scale=Math.min(1f,Math.min(480f/frame.getWidth(),270f/frame.getHeight()));
+                            image=android.graphics.Bitmap.createScaledBitmap(frame,Math.max(1,Math.round(frame.getWidth()*scale)),Math.max(1,Math.round(frame.getHeight()*scale)),true);
+                            if(image!=frame)frame.recycle();
+                        }
+                    }catch(RuntimeException ignored){}
+                    if(image!=null)break;
+                }}finally{reader.release();}}
                 else{android.graphics.BitmapFactory.Options options=new android.graphics.BitmapFactory.Options();options.inJustDecodeBounds=true;android.graphics.BitmapFactory.decodeFile(f.getPath(),options);options.inSampleSize=1;while(options.outWidth/options.inSampleSize>480||options.outHeight/options.inSampleSize>270)options.inSampleSize*=2;options.inJustDecodeBounds=false;image=android.graphics.BitmapFactory.decodeFile(f.getPath(),options);}
                 if(image==null)throw new IOException("素材暂时无法生成预览");
                 try(FileOutputStream out=new FileOutputStream(cache)){if(!image.compress(android.graphics.Bitmap.CompressFormat.JPEG,78,out))throw new IOException("预览保存失败");}
@@ -89,9 +104,36 @@ final class AuroraLibrary {
         new Thread(()->{try{WebApps.install(c,apk);synchronized(AuroraLibrary.class){job.put("state","done");}WebAudit.record(c,peer,"后台安装APK",id,200);}catch(Exception e){synchronized(AuroraLibrary.class){try{job.put("state","failed").put("reason",String.valueOf(e.getMessage()));}catch(Exception ignored){}}WebAudit.record(c,peer,"后台安装APK失败",id,503);}},"aurora-install").start();return new JSONObject(job.toString());
     }
     static synchronized JSONArray jobs(){JSONArray a=new JSONArray();for(JSONObject j:jobs.values())a.put(j);return a;}
+    private static void bind(Map<String,JSONArray> map,String label,Object value){
+        if(value instanceof JSONArray){JSONArray a=(JSONArray)value;for(int i=0;i<a.length();i++)bind(map,label,a.opt(i));}
+        if(value instanceof String&&!((String)value).isEmpty())map.computeIfAbsent((String)value,k->new JSONArray()).put(label);
+    }
+    private static Map<String,JSONArray> bindings(Context c)throws Exception{
+        Map<String,JSONArray> map=new HashMap<>();
+        JSONObject current=AuroraSettings.get(c);
+        bind(map,"屏保背景",current.opt("saverSlides"));bind(map,"屏保字体",current.opt("saverClockFont"));
+        bind(map,"屏保歌词",AuroraBgm.themePrefs(c,AuroraThemes.current(c)).getString("lyrics",""));
+        JSONArray themes=AuroraThemes.list(c);
+        JSONObject profiles=AuroraThemes.config(c).optJSONObject("themeProfiles");
+        for(int i=0;i<themes.length();i++){
+            JSONObject theme=themes.getJSONObject(i);String id=theme.getString("id"),name=theme.optString("name",id);
+            JSONObject profile=profiles==null?null:profiles.optJSONObject(id);
+            JSONObject appearance=id.equals(AuroraThemes.current(c))?current:profile==null?null:profile.optJSONObject("appearance");
+            if(appearance!=null){
+                bind(map,name+" · 桌面背景",appearance.opt("desktopSlides"));
+                for(String key:new String[]{"fontZh","fontEn","desktopClockFont"})bind(map,name+" · 桌面字体",appearance.opt(key));
+            }
+            bind(map,name+" · 全屏音乐",c.getSharedPreferences("fullscreen_"+id,0).getString("background",""));
+        }
+        if(!AuroraBackgrounds.active(c)){
+            android.content.SharedPreferences nativePrefs=c.getSharedPreferences("background",0);
+            for(String key:new String[]{"selected","ambient_selected"})bind(map,"极简桌面 · "+(key.equals("selected")?"桌面背景":"屏保背景"),"native-"+nativePrefs.getString(key,""));
+        }
+        return map;
+    }
     static synchronized void remove(Context c,String id,boolean confirmed)throws Exception{
         if(!confirmed)throw new IllegalArgumentException("请先确认删除素材");File source=file(c,id,null);
-        if(AuroraThemes.config(c).optJSONObject("themeProfiles")!=null&&AuroraThemes.config(c).getJSONObject("themeProfiles").toString().contains(id)||AuroraSettings.get(c).toString().contains(id)||AuroraBgm.state(c).toString().contains(id))throw new IllegalArgumentException("素材正在使用，请先取消背景、字体或歌词绑定");
+        JSONArray uses=bindings(c).get(id);if(uses!=null)throw new IllegalArgumentException("素材正在使用："+uses.join("、").replace("\"",""));
         for(JSONObject job:jobs.values())if(job.optString("state").equals("running")&&job.optString("file").equals(id))throw new IllegalArgumentException("安装任务尚未结束");
         if(id.startsWith("native-")){
             android.content.SharedPreferences background=c.getSharedPreferences("background",0);String original=id.substring(7);

@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 final class BackgroundUploadServer implements AutoCloseable {
     private final Context context;
     private final ServerSocket server;
-    private ServerSocket internal;
+    private ServerSocket internal,tls;
     private final ExecutorService worker = new ThreadPoolExecutor(6, 6, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(16));
     // Long-lived event/video streams must never occupy the ordinary HTTP workers.
     private final ExecutorService streamWorker = new ThreadPoolExecutor(0, 8, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
@@ -23,7 +23,7 @@ final class BackgroundUploadServer implements AutoCloseable {
             NetworkInterface n = networks.nextElement();
             if (!n.isUp() || n.isLoopback()) continue;
             Enumeration<InetAddress> ips = n.getInetAddresses();
-            while (ips.hasMoreElements()) { InetAddress ip = ips.nextElement(); if (ip instanceof Inet4Address && !ip.isLoopbackAddress() && !ip.isLinkLocalAddress()) urls.add("http://"+ip.getHostAddress()+":"+ConsoleSettings.port(c)+ConsolePath.base(c)); }
+            while (ips.hasMoreElements()) { InetAddress ip = ips.nextElement(); if (ip instanceof Inet4Address && !ip.isLoopbackAddress() && !ip.isLinkLocalAddress()) urls.add(ConsoleAddresses.base(c,ip.getHostAddress())); }
         }
         return urls.isEmpty() ? "请先连接局域网" : String.join("\n", urls);
     }
@@ -37,10 +37,15 @@ final class BackgroundUploadServer implements AutoCloseable {
         context = c.getApplicationContext();
         server = new ServerSocket(); server.setReuseAddress(true);
         try{
-            server.bind(new InetSocketAddress(ConsoleSettings.port(c)));
-            if(ConsoleSettings.port(c)!=8899){internal=new ServerSocket();internal.setReuseAddress(true);internal.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"),8899));}
+            if(ConsoleSettings.https(c))server.bind(new InetSocketAddress("127.0.0.1",ConsoleSettings.INTERNAL_PORT));
+            else server.bind(new InetSocketAddress(ConsoleSettings.port(c)));
+            if(!ConsoleSettings.https(c)&&ConsoleSettings.port(c)!=8899){internal=new ServerSocket();internal.setReuseAddress(true);internal.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"),8899));}
+            if(ConsoleSettings.https(c)){
+                try{tls=ConsoleTls.factory().createServerSocket(ConsoleSettings.tlsPort(c));}
+                catch(java.security.GeneralSecurityException e){throw new IOException("无法加载 HTTPS 证书",e);}
+            }
         }catch(IOException failure){server.close();if(internal!=null)internal.close();throw failure;}
-        accept(server);if(internal!=null)accept(internal);
+        accept(server);if(tls!=null)accept(tls);if(internal!=null)accept(internal);
     }
     private void accept(ServerSocket listening){
         Thread accept = new Thread(() -> {
@@ -118,6 +123,7 @@ final class BackgroundUploadServer implements AutoCloseable {
     }
     @Override public void close() {
         open = false;
+        try { if(tls!=null)tls.close(); } catch(IOException ignored){}
         try { server.close(); } catch (IOException ignored) {}
         if(internal!=null)try{internal.close();}catch(IOException ignored){}
         for(Socket current:connections)try { current.close(); } catch(IOException ignored) {}

@@ -15,12 +15,23 @@
       date: now.toLocaleDateString('zh-CN', {timeZone: 'Asia/Shanghai'}), weekday: now.toLocaleDateString('zh-CN', {weekday: 'long', timeZone: 'Asia/Shanghai'}),
       lunar: '农历由电视原生层提供 · 当前为演示', timezone: 'Asia/Shanghai'};
   }
-  async function rawRequest(path, body) {
+  var pendingReads=new Map();
+  async function rawRequest(path,body){
+    if(body!==undefined||mock)return fetchRequest(path,body);
+    var pending=pendingReads.get(path);
+    if(!pending){
+      pending=fetchRequest(path).finally(function(){pendingReads.delete(path);});
+      pendingReads.set(path,pending);
+    }
+    var value=await pending;
+    return value===undefined?value:JSON.parse(JSON.stringify(value));
+  }
+  async function fetchRequest(path, body) {
     if(mock){var envelope=await window.AuroraMock.response(path,body);if(!envelope.ok){var failure=Error(envelope.error.message);failure.code=envelope.error.code;throw failure;}return context(path,envelope.data);}
     var options = {cache: 'no-store', credentials: 'same-origin'};
     if (body !== undefined) {options.method = 'POST'; options.headers = {'Content-Type': 'application/json'}; options.body = JSON.stringify(body);if(themeContext)options.headers['X-Aurora-Theme']=themeContext;}
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var timeout = controller ? setTimeout(function () {controller.abort();}, path==='system/screenshots/capture'?60000:10000) : null;
+    var timeout = controller ? setTimeout(function () {controller.abort();}, (path==='system/screenshots/capture'||(path==='security'&&body!==undefined))?60000:path==='music/library'?20000:10000) : null;
     if (controller) options.signal = controller.signal;
     try {
       var response = await fetch('/api/v1/' + path, options), value = await response.json();
@@ -82,7 +93,7 @@
     }
     if (mock) {poll(); return;}
     try {
-      var connection = new WebSocket('ws://' + location.host + '/api/v1/events');socket=connection;
+      var connection = new WebSocket((location.protocol==='https:'?'wss://':'ws://') + location.host + '/api/v1/events');socket=connection;
       connection.onmessage = function (event) {if(generation!==eventGeneration)return;try {var value = JSON.parse(event.data); if (value.type === 'snapshot') notify(value.data);} catch (ignored) {}};
       connection.onclose = poll;
       connection.onerror = function () {connection.close();};

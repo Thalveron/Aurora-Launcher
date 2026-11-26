@@ -9,7 +9,7 @@
  function settingsRuns(parent){
   var group=null;
   Array.from(parent.children).forEach(function(child){
-   var card=child.matches('.ui-card,.device-block')&&!child.matches('.background-pane,.theme-card,.app-tile,.theme-list-wrapper,.traffic-chart-card,.traffic-table-card')&&!child.querySelector('.gallery,.card-grid,.theme-cards,.apps-grid,.traffic-metrics,table');
+   var card=child.matches('.ui-card,.device-block')&&!child.matches('.songs-section,.background-pane,.theme-card,.app-tile,.theme-list-wrapper,.traffic-chart-card,.traffic-table-card')&&!child.querySelector('.gallery,.card-grid,.theme-cards,.apps-grid,.traffic-metrics,table');
    if(!card){group=null;return;}
    if(!group){group=document.createElement('div');SettingsColumns(group);child.before(group);group.dataset.nextLane='0';}var index=Number(group.dataset.nextLane);group.children[index].append(child);group.dataset.nextLane=String(1-index);
   });
@@ -22,6 +22,12 @@
   var inputs=document.getElementById('input-list');if(inputs&&!inputs.closest('.input-ports-card')){var old=inputs.closest('.ui-card'),card=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');card.className='ui-card input-ports-card';summary.textContent='输入接口';body.className='input-ports-body';card.append(summary,body);if(old){old.replaceWith(card);Array.from(old.children).filter(function(child){return child.tagName!=='H3';}).forEach(function(child){body.append(child);});}else{inputs.before(card);body.append(inputs);}}
   if(inputs){var summary=inputs.closest('.input-ports-card').querySelector('summary'),preview=summary.querySelector('.input-port-preview');if(!preview){if(!summary.querySelector('.fold-title')){summary.replaceChildren();[['span','fold-title','输入接口'],['small','fold-summary',''],['span','fold-chevron','▾']].forEach(function(v){var part=document.createElement(v[0]);part.className=v[1];part.textContent=v[2];summary.append(part);});}preview=document.createElement('div');preview.className='input-port-preview';preview.setAttribute('aria-label','首个输入接口');summary.append(preview);}var first=inputs.querySelector('.input-item>div'),signature=first?first.textContent:inputs.textContent||'正在读取接口…';if(preview.dataset.signature!==signature){preview.dataset.signature=signature;preview.replaceChildren();if(first)Array.from(first.children).forEach(function(child){preview.append(child.cloneNode(true));});else preview.textContent=signature;}}
   var spectrum=document.getElementById('saver-spectrum-fields'),saverRight=root.querySelector('[data-panel="saver"] .settings-columns>.settings-lane:nth-child(2)');if(spectrum&&saverRight){var spectrumCard=spectrum.closest('.ui-card');if(spectrumCard&&spectrumCard.parentElement!==saverRight)saverRight.append(spectrumCard);}
+  var saver=root.querySelector('[data-panel="saver"] .settings-columns');
+  if(saver){
+   var songs=document.getElementById('saver-track-list').closest('details.ui-card');
+   var uploadMusic=document.getElementById('bgm-upload').closest('details.ui-card');
+   [songs,uploadMusic].forEach(function(card,i){var lane=saver.children[i];if(card&&lane&&lane.firstElementChild!==card)lane.prepend(card);});
+  }
   var clean=document.getElementById('update-clean'),upload=document.getElementById('update-upload');if(clean&&upload){var advanced=clean.closest('details'),uploadCard=upload.closest('.ui-card');if(advanced&&uploadCard&&advanced.previousElementSibling!==uploadCard)uploadCard.after(advanced);}
   columns.forEach(function(element){if(!element.isConnected){if(resize)resize.unobserve(element);columns.delete(element);}else measure(element);});
  }

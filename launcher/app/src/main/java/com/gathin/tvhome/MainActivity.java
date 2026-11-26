@@ -549,6 +549,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         fillDockLeavesSlots = !cfg.fillDock;
         adapter.setSavedOrder(Order.ranks(Order.load(Order.file(this)), dockApps));
         grid.setAdapter(adapter);
+        adapter.setReloader(() -> reloadApps(false));
 
         // tvOS layout: push the dock row towards the bottom of the screen, leaving room for
         // rows_below_dock grid rows under it; the rest of the grid stays below until you press Down.
@@ -775,7 +776,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onResume() {
-        super.onResume();if(preparingDefaults)return;AuroraServices.resync();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
+        super.onResume();if(preparingDefaults)return;desktopMusicScreen=new DesktopMusicScreen(this,()->personalBackground);desktopMusicScreen.start();AuroraServices.resync();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreate();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
         getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
@@ -921,15 +922,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onPause() {
-        super.onPause();if(preparingDefaults)return;
+        if(desktopMusicScreen!=null){desktopMusicScreen.stop();desktopMusicScreen=null;}super.onPause();if(preparingDefaults)return;
         if(visibleHome==this)visibleHome=null;
         handler.removeCallbacks(globalClockTick);
         if(WebPreview.window==getWindow())WebPreview.window=null;
         if (ambientMusic != null) ambientMusic.pause();
         if (personalBackground != null) personalBackground.pause();
         if (weatherHeader != null) weatherHeader.pause();
-        handler.removeCallbacks(ambientLyricTick);
-        if (musicCard != null) musicCard.pause();
+
         endReorder();   // Home or another app while reordering keeps the order so far
         stopAmbientAnimation();
         heroName.animate().cancel();
@@ -947,6 +947,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onStop() {
         super.onStop();if(preparingDefaults)return;
+        handler.removeCallbacks(ambientLyricTick);if(musicCard!=null)musicCard.pause();
         unregisterReceiver(packageReceiver);
         unregisterReceiver(uploadChanged);
         rebuildOnResume = true;
@@ -1050,8 +1051,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         return super.dispatchKeyEvent(event);   // arrows navigate; OK on a top-bar pill works as usual
     }
 
+    private DesktopMusicScreen desktopMusicScreen;
     @Override public void onUserInteraction() {
-        super.onUserInteraction();
+        super.onUserInteraction();if(desktopMusicScreen!=null)desktopMusicScreen.reset();
         if (ambientMusic != null) ambientMusic.interaction();
     }
 
@@ -1769,7 +1771,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (shamsi) shamsiDate.setText(Shamsi.today());
         android.widget.TextClock date=findViewById(R.id.date);
         if(date!=null){applyInformationMode(ambientMusic!=null&&ambientMusic.isIdlePresentation());date.setLetterSpacing(0.02f);}
-        greeting.setTextColor(DesktopAppearance.text(this));
+        if (festiveGreeting.isEmpty()) greeting.setTextColor(DesktopAppearance.text(this));
     }
 
     /** Shows the Wi-Fi network name on the button when we can read it, otherwise the connection type. */

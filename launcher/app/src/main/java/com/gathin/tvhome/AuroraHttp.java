@@ -34,7 +34,7 @@ final class AuroraHttp {
         String peer=socket.getInetAddress().getHostAddress();int status=500;boolean logged=false;WriteTracker streamOutput=new WriteTracker(output);
         try {
             if(!AuroraRules.lan(socket.getInetAddress())){json(output,403,null,"FORBIDDEN","仅允许局域网访问");status=403;return true;}
-            if(!AuroraRules.originAllowed(headers.get("origin"),headers.get("host"))){json(output,403,null,"ORIGIN","请求来源不受信任");status=403;return true;}
+            if(!AuroraRules.originAllowed(headers.get("origin"),headers.get("host"),socket instanceof javax.net.ssl.SSLSocket)){json(output,403,null,"ORIGIN","请求来源不受信任");status=403;return true;}
             boolean loopback=socket.getInetAddress().isLoopbackAddress();
             if(path.equals("/api/v1/updates/health")&&request[0].equals("GET")){
                 if(!loopback){json(output,403,null,"FORBIDDEN","仅允许本机健康检查");return true;}
@@ -73,7 +73,8 @@ final class AuroraHttp {
                     WebAudit.login(c,peer,true);if(setupAttempt)WebAudit.record(c,peer,"创建控制台账号","首次设置",200);return true;
                 }
             }
-            if(path.startsWith("/api/v1/updates")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
+            if((path.startsWith("/api/v1/updates")||path.startsWith("/api/v1/config/backup/"))&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
+            if(path.equals("/api/v1/wifi/settings")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录控制台");return true;}
             if(path.equals("/api/v1/security")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             if(path.startsWith("/api/v1/system/screenshots")&&!existingWeb){json(output,401,null,"AUTH_REQUIRED","请登录主控制台");return true;}
             boolean sensitive=path.equals("/api/v1/apps/manage")||path.equals("/api/v1/actions")||path.startsWith("/api/v1/system/")||path.startsWith("/api/v1/logs")||path.startsWith("/api/v1/network/")||!request[0].equals("GET")||path.startsWith("/console/")||path.startsWith("/api/v1/services");
@@ -109,6 +110,7 @@ final class AuroraHttp {
                 }
                 String route=AuroraRoutes.canonical(path.substring(8));
                 if(AuroraRoutes.pending(route)){json(output,501,null,"NOT_IMPLEMENTED","接口已预留，尚未实现");status=501;return true;}
+                if(route.equals("config/backup/download")){PortableBackup.download(c,streamOutput);status=200;return true;}
                 if(route.startsWith("system/screenshots/file/")){String id=route.substring("system/screenshots/file/".length());byte[] bytes=java.nio.file.Files.readAllBytes(AuroraScreenshots.file(c,id).toPath());binary(output,200,"image/png",bytes,false);WebAudit.record(c,peer,"download=1".equals(uri.getQuery())?"下载桌面截图":"查看桌面截图",id,200);status=200;return true;}
                 if(route.startsWith("themes/css/")){json(output,200,new JSONObject().put("theme",route.substring(11)).put("css",AuroraCssThemes.css(c,route.substring(11))),null,null);status=200;return true;}
                 if(route.equals("system/screenshot")){binary(output,200,"image/jpeg",frames.snapshot(c),false);status=200;return true;}
@@ -131,6 +133,9 @@ final class AuroraHttp {
                 case "config/native":data=ConsoleNativeSettings.read(c);break;
                 case "logs":data=WebAudit.list(c);break;
                 case "logs/settings":data=WebAudit.settings(c);break;
+                case "music/library":data=WebSongLibrary.list(c);break;
+                case "music/fullscreen":data=DesktopMusicScreen.settings(c);break;
+                case "wifi/settings":data=DesktopSharing.config(c);break;
                 case "music/usb/volumes":data=ConsoleUsb.volumes();break;
                 case "apps/layout":ConsoleNativeSettings.requireNative(c);data=WebSettings.apps(c);break;
                 case "apps/cards":ConsoleNativeSettings.requireNative(c);data=WebSettings.cards(c);break;
@@ -178,6 +183,11 @@ final class AuroraHttp {
                 json(output,200,data,null,null);status=200;return true;
             }
             if(!request[0].equals("POST")){json(output,405,null,"METHOD","此接口仅支持GET或POST");status=405;return true;}
+            if(path.equals("/api/v1/config/backup/restore")){
+                if(!"replace".equals(headers.get("x-aurora-restore"))||headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("请确认覆盖桌面设置");
+                PortableBackup.restore(c,input,Long.parseLong(headers.getOrDefault("content-length","0")));
+                json(output,200,new JSONObject().put("restored",true),null,null);status=200;return true;
+            }
             if(path.equals("/api/v1/music/usb/upload")){
                 if(headers.containsKey("transfer-encoding"))throw new IllegalArgumentException("上传需要明确文件长度");
                 JSONObject uploaded=ConsoleUsb.upload(c,input,Long.parseLong(headers.getOrDefault("content-length","0")),headers.getOrDefault("x-usb-volume",""),java.net.URLDecoder.decode(headers.getOrDefault("x-file-name",""),"UTF-8"));
@@ -252,6 +262,9 @@ final class AuroraHttp {
                 case "config/appearance/presets":data=AuroraPresets.save(c,body);break;
                 case "config/appearance/preview":data=AuroraSettings.apply(c,body,false);break;
                 case "music/local/settings":data=AuroraMusicSettings.call(c,"save",body);break;
+                case "music/library/play":data=WebSongLibrary.play(c,body);break;
+                case "music/fullscreen":data=DesktopMusicScreen.save(c,body);break;
+                case "wifi/settings":data=DesktopSharing.save(c,body);break;
                 case "music/local/scan":data=AuroraMusicSettings.call(c,"scan",null);break;
                 case "inputs/name":data=AuroraInputs.name(c,body);break;
                 case "inputs/switch":AuroraInputs.open(c,body.getString("id"));break;

@@ -7,7 +7,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.widget.*;
 import java.util.*;
 
-/** Fetches titles through the signed Chora bridge; no server credentials leave the player. */
+/** Fetches titles through the signed Aurora Music bridge; no server credentials leave the player. */
 final class DesktopSongList {
     private final Activity activity;
     private final Handler handler=new Handler(Looper.getMainLooper());
@@ -36,7 +36,7 @@ final class DesktopSongList {
     DesktopSongList(Activity a){
         activity=a;adapter=new ArrayAdapter<>(a,android.R.layout.simple_list_item_1,labels);
         ListView list=new ListView(a);list.setAdapter(adapter);list.setFocusable(true);
-        dialog=new AlertDialog.Builder(a).setTitle(DesktopLanguage.t(activity,"正在连接 Chora…")).setView(list).setNegativeButton(DesktopLanguage.t(activity,"关闭"),null).setNeutralButton(DesktopLanguage.t(activity,"刷新"),null).create();
+        dialog=new AlertDialog.Builder(a).setTitle(DesktopLanguage.t(activity,"正在连接 Aurora Music…")).setView(list).setNegativeButton(DesktopLanguage.t(activity,"关闭"),null).setNeutralButton(DesktopLanguage.t(activity,"刷新"),null).create();
         list.setOnItemClickListener((parent,v,position,id)->{if(position<indices.size()){activity.sendBroadcast(new Intent("com.craftworks.music.tvcustom.DESKTOP_PLAY_INDEX").setPackage("com.craftworks.music.tvcustom").putExtra("index",indices.get(position)).putExtra("request",request));dialog.dismiss();}});
         IntentFilter filter=new IntentFilter("com.gathin.tvhome.DESKTOP_LIBRARY");
         if(Build.VERSION.SDK_INT>=33)a.registerReceiver(receiver,filter,"com.gathin.tvhome.permission.DESKTOP_LYRICS",handler,Context.RECEIVER_EXPORTED);else a.registerReceiver(receiver,filter,"com.gathin.tvhome.permission.DESKTOP_LYRICS",handler);
@@ -44,8 +44,8 @@ final class DesktopSongList {
         dialog.show();dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v->load());
         browser=new MediaBrowserCompat(a,new ComponentName("com.craftworks.music.tvcustom","com.craftworks.music.player.ChoraMediaLibraryService"),new MediaBrowserCompat.ConnectionCallback(){
             @Override public void onConnected(){if(!closed)load();}
-            @Override public void onConnectionFailed(){if(!closed){handler.removeCallbacks(timeout);dialog.setTitle(DesktopLanguage.t(activity,"无法连接 Chora · 请先打开播放器"));}}
+            @Override public void onConnectionFailed(){if(!closed){handler.removeCallbacks(timeout);dialog.setTitle(DesktopLanguage.t(activity,"无法连接 Aurora Music · 请先打开播放器"));}}
         },null);browser.connect();handler.postDelayed(timeout,15000);
     }
-    private void load(){if(closed)return;if(browser==null||!browser.isConnected()){dialog.setTitle(DesktopLanguage.t(activity,"正在连接 Chora…"));return;}request=UUID.randomUUID().toString();labels.clear();indices.clear();adapter.notifyDataSetChanged();dialog.setTitle(DesktopLanguage.t(activity,"正在加载全部歌曲…"));handler.removeCallbacks(timeout);handler.postDelayed(timeout,20000);activity.sendBroadcast(new Intent("com.craftworks.music.tvcustom.DESKTOP_LIBRARY_REQUEST").setPackage("com.craftworks.music.tvcustom").putExtra("request",request));}
+    private void load(){if(closed)return;if(browser==null||!browser.isConnected()){dialog.setTitle(DesktopLanguage.t(activity,"正在连接 Aurora Music…"));return;}request=UUID.randomUUID().toString();labels.clear();indices.clear();adapter.notifyDataSetChanged();dialog.setTitle(DesktopLanguage.t(activity,"正在加载全部歌曲…"));handler.removeCallbacks(timeout);handler.postDelayed(timeout,20000);activity.sendBroadcast(new Intent("com.craftworks.music.tvcustom.DESKTOP_LIBRARY_REQUEST").setPackage("com.craftworks.music.tvcustom").putExtra("request",request));}
 }

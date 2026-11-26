@@ -4,7 +4,7 @@
 
 ## 下载
 
-在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。主要在雷鸟 65S515C PRO（Android 9）验证，其他型号需自行验证系统能力。
+在 [Releases](https://github.com/Thalveron/Aurora-Launcher/releases) 下载 APK。当前为 v1.5.0，在雷鸟 65S515C PRO（Android 9）与一台 Android 11 电视盒子验证，其他型号需自行验证系统能力。
 
 ## 已有功能
 
@@ -24,7 +24,7 @@
 
 ## 首次打开后台
 
-安装并启动桌面后，在同一局域网访问 `http://电视IP:8989/`（把“电视IP”替换成实际地址）。
+安装并启动桌面后，在同一局域网访问 `http://电视IP:8899/`（把“电视IP”替换成实际地址）。
 新安装默认端口8899、访问路径为空，首次自行创建用户名与密码（密码输入两次）。
 登录后可在安全设置修改账号、密码、端口及路径。0.2.1升级套用内置桌面配置，账号密码和位置保留；清除数据或普通卸载重装通常重新初始化。
 不要把电视管理后台直接开放到公网。
@@ -51,6 +51,7 @@
 ## 源码与协议
 
 基于 [Gathin23/CleanYourTV](https://github.com/Gathin23/cleanyourtv) 继续开发，保留原作者版权声明和 MIT 许可证，详见 [LICENSE](LICENSE)。
+字体许可见 launcher/FONT-LICENSE-OFL.txt。此仓库不包含 Aurora Music 源码或安装包；音乐软件将按其自身许可证另行整理。
 
 此公开副本不包含私人开发提交历史、内部测试记录、用户上传的壁纸/音乐、Web凭据或已登录设备数据。
 API 文档见 [docs/api.md](docs/api.md)。

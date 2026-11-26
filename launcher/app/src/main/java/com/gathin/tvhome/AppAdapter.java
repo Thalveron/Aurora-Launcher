@@ -59,7 +59,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static final class Entry {
-        static final int APP = 0, HOME_SETTINGS = 1, CARD = 2, EMPTY = 3, INPUTS = 5;
+        static final int APP = 0, HOME_SETTINGS = 1, CARD = 2, EMPTY = 3, INPUTS = 5, WIFI = 6;
 
         final int kind;
         final String label;
@@ -186,6 +186,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     /** Calmer motion for weak GPUs (config.xml, reduced_motion): no overshoot, shorter fades. */
     private final boolean reducedMotion;
     private final List<Entry> items = new ArrayList<>();
+    /** Rebuilds the grid after a tile was removed without a package change (a deleted pinned shortcut). */
+    private Runnable reloader;
+    void setReloader(Runnable value){reloader=value;}
 
     AppAdapter(Context ctx, TileListener listener, int dockSize, Config cfg) {
         this.ctx = ctx;
@@ -272,6 +275,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         }
         fresh.addAll(PinnedShortcuts.entries(ctx));
+        if(DesktopSharing.enabled(ctx))fresh.add(new Entry(Entry.WIFI, "Wi-Fi 密码",new ComponentName(ctx,DesktopSharing.SHORTCUT),null,ctx.getDrawable(R.drawable.ic_wifi),null,0));
         if(InputShortcut.visible(ctx))fresh.add(new Entry(Entry.INPUTS, ctx.getString(R.string.inputs), new ComponentName(ctx, "aurora-inputs-shortcut"), null, ctx.getDrawable(R.drawable.ic_input), null, 0));
         Collections.sort(fresh, (a, b) -> {
             // The owner's own order first; tiles it does not know (new installs) follow by the rule below.
@@ -386,6 +390,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return;
         }
         h.label.setTypeface((e.pkg.equals("com.exxammpea.a1")||e.pkg.equals("com.craftworks.music.tvcustom"))?android.graphics.Typeface.create("sans-serif-medium",android.graphics.Typeface.NORMAL):androidx.core.content.res.ResourcesCompat.getFont(ctx,R.font.outfit));
+        h.label.setShadowLayer(0,0,0,0);
         float iconDensity=ctx.getResources().getDisplayMetrics().density;
         android.widget.FrameLayout.LayoutParams iconLayout=(android.widget.FrameLayout.LayoutParams)h.icon.getLayoutParams();
         int cardHeight=h.card.getLayoutParams().height;
@@ -450,10 +455,23 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             h.label.setText(e.label);
             h.label.setVisibility(rowsBelowDock>1?View.GONE:View.VISIBLE);
         }
+        if(e.kind==Entry.WIFI||e.kind==Entry.INPUTS){
+            int[] colors=e.kind==Entry.WIFI?new int[]{0xff2475dc,0xff1748a7}:new int[]{0xffa358d0,0xff66329d};
+            android.graphics.drawable.GradientDrawable tile=new android.graphics.drawable.GradientDrawable(
+                    android.graphics.drawable.GradientDrawable.Orientation.TL_BR,colors);
+            tile.setCornerRadius(16*iconDensity);h.banner.setBackground(tile);h.banner.setVisibility(View.VISIBLE);
+            int size=Math.max(1,Math.round(cardHeight*(rowsBelowDock>1?.74f:.56f)));
+            iconLayout.width=iconLayout.height=size;iconLayout.gravity=android.view.Gravity.CENTER;iconLayout.leftMargin=0;iconLayout.topMargin=0;
+            iconLayout.bottomMargin=rowsBelowDock>1?0:Math.round(cardHeight*.20f);h.icon.setLayoutParams(iconLayout);
+            h.label.setTextColor(android.graphics.Color.WHITE);
+            h.label.setTypeface(android.graphics.Typeface.create("sans-serif-medium",android.graphics.Typeface.BOLD));
+            h.label.setShadowLayer(2*iconDensity,0,iconDensity,0xdd101828);
+            h.name.setTextColor(android.graphics.Color.WHITE);
+        }
         h.card.setOnClickListener(v -> launch(e));
         h.card.setOnLongClickListener(v -> {
-            if(e.kind==Entry.INPUTS)return true;
-            if(e.kind==4){new android.app.AlertDialog.Builder(ctx).setTitle("删除快捷方式").setMessage("从桌面移除「"+e.label+"」？不会卸载 Moonlight 或电脑上的游戏。").setNegativeButton("取消",null).setPositiveButton("删除",(dialog,which)->{try{if(PinnedShortcuts.remove(ctx,e.component.getClassName().substring(PinnedShortcuts.PREFIX.length()))){int shortcutPosition=items.indexOf(e);if(shortcutPosition>=0){items.remove(shortcutPosition);notifyDataSetChanged();}}}catch(Exception error){Toast.makeText(ctx,"删除失败，请重试",Toast.LENGTH_LONG).show();}}).show();return true;}
+            if(e.kind==Entry.INPUTS||e.kind==Entry.WIFI)return true;
+            if(e.kind==4){new android.app.AlertDialog.Builder(ctx).setTitle("删除快捷方式").setMessage("从桌面移除「"+e.label+"」？不会卸载 Moonlight 或电脑上的游戏。").setNegativeButton("取消",null).setPositiveButton("删除",(dialog,which)->{try{if(PinnedShortcuts.remove(ctx,e.component.getClassName().substring(PinnedShortcuts.PREFIX.length()))){int shortcutPosition=items.indexOf(e);if(shortcutPosition>=0){items.remove(shortcutPosition);notifyDataSetChanged();if(reloader!=null)reloader.run();}}}catch(Exception error){Toast.makeText(ctx,"删除失败，请重试",Toast.LENGTH_LONG).show();}}).show();return true;}
             Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + e.pkg));
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             try {
@@ -466,6 +484,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     /** Opens the tile's activity by explicit component, with no extras: a card can name nothing else. */
     private void launch(Entry e) {
+        if(e.kind==Entry.WIFI){DesktopSharing.choose((android.app.Activity)ctx);return;}
         if(e.kind==Entry.INPUTS){InputShortcut.launch(ctx);return;}
         if(e.kind==4){try{PinnedShortcuts.launch(ctx,e.component.getClassName().substring(PinnedShortcuts.PREFIX.length()));}catch(Exception error){Toast.makeText(ctx,"快捷方式暂不可用，请在 Moonlight 重新添加",Toast.LENGTH_LONG).show();}return;}
         if (e.kind == Entry.HOME_SETTINGS) {

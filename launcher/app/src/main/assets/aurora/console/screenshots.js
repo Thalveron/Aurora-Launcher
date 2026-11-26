@@ -6,9 +6,9 @@
  async function requestFile(url){var r=await fetch(url,{credentials:'same-origin',cache:'no-store'});if(!r.ok){var detail;try{detail=await r.json();}catch(ignored){}if(r.status===401)throw Error('登录已过期，请重新登录控制台');throw Error(detail&&detail.error&&detail.error.message||'读取电视画面失败（'+r.status+'），请稍后重试');}if((r.headers.get('Content-Type')||'').indexOf('image/')!==0)throw Error('未收到截图，请重新登录控制台后重试');return r.blob();}
  async function gallery(){
   var items=await api.request('system/screenshots'),box=el('capture-gallery');box.replaceChildren();
-  if(!items.length){box.textContent='还没有保存截图。';return;}
+  if(!items.length){const note=document.createElement('p');note.className='capture-empty';note.textContent='还没有保存截图。';box.append(note);return;}
   items.forEach(function(v){
-   var card=document.createElement('article');card.className='theme-card';
+   var card=document.createElement('article');card.className='ui-card capture-item';
    var img=document.createElement('img');img.src=v.url;img.alt='截图';img.loading='lazy';img.style.cssText='width:100%;aspect-ratio:16/9;object-fit:contain;border-radius:10px';
    var title=document.createElement('p');title.textContent=new Date(v.createdAt).toLocaleString()+' · '+v.width+'×'+v.height+(v.upscaled?'（由 '+v.sourceWidth+'×'+v.sourceHeight+' 放大）':'（原生）');
    var buttons=document.createElement('div');buttons.className='actions';

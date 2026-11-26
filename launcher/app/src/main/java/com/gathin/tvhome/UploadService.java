@@ -36,7 +36,7 @@ public final class UploadService extends Service {
             } catch (Exception e) { android.util.Log.w("TvHome", "Upload server unavailable", e); stopSelf(); }
         }, "upload-start").start();
     }
-    static void reconfigure(Context c,int oldPort){
+    static void reconfigure(Context c,int oldPort,boolean oldTls,int oldTlsPort){
         UploadService service=running;if(service==null)return;
         new Handler(Looper.getMainLooper()).postDelayed(()->new Thread(()->{
             synchronized(service){
@@ -44,7 +44,7 @@ public final class UploadService extends Service {
                 if(service.server!=null)service.server.close();
                 try{service.server=service.newServer();}
                 catch(Exception failure){
-                    UploadSecurity.prefs(service).edit().putInt("port",oldPort).commit();
+                    UploadSecurity.prefs(service).edit().putInt("port",oldPort).putBoolean("https",oldTls).putInt("httpsPort",oldTlsPort).commit();
                     android.util.Log.w("TvHome","Console port rolled back",failure);
                     WebAudit.record(service,"127.0.0.1","后台端口回退","恢复端口 "+oldPort,503);
                     try{service.server=service.newServer();}catch(Exception unavailable){android.util.Log.e("TvHome","Console unavailable",unavailable);}

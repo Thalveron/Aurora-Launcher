@@ -1065,7 +1065,7 @@
     {
       "method": "GET/POST",
       "path": "music/local/settings",
-      "description": "coverEnabled/lyricsEnabled/lyricsUrls，Chora签名桥"
+      "description": "coverEnabled/lyricsEnabled/lyricsUrls，Aurora Music 签名桥"
     },
     {
       "method": "POST",

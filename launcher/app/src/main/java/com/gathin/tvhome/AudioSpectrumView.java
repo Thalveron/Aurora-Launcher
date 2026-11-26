@@ -16,6 +16,8 @@ final class AudioSpectrumView extends View {
     private byte[] fft;
     private boolean active,playing,failed;
     private int frames,style,size=100,opacity=65,color1,color2,angle=315;private boolean sharedSaver;
+    /** A caller-supplied spectrum (fullscreen player); overrides the saved desktop/saver colours. */
+    private org.json.JSONObject customSpectrum;
     void setSharedSaver(){sharedSaver=true;updateColors();}
     AudioSpectrumView(Context c){super(c);setLayerType(View.LAYER_TYPE_SOFTWARE,null);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
     void setPlaying(boolean value){playing=value;if(!value){java.util.Arrays.fill(levels,0);java.util.Arrays.fill(targets,0);release();}invalidate();}
@@ -51,6 +53,7 @@ final class AudioSpectrumView extends View {
         updateColors();
     }
     private void updateColors(){
+        if(customSpectrum!=null){applySpectrum(customSpectrum);return;}
         android.content.SharedPreferences p=DesktopAppearance.prefs(getContext());
         style=p.getInt("card_style",0);size=p.getInt("card_size",100);angle=p.getInt("card_angle",315);
         color1=p.getInt("card_color",p.getInt("spectrum",0xFF69E7FF));color2=p.getInt("card_color2",0xFF6172FF);
@@ -61,8 +64,33 @@ final class AudioSpectrumView extends View {
             color1=Color.parseColor(spec.getString("color").substring(0,7));color2=Color.parseColor(spec.getString("color2").substring(0,7));
             opacity=spec.getInt("opacity");size=spec.getInt("size");angle=spec.optInt("angle",315);
         }catch(Exception ignored){}
+        applyGradient(null);
+    }
+    /** Same schema as the screensaver spectrum: style, color, color2, opacity, size, angle, stops. */
+    void setSpectrum(org.json.JSONObject spec){customSpectrum=spec;updateColors();invalidate();}
+    private void applySpectrum(org.json.JSONObject spec){
+        String[] styles={"bars","wave","mirror","dots","ring"};
+        style=Math.max(0,java.util.Arrays.asList(styles).indexOf(spec.optString("style","wave")));
+        color1=parseColor(spec.optString("color","#55ddffff"),0xFF55DDFF);
+        color2=parseColor(spec.optString("color2","#8266ffff"),0xFF8266FF);
+        opacity=Math.max(0,Math.min(100,spec.optInt("opacity",50)));
+        size=Math.max(30,Math.min(200,spec.optInt("size",100)));
+        angle=Math.max(0,Math.min(360,spec.optInt("angle",315)));
+        applyGradient(spec.optJSONArray("stops"));
+    }
+    private static int parseColor(String value,int fallback){
+        try{String hex=value==null?"":value.trim();if(hex.length()==9)hex=hex.substring(0,7);return Color.parseColor(hex);}catch(Exception invalid){return fallback;}
+    }
+    private void applyGradient(org.json.JSONArray stops){
         double radians=angle*Math.PI/180;float dx=(float)Math.cos(radians)*Math.max(1,getWidth())/2,dy=(float)Math.sin(radians)*Math.max(1,getHeight())/2;
-        paint.setShader(new LinearGradient(getWidth()/2f-dx,getHeight()/2f-dy,getWidth()/2f+dx,getHeight()/2f+dy,color1,color2,Shader.TileMode.CLAMP));
+        java.util.TreeMap<Float,Integer> points=new java.util.TreeMap<>();points.put(0f,color1);points.put(1f,color2);
+        if(stops!=null)for(int i=0;i<stops.length();i++)try{
+            org.json.JSONObject stop=stops.getJSONObject(i);
+            points.put(Math.max(0f,Math.min(1f,(float)stop.optDouble("position",50)/100f)),parseColor(stop.optString("color",""),color1));
+        }catch(Exception ignored){}
+        int[] colors=new int[points.size()];float[] positions=new float[points.size()];int index=0;
+        for(java.util.Map.Entry<Float,Integer> entry:points.entrySet()){positions[index]=entry.getKey();colors[index]=entry.getValue();index++;}
+        paint.setShader(new LinearGradient(getWidth()/2f-dx,getHeight()/2f-dy,getWidth()/2f+dx,getHeight()/2f+dy,colors,positions,Shader.TileMode.CLAMP));
         paint.setAlpha(Math.round(255*opacity/100f));
     }
     org.json.JSONObject diagnostics()throws org.json.JSONException{

@@ -38,6 +38,7 @@ final class AuroraBgm {
     static double[] spectrum(Context c)throws Exception{return onMain(c,()->instance.mixedSpectrum());}
     private boolean foreground,wanted,focused,manualStop;
     private int operation;
+    private String previewTrack="";
     private String reason="stopped",selected="",diagnostic="";
     private final Runnable observe=new Runnable(){public void run(){
         if(foreground&&wanted){
@@ -147,9 +148,12 @@ final class AuroraBgm {
                             if(!libraryPrefs.edit().putString("builtin-piano",builtin).commit())throw new IOException("内置音乐记录保存失败");
                         }finally{resource.close();}
                     }
-                    if(!self.prefs.edit().putString("selected",builtin).commit())throw new IOException("内置音乐选择保存失败");break;
+                    if(!self.prefs.edit().putString("selected",builtin).remove("playlist").commit())throw new IOException("内置音乐选择保存失败");break;
                 case "play":
-                    if(body.has("id")){file(c,body.getString("id"));self.prefs.edit().putString("selected",body.getString("id")).commit();}
+                    String preview=body.optString("id","");
+                    if(!preview.isEmpty())file(c,preview);
+                    if(!preview.equals(self.previewTrack)){self.operation++;self.releaseOutputs();}
+                    self.previewTrack=preview;
                     self.prefs.edit().putBoolean("enabled",true).commit();self.manualStop=false;self.wanted=true;self.play();break;
                 case "pause":self.manualStop=true;self.wanted=false;self.pauseInternal("manual_pause",true);break;
                 case "stop":self.manualStop=true;self.wanted=false;self.stop();break;
@@ -162,12 +166,25 @@ final class AuroraBgm {
                         switch(key){case "enabled":case "autoplay":edit.putBoolean(key,body.getBoolean(key));break;
                             case "fadeMs":int duration=body.getInt(key);if(duration<0||duration>10000)throw new IllegalArgumentException("淡化时长范围0～10000毫秒");edit.putInt(key,duration);if(!c.getSharedPreferences("ambient_music",0).edit().putBoolean("crossfade",duration>0).commit())throw new IOException("原生循环设置保存失败");break;
                             case "lyrics":String lyric=body.getString(key);if(!lyric.isEmpty())AuroraLibrary.file(c,lyric,"lyrics");edit.putString(key,lyric);break;
-                            case "selected":file(c,body.getString(key));edit.putString(key,body.getString(key));break;
+                            case "playlist":
+                                JSONArray tracks=body.getJSONArray(key);
+                                if(tracks.length()>30||body.has("selected"))throw new IllegalArgumentException("无效的屏保播放列表");
+                                java.util.HashSet<String> unique=new java.util.HashSet<>();
+                                for(int i=0;i<tracks.length();i++){
+                                    String track=tracks.getString(i);file(c,track);
+                                    if(!unique.add(track))throw new IllegalArgumentException("屏保歌曲不能重复");
+                                }
+                                edit.putString("playlist",tracks.toString()).putString("selected",tracks.optString(0,""));break;
+                            case "selected":edit.remove("playlist");file(c,body.getString(key));edit.putString(key,body.getString(key));break;
                             default:throw new IllegalArgumentException("未知音乐设置："+key);}}
-                    edit.commit();if(!self.prefs.getBoolean("enabled",false)){self.wanted=false;self.stop();}break;
+                    if(!edit.commit())throw new IOException("保存屏保音乐失败");
+                    if(body.has("playlist")||body.has("selected")){self.previewTrack="";self.operation++;self.releaseOutputs();if(self.wanted&&self.prefs.getBoolean("enabled",false)&&self.playlist().length()>0)self.play();}
+                    if(!self.prefs.getBoolean("enabled",false)){self.wanted=false;self.stop();}break;
                 case "delete":
                     AuroraSettings.only(body,"id","confirm");if(!body.optBoolean("confirm"))throw new IllegalArgumentException("请先确认删除音乐");
                     String id=body.getString("id");File file=file(c,id);
+                    JSONArray tracksInUse=self.playlist();
+                    for(int i=0;i<tracksInUse.length();i++)if(id.equals(tracksInUse.getString(i)))throw new IllegalArgumentException("素材正在使用：屏保音乐第"+(i+1)+"首");
                     if(id.equals(self.selected))throw new IllegalArgumentException("请先切换其他音乐，或停止后清除当前选择再删除");
                     if(!file.delete())throw new IOException("删除失败");c.getSharedPreferences("aurora_bgm",0).edit().remove("name:"+id).remove("head:"+id).commit();SharedPreferences.Editor removed=self.prefs.edit().remove("name:"+id);if(id.equals(self.prefs.getString("selected","")))removed.remove("selected");removed.commit();break;
                 default:throw new IllegalArgumentException("未知背景音乐操作");
@@ -175,9 +192,15 @@ final class AuroraBgm {
             return self.snapshot();
         });
     }
+    private JSONArray playlist() throws Exception {
+        String saved = prefs.getString("playlist", "");
+        if (!saved.isEmpty()) return new JSONArray(saved);
+        String single = prefs.getString("selected", prefs.getString("themeSelected", ""));
+        return single.isEmpty() ? new JSONArray() : new JSONArray().put(single);
+    }
     private void play()throws Exception {
         if(!foreground){reason="desktop_hidden";return;}
-        File source=file(context,prefs.getString("selected",prefs.getString("themeSelected","")));
+        File source=file(context,previewTrack.isEmpty()?prefs.getString("selected",prefs.getString("themeSelected","")):previewTrack);
         android.media.session.MediaController other=AuroraData.controller(context);
         if(other!=null&&!other.getPackageName().equals(context.getPackageName())&&other.getPlaybackState()!=null&&other.getPlaybackState().getState()==3){reason="other_media";return;}
         if(!focused){focused=audio.requestAudioFocus(request)==AudioManager.AUDIOFOCUS_REQUEST_GRANTED;if(!focused){reason="focus_denied";return;}}
@@ -188,6 +211,11 @@ final class AuroraBgm {
             outgoing=current;outgoingPcm=pcm;if(outgoing!=null){ExoPlayer old=outgoing;fade(old,0f,revision,()->{old.release();if(outgoing==old){outgoing=null;outgoingPcm=null;}});}
             discardPrepared();selected=source.getName();pcm=new AuroraPcmSpectrum();pcm.gain(softwareVolume());quietSince=0;learnTick=0;learning=!library().contains("head:"+selected);
             current=createPlayer(source,pcm);
+            JSONArray tracks=playlist();
+            if(previewTrack.isEmpty()&&tracks.length()>1){
+                for(int i=1;i<tracks.length();i++)current.addMediaItem(MediaItem.fromUri(Uri.fromFile(file(context,tracks.getString(i)))));
+                current.setRepeatMode(Player.REPEAT_MODE_ALL);
+            }
             ExoPlayer player=current;
             player.addListener(new Player.Listener(){
                 private boolean started;
@@ -231,7 +259,7 @@ final class AuroraBgm {
         boolean heard=current!=null&&pcm!=null&&current.isPlaying()&&pcm.renderedSamples>0,quiet=heard&&pcm.inputRms<LoopTiming.SILENCE;
         if(heard)learnHead(now,current.getCurrentPosition(),quiet);
         quietSince=quiet?(quietSince==0?now:quietSince):0;
-        if(current==null||!wanted||!foreground||!focused||outgoing!=null||!current.isPlaying())return;
+        if(current==null||current.getMediaItemCount()>1||!wanted||!foreground||!focused||outgoing!=null||!current.isPlaying())return;
         long duration=current.getDuration();if(duration<=0)return;
         int overlap=(int)Math.min(prefs.getInt("fadeMs",1500),duration/4);
         if(overlap<=0){discardPrepared();return;}
@@ -279,7 +307,7 @@ final class AuroraBgm {
     }
     private boolean missing(){String id=prefs.getString("selected",prefs.getString("themeSelected",""));if(id.isEmpty())return false;try{file(context,id);return false;}catch(Exception lost){return true;}}
     private JSONObject snapshot()throws Exception {
-        return new JSONObject().put("engine","Media3 ExoPlayer").put("diagnostic",(context.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0?diagnostic:"").put("repeat","one").put("loopMode",prefs.getInt("fadeMs",1500)>0?"crossfade":"gapless").put("loopCount",loopCount).put("crossfading",outgoing!=null).put("loopPrepared",preparedLoop!=null).put("playing",current!=null&&current.isPlaying())
+        return new JSONObject().put("engine","Media3 ExoPlayer").put("diagnostic",(context.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0?diagnostic:"").put("playlist",playlist()).put("repeat",playlist().length()>1?"all":"one").put("loopMode",prefs.getInt("fadeMs",1500)>0?"crossfade":"gapless").put("loopCount",loopCount).put("crossfading",outgoing!=null).put("loopPrepared",preparedLoop!=null).put("playing",current!=null&&current.isPlaying())
                 .put("foreground",foreground).put("missing",missing()).put("reason",reason).put("enabled",prefs.getBoolean("enabled",false)).put("autoplay",prefs.getBoolean("autoplay",prefs.getBoolean("themeAutoplay",false)))
                 .put("actualGain",current==null||pcm==null?0:current.getVolume()*pcm.requestedGain()).put("softwareGain",pcm==null?0:pcm.requestedGain()).put("inputRms",pcm==null?0:pcm.inputRms).put("outputRms",pcm==null?0:pcm.outputRms).put("renderedSamples",pcm==null?0:pcm.renderedSamples).put("volume",prefs.getInt("volume_percent",5)).put("volumeMax",100).put("volumeUnit","percent").put("systemVolume",tvVolume.current()).put("desktopVolume",tvVolume.prior()).put("volumeMode","software").put("fadeMs",prefs.getInt("fadeMs",1500)).put("selected",prefs.getString("selected",prefs.getString("themeSelected","")))
                 .put("lyrics",prefs.getString("lyrics","")).put("lyricRows",AuroraLyrics.read(context,prefs.getString("lyrics","")))

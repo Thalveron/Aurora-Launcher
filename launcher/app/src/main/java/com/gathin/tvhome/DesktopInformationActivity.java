@@ -5,8 +5,8 @@ import com.google.zxing.*;import com.google.zxing.common.BitMatrix;
 public final class DesktopInformationActivity extends Activity {
     @Override protected void attachBaseContext(android.content.Context base){super.attachBaseContext(DesktopLanguage.wrap(DesktopViewport.wrap(base)));}
 
- private LinearLayout content,drawer;private TextView status;private Button downloadButton,checkButton;private boolean closing,installPrompted;private final Handler main=new Handler(Looper.getMainLooper());private boolean updatePage;private String addresses="";
- private final Runnable refresh=new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;try{if(updatePage)refreshUpdate();else if(!ConsoleAddresses.list(DesktopInformationActivity.this).toString().equals(addresses))settings();}catch(Exception ignored){}main.postDelayed(this,2000);}};
+ private LinearLayout content,drawer;private TextView status;private Button downloadButton,checkButton;private boolean closing,installPrompted;private final Handler main=new Handler(Looper.getMainLooper());private boolean updatePage,projectPage;private String addresses="";
+ private final Runnable refresh=new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;try{if(updatePage)refreshUpdate();else if(!projectPage&&!ConsoleAddresses.list(DesktopInformationActivity.this).toString().equals(addresses))settings();}catch(Exception ignored){}main.postDelayed(this,2000);}};
  private String t(String text){return DesktopLanguage.t(this,text);}private int dp(int n){return (int)(n*getResources().getDisplayMetrics().density);}
  @Override public void onCreate(Bundle state){
   super.onCreate(state);getWindow().setFlags(1024,1024);getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
@@ -15,10 +15,11 @@ public final class DesktopInformationActivity extends Activity {
   Point screen=new Point();getWindowManager().getDefaultDisplay().getSize(screen);getWindow().setGravity(Gravity.RIGHT|Gravity.TOP);getWindow().setLayout(Math.min(dp(640),Math.round(screen.x*.62f)),ViewGroup.LayoutParams.MATCH_PARENT);setFinishOnTouchOutside(true);
   title(root,t("桌面信息"),26);try{title(root,"Aurora Launcher · v"+LauncherUpdater.version(this),15);}catch(Exception ignored){}
   LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);root.addView(tabs,new LinearLayout.LayoutParams(-1,-2));
-  Button settingsTab=button(tabs,t("桌面设置"),()->{updatePage=false;settings();});Button updatesTab=button(tabs,t("桌面更新"),()->{updatePage=true;updates();});Button closeTab=button(tabs,t("返回"),this::finish);
-  for(Button tab:new Button[]{settingsTab,updatesTab,closeTab}){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(54),1);p.setMargins(dp(3),0,dp(3),dp(14));tab.setLayoutParams(p);tab.setTextSize(18);}
+  Button settingsTab=button(tabs,t("桌面设置"),()->{updatePage=false;settings();});Button updatesTab=button(tabs,t("桌面更新"),()->{updatePage=true;updates();});Button projectTab=button(tabs,t("项目地址"),this::project);Button closeTab=button(tabs,t("返回"),this::finish);
+  for(Button tab:new Button[]{settingsTab,updatesTab,projectTab,closeTab}){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(54),1);p.setMargins(dp(3),0,dp(3),dp(14));tab.setLayoutParams(p);tab.setTextSize(18);}
   ScrollView scroll=new ScrollView(this);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(4),0,dp(4),dp(20));scroll.addView(content);
-  settingsTab.setOnFocusChangeListener((v,focused)->{if(focused&&updatePage){updatePage=false;settings();}});updatesTab.setOnFocusChangeListener((v,focused)->{if(focused&&!updatePage){updatePage=true;updates();}});
+  settingsTab.setOnFocusChangeListener((v,focused)->{if(focused&&(updatePage||projectPage)){updatePage=false;settings();}});updatesTab.setOnFocusChangeListener((v,focused)->{if(focused&&!updatePage){updatePage=true;updates();}});
+  projectTab.setOnFocusChangeListener((v,focused)->{if(focused&&!projectPage)project();});
   LauncherUpdater.start(this);if("updates".equals(getIntent().getStringExtra("page"))){updatePage=true;updates();updatesTab.requestFocus();}else{settings();settingsTab.requestFocus();}main.postDelayed(refresh,2000);
  }
  @Override public void finish(){if(closing)return;if(drawer==null){super.finish();return;}closing=true;drawer.animate().translationX(drawer.getWidth()).setDuration(180).withEndAction(this::finishNow).start();}
@@ -38,16 +39,33 @@ public final class DesktopInformationActivity extends Activity {
  private void focusStyle(TextView v){v.setBackgroundResource(R.drawable.info_drawer_focus);v.setTextColor(new android.content.res.ColorStateList(new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{android.R.attr.state_focused},new int[]{android.R.attr.state_pressed},new int[]{}},new int[]{0xff8194a7,0xff092332,0xff092332,Color.WHITE}));v.setPadding(dp(12),dp(8),dp(12),dp(8));v.setStateListAnimator(null);}
  private Button button(LinearLayout parent,String text,Runnable action){Button b=new Button(this);b.setText(text);b.setAllCaps(false);b.setTextSize(20);b.setTypeface(null,Typeface.BOLD);focusStyle(b);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(58));p.bottomMargin=dp(12);parent.addView(b,p);b.setOnClickListener(v->action.run());return b;}
  private void settings(){
+  projectPage=false;
   content.removeAllViews();title(content,t("桌面设置"),30);title(content,t("手机扫码，在浏览器打开完整管理地址。首次使用请自行设置账号和密码。"),18);
   try{JSONArray list=ConsoleAddresses.list(this);addresses=list.toString();if(list.length()==0){title(content,t("未检测到局域网地址，请先连接网络。"),22);}
    for(int i=0;i<list.length();i++){String url=list.getString(i);TextView address=title(content,url,20);address.setTextIsSelectable(true);focusStyle(address);
-    if(i==0){java.util.Map<EncodeHintType,Object> hints=new java.util.EnumMap<>(EncodeHintType.class);hints.put(EncodeHintType.CHARACTER_SET,"UTF-8");hints.put(EncodeHintType.MARGIN,3);BitMatrix matrix=new MultiFormatWriter().encode(url,BarcodeFormat.QR_CODE,650,650,hints);int[] pixels=new int[650*650];for(int y=0;y<650;y++)for(int x=0;x<650;x++)pixels[y*650+x]=matrix.get(x,y)?Color.BLACK:Color.WHITE;ImageView qr=new ImageView(this);qr.setImageBitmap(Bitmap.createBitmap(pixels,650,650,Bitmap.Config.ARGB_8888));qr.setContentDescription(url);LinearLayout.LayoutParams qrSize=new LinearLayout.LayoutParams(dp(240),dp(240));qrSize.gravity=Gravity.CENTER_HORIZONTAL;qrSize.topMargin=dp(16);content.addView(qr,qrSize);}
+    if(i==0)addQr(url);
    }title(content,t("地址会跟随本机 IP、后台端口和访问路径变化；二维码不包含密码。"),17);
+   if(ConsoleSettings.https(this))button(content,t("恢复 HTTP 管理地址"),()->new AlertDialog.Builder(this)
+       .setTitle(t("关闭 HTTPS 并恢复 HTTP？")).setNegativeButton(t("取消"),null)
+       .setPositiveButton(t("恢复 HTTP"),(dialog,which)->{
+           try{
+               ConsoleSettings.save(this,new JSONObject().put("https",false));
+               UploadService.ensureStarted(this);settings();
+           }catch(Exception error){Toast.makeText(this,error.getMessage(),Toast.LENGTH_LONG).show();}
+       }).show());
    JSONObject home=DefaultHome.status(this);title(content,t(home.optBoolean("isDefault")?"当前默认桌面：Aurora Launcher":"尚未设置为默认桌面"),18);button(content,t("设为默认桌面"),()->new AlertDialog.Builder(this).setTitle(t("设为默认桌面")).setMessage(t("将尝试停用原独立桌面，不卸载，保留恢复入口；系统设置等组件受到保护。继续？")).setNegativeButton(t("取消"),null).setPositiveButton(t("确认"),(d,w)->homeAction(false)).show());if(home.optBoolean("canRestore"))button(content,t("恢复原桌面"),()->homeAction(true));
   }catch(Exception e){title(content,String.valueOf(e.getMessage()),20);}
  }
- private void homeAction(boolean restore){new Thread(()->{try{JSONObject result=restore?DefaultHome.restore(this,new JSONObject().put("confirmed",true)):DefaultHome.takeOver(this,new JSONObject().put("confirmed",true).put("disableOriginal",true));main.post(()->{if(isFinishing()||closing)return;Toast.makeText(this,result.optString("message"),Toast.LENGTH_LONG).show();if(!updatePage)settings();});}catch(Exception e){main.post(()->Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show());}},"aurora-default-home").start();}
+ private void project(){
+  updatePage=false;projectPage=true;content.removeAllViews();
+  String url="https://github.com/Thalveron/Aurora-Launcher";
+  title(content,t("项目地址"),30);title(content,url,20);
+  try{addQr(url);}catch(WriterException error){title(content,t("二维码生成失败"),18);}
+ }
+ private void addQr(String url)throws WriterException{java.util.Map<EncodeHintType,Object> hints=new java.util.EnumMap<>(EncodeHintType.class);hints.put(EncodeHintType.CHARACTER_SET,"UTF-8");hints.put(EncodeHintType.MARGIN,3);BitMatrix matrix=new MultiFormatWriter().encode(url,BarcodeFormat.QR_CODE,650,650,hints);int[] pixels=new int[650*650];for(int y=0;y<650;y++)for(int x=0;x<650;x++)pixels[y*650+x]=matrix.get(x,y)?Color.BLACK:Color.WHITE;ImageView qr=new ImageView(this);qr.setImageBitmap(Bitmap.createBitmap(pixels,650,650,Bitmap.Config.ARGB_8888));qr.setContentDescription(url);LinearLayout.LayoutParams qrSize=new LinearLayout.LayoutParams(dp(240),dp(240));qrSize.gravity=Gravity.CENTER_HORIZONTAL;qrSize.topMargin=dp(16);content.addView(qr,qrSize);}
+ private void homeAction(boolean restore){new Thread(()->{try{JSONObject result=restore?DefaultHome.restore(this,new JSONObject().put("confirmed",true)):DefaultHome.takeOver(this,new JSONObject().put("confirmed",true).put("disableOriginal",true));main.post(()->{if(isFinishing()||closing)return;Toast.makeText(this,result.optString("message"),Toast.LENGTH_LONG).show();if(!updatePage&&!projectPage)settings();});}catch(Exception e){main.post(()->Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show());}},"aurora-default-home").start();}
  private void updates(){
+  projectPage=false;
   content.removeAllViews();title(content,t("桌面更新"),30);status=title(content,t("正在读取更新状态…"),19);
   Switch check=new Switch(this);check.setText(t("自动检测新版"));Switch automatic=new Switch(this);automatic.setText(t("自动更新（空闲时安装）"));
   try{JSONObject s=LauncherUpdater.state(this);check.setChecked(s.optBoolean("autoCheck"));automatic.setChecked(s.optBoolean("automatic"));}catch(Exception ignored){}

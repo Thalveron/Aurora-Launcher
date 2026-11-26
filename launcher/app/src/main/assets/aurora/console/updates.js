@@ -4,14 +4,14 @@
  function el(id){return document.getElementById(id);}
  function note(text){el('update-status').textContent=text;}
  function render(s){
-  last=s;if(s.phase!=='ready')readyPrompted=false;if(s.phase==='ready'&&!readyPrompted){readyPrompted=true;setTimeout(function(){if(confirm('新版已下载并通过校验，现在安装吗？'))request('install');else request('cancel');},0);}el('update-current').textContent='Aurora Launcher v'+s.currentVersion+(s.latest?' · 最新 v'+s.latest.version:'');
+  last=s;if(s.phase!=='ready')readyPrompted=false;if(s.phase==='ready'&&!readyPrompted){readyPrompted=true;setTimeout(function(){if(confirm('新版已下载并通过校验，现在安装吗？'))request('install');else request('cancel');},0);}el('update-current').textContent='Aurora Launcher v'+s.currentVersion+(s.newVersion&&s.latest?' · 最新 v'+s.latest.version:'');
   var settings={autoCheck:!!s.autoCheck,automatic:!!s.automatic};
   if(UI&&!draft)draft=UI.draft('updates-policy',{label:'桌面更新',initial:settings,render:renderSettings,save:async function(value){saving=true;policyRevision++;try{return await api.request('updates/config',value);}finally{saving=false;policyRevision++;}},saved:function(accepted){draft.replace({autoCheck:!!accepted.autoCheck,automatic:!!accepted.automatic});note('更新设置已保存并回读确认');}});
   if(draft){if(!saving)draft.replace(settings);renderSettings(draft.value);}else renderSettings(settings);
   el('update-automatic').disabled=saving||!s.maintenanceAvailable;el('update-auto-check').disabled=saving;
   el('update-automatic').title=s.maintenanceAvailable?'桌面空闲时自动安装':s.maintenanceReason;
   el('update-capability').textContent=s.maintenanceReason;
-  el('update-previous').textContent=s.previous?'上一版本：v'+s.previous.version:'尚未保留上一版本，完成一次受管更新后可回退。';
+  el('update-previous').textContent=s.previous?'上一版本：v'+s.previous.version+(s.rollbackAvailable?' · 可恢复升级前的配置':' · '+(s.rollbackReason||'回退暂不可用')):'暂无上一版本记录';
   el('update-rollback').disabled=s.busy||!s.rollbackAvailable;el('update-clean').disabled=s.busy||!s.maintenanceAvailable;
   el('update-check').disabled=s.busy||uploading;el('update-install').disabled=s.busy||uploading||!(s.newVersion||s.phase==='ready'||s.phase==='install_permission'||s.hasPendingInstaller);el('update-install').textContent=s.hasPendingInstaller?'继续安装':s.phase==='ready'?'安装已下载新版':'下载新版';el('update-upload').disabled=s.busy||uploading;
   el('update-progress').hidden=s.phase!=='downloading';el('update-progress').value=s.progress||0;

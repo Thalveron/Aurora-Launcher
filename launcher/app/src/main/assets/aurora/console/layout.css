@@ -45,3 +45,54 @@ html body.console-v2 #shell-savebar{left:calc(var(--ui-sidebar-width) + var(--pa
 @media(max-width:1279px){html body.console-v2.preview-open #console-workspace.page-container{display:flex;flex-direction:column}html body.console-v2 #console-workspace.page-container #settings-main{order:2}html body.console-v2 #console-workspace.page-container #live-preview{order:1;width:100%;position:sticky;top:88px}}
 @media(max-width:760px){:root{--page-padding:16px}html body.console-v2 #console-workspace.page-container,html body.console-v2 #settings-main.page-container{margin-top:24px}html body.console-v2 #settings-main .card-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important}html body.console-v2 #shell-savebar{left:16px;right:16px}}
 @media(max-width:300px){html body.console-v2 #settings-main .card-grid{grid-template-columns:minmax(0,1fr)!important}}
+
+.wifi-settings { min-width:0; container-type:inline-size; }
+.wifi-settings .setting-row-copy,.wifi-settings .setting-row-control { min-width:0; overflow-wrap:anywhere; }
+.wifi-settings input:not([type="checkbox"]) { width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+html[data-console-theme=light] body.console-v2 #settings-main [data-panel="capture"] .ui-card { background:#fff; color:#243c48; }
+[data-panel="capture"] #capture-gallery { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)) !important; }
+#fullscreen-slides .background-asset {cursor:pointer;}
+#fullscreen-slides input[type="radio"] {width:20px;height:20px;}
+
+html body.console-v2 .wifi-settings .setting-row-control input:not([type="checkbox"]){width:100%!important;max-width:100%;box-sizing:border-box;}
+html body.console-v2 .wifi-settings .wifi-field {display:grid;grid-template-columns:minmax(0,1fr);gap:8px;}
+html body.console-v2 .wifi-settings .wifi-field .setting-row-control {width:100%;max-width:100%;justify-content:stretch;}
+
+html body.console-v2 #capture-gallery .capture-empty {grid-column:1/-1;padding:0 20px 16px;line-height:1.5;box-sizing:border-box;color:var(--ui-muted);}
+
+html body.console-v2 .songs-section {width:100%;max-width:none;box-sizing:border-box}
+.songs-columns {display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,1fr);gap:24px;padding:20px}
+.song-toolbar,.song-controls {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.song-list {max-height:450px;overflow:auto;margin-top:12px}
+html body.console-v2 button.song-row {display:grid;grid-template-columns:3ch minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:12px 10px;text-align:start;background:transparent;color:var(--ui-fg);border:0;border-bottom:1px solid var(--ui-border);border-radius:0}
+html body.console-v2 button.song-row:hover,html body.console-v2 button.song-row:focus-visible {background:var(--ui-accent-soft)}
+.song-info {display:grid;gap:4px;min-width:0}
+.song-info>* {overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.song-info small,.song-row>span:first-child {color:var(--ui-muted)}
+.song-player {align-self:start;text-align:center;padding:20px;background:var(--ui-sidebar);border-radius:14px;min-width:0}
+.song-cover {margin:0 auto 14px;width:min(70%,180px);aspect-ratio:1;display:grid;place-items:center;background:var(--ui-accent-soft);color:var(--ui-accent);font-size:44px;border-radius:12px;overflow:hidden}
+.song-cover img {width:100%;height:100%;object-fit:cover}
+.song-player progress {width:100%;height:5px;margin:12px 0}
+.song-controls {justify-content:center;flex-wrap:wrap}
+.song-player p:empty {display:none}
+@media(max-width:760px){.songs-columns{grid-template-columns:minmax(0,1fr);gap:16px;padding:12px}.song-list{max-height:280px}}
+
+.wifi-saved-list {display:grid;gap:14px;margin:16px 20px;}
+.wifi-saved-list:empty {display:none}
+.wifi-network-item {display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:16px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-sidebar)}
+.wifi-network-item strong,.wifi-network-item small {display:block;overflow-wrap:anywhere}
+.wifi-network-item small {margin-top:5px;color:var(--ui-muted)}
+.wifi-network-item .actions {margin:0}
+.wifi-editor {margin:16px 20px;border:1px solid var(--ui-border);border-radius:12px;}
+
+html body.console-v2 .song-controls button {display:inline-grid;place-items:center;width:44px;height:44px;min-width:44px;padding:0;border-radius:50%;}
+html body.console-v2 .song-controls button:nth-child(2) {width:52px;height:52px;background:var(--ui-accent);color:var(--ui-surface);}
+
+.device-block #summary,.device-block #legacy-console{margin-inline:var(--card-padding,20px)}
+.device-block #legacy-console{display:inline-block;margin-bottom:16px}
+
+#saver-track-list{border:0;margin:0;padding:12px 20px;min-width:0}
+#saver-track-list legend{font-weight:600}
+#saver-track-choices label{display:flex;align-items:center;gap:12px;padding:10px 0;overflow-wrap:anywhere;cursor:pointer}
+#saver-track-choices input{flex:none}
+#saver-track[hidden]{display:none!important}

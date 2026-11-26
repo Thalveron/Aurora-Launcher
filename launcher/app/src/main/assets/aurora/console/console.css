@@ -5,3 +5,7 @@
 
 :root{color:#dce8f2;background:#0d141f}header small{color:#8bcfc7}p,footer,.muted{color:#93a7ba}section{background:#141f2d;border-color:#2a3748}a,.actions a{color:#8bddd9}button{background:#86ddd0;border-color:#86ddd0;color:#12312f}.secondary,select,.remote button{background:#1a2a3b;border-color:#35465b;color:#c5d7e8}.capability{border-color:#2c3d50}.capability small{color:#92a8bd}.badge{background:#213f40;color:#9bdacf}.badge.off{background:#3c3430;color:#d6bd91}#connection{color:#8bddd0}
 .input-hint-image{display:flex;gap:16px;align-items:flex-start;margin:12px 0}.input-hint-image img{height:160px;max-width:160px;object-fit:contain;border-radius:8px;background:#101d2c;padding:8px;flex:none}.input-hint-image>div{min-width:0}
+
+.saved-captures { grid-column: 1 / -1; width: 100%; box-sizing: border-box; text-align: start; }
+.saved-captures > h3 { margin: 0 0 8px; }
+.saved-captures > p { margin: 0 0 16px; line-height: 1.6; }

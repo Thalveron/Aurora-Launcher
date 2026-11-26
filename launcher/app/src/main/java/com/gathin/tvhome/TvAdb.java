@@ -30,7 +30,7 @@ final class TvAdb {
     else {needsAuthorization=true;throw new IOException("请在设备页面点击连接电视调试，并在电视上确认；自动重试已停止");}
    }
    connection=socket;connectionIn=in;connectionOut=out;nextStream=1;needsAuthorization=false;
-  }catch(Exception e){try{socket.close();}catch(IOException ignored){}needsAuthorization=true;throw e;}
+  }catch(Exception e){try{socket.close();}catch(IOException ignored){}throw e;}
  }
  private static volatile boolean authorizationPending;
  private static volatile String authorizationMessage="尚未连接电视调试";
@@ -69,7 +69,7 @@ final class TvAdb {
     if(p.command==WRTE){if(bytes.size()+p.data.length>max)throw new IOException("电视返回内容过大");bytes.write(p.data);send(connectionOut,OKAY,local,p.a,new byte[0]);}
     else if(p.command==CLSE){send(connectionOut,CLSE,local,p.a,new byte[0]);return bytes.toByteArray();}
    }throw new IOException("电视操作超时");
-  }catch(Exception e){disconnect();needsAuthorization=true;authorizationMessage=String.valueOf(e.getMessage());throw e;}finally{connectionLock.unlock();}
+  }catch(Exception e){disconnect();authorizationMessage=String.valueOf(e.getMessage());throw e;}finally{connectionLock.unlock();}
  }
  static String shell(Context c,String command)throws Exception{return new String(run(c,"shell:"+command,1024*1024),"UTF-8").trim();}
  static byte[] screenPng(Context c)throws Exception{byte[] data=run(c,"exec:screencap -p",32*1024*1024);for(int i=0;i+8<=data.length;i++)if(data[i]==(byte)137&&data[i+1]==80&&data[i+2]==78&&data[i+3]==71)return java.util.Arrays.copyOfRange(data,i,data.length);throw new IOException("电视未返回画面");}

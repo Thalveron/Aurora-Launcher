@@ -159,7 +159,7 @@
     root.querySelectorAll('p').forEach(function(p){if(p.querySelector('label.setting-row'))p.classList.add('ui-row-group');});
     // A few original controls deliberately had no wrapping label. Give them
     // the same accessible setting row without moving command toolbars.
-    [['saver-track','屏保歌曲'],['saver-lrc','绑定歌词'],['bgm-library','试听歌曲']].forEach(function(item){
+    [['saver-lrc','绑定歌词'],['bgm-library','试听歌曲']].forEach(function(item){
       var control=document.getElementById(item[0]);
       if(!control||control.closest('.setting-row'))return;
       var label=node('label');control.before(label);label.append(document.createTextNode(item[1]),control);enhanceLabel(label);

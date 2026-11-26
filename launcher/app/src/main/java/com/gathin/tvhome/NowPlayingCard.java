@@ -35,7 +35,7 @@ final class NowPlayingCard {
     private boolean lyricsRegistered;
     private final ImageView artwork;
     private final ProgressBar progress;
-    private final Button previous, play, next, mode, shuffle, cardSettings;
+    private final Button previous, play, next, mode, shuffle;
     private LinearLayout buttonRow;
     private final Handler main=new Handler(Looper.getMainLooper());
     private final MediaSessionManager sessions;
@@ -86,10 +86,7 @@ final class NowPlayingCard {
         row.setMinimumHeight(dp(228));
         artwork=new ImageView(a);artwork.setVisibility(View.GONE);
         buttonRow=new LinearLayout(a);buttonRow.setGravity(Gravity.CENTER_VERTICAL);row.addView(buttonRow);
-        // Balance the right-side settings button so title and artist share the card center.
-        buttonRow.addView(new View(a),new LinearLayout.LayoutParams(dp(28),dp(32)));
         title=text(buttonRow,20,Color.WHITE);title.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
-        cardSettings=button("⚙",28,()->a.startActivity(new Intent(a,LauncherSettingsActivity.class).putExtra("music_card_settings",true)));cardSettings.setContentDescription(DesktopLanguage.t(activity,"播放卡片设置"));cardSettings.getLayoutParams().height=dp(32);
         title.setGravity(Gravity.CENTER);title.setSingleLine(true);title.setEllipsize(TextUtils.TruncateAt.END);
         artist=text(row,13,0xFFD2DBE6);artist.setGravity(Gravity.CENTER);artist.setSingleLine(true);artist.setEllipsize(TextUtils.TruncateAt.END);
         LinearLayout timeline=new LinearLayout(a);timeline.setGravity(Gravity.CENTER_VERTICAL);row.addView(timeline,new LinearLayout.LayoutParams(-1,dp(28)));
@@ -102,7 +99,6 @@ final class NowPlayingCard {
         play=button(DesktopLanguage.t(activity,"播放"),48,()->{scan();if(controller==null){startFromDesktop();return;}MediaMetadataCompat m=controller.getMetadata();if(m==null||TextUtils.isEmpty(m.getText(MediaMetadataCompat.METADATA_KEY_TITLE))){requestDesktopPlay();return;}PlaybackStateCompat s=controller.getPlaybackState();if(s!=null&&isPlaying(s))controls().pause();else controls().play();});
         next=button(DesktopLanguage.t(activity,"下一首"),42,()->controls().skipToNext());
         mode=button(DesktopLanguage.t(activity,"播放列表"),42,()->new DesktopSongList(activity));
-        cardSettings.setNextFocusDownId(play.getId());
         buttonRow.setGravity(Gravity.CENTER);LinearLayout.LayoutParams controlsSpace=(LinearLayout.LayoutParams)buttonRow.getLayoutParams();controlsSpace.topMargin=dp(8);buttonRow.setLayoutParams(controlsSpace);
         spectrum=new AudioSpectrumView(a);row.addView(spectrum,new LinearLayout.LayoutParams(-1,dp(68)));
         title.setContentDescription(DesktopLanguage.t(activity,"当前播放的歌曲"));
@@ -127,14 +123,14 @@ final class NowPlayingCard {
     private Button button(String name,int width,Runnable action) {
         Button b=new MusicIconButton(activity);b.setId(View.generateViewId());b.setText(name);b.setTextSize(12);b.setAllCaps(false);b.setPadding(dp(4),0,dp(4),0);b.setMinWidth(0);b.setMinimumWidth(0);b.setMinHeight(0);b.setMinimumHeight(0);b.setTextColor(Color.WHITE);b.setFocusable(true);b.setBackground(background(false));
         b.setOnFocusChangeListener((v,has)->{v.setBackground(background(has));((TextView)v).setTextColor(has?0xFF79E8FF:DesktopAppearance.text(activity));((TextView)v).setShadowLayer(has?dp(8):0,0,0,0xFF3DC9FF);v.setScaleX(has?1.04f:1);v.setScaleY(has?1.04f:1);});
-        b.setOnClickListener(v->{if(controller!=null||v==play||v==cardSettings||v==mode)try{action.run();}catch(RuntimeException e){Toast.makeText(activity,DesktopLanguage.t(activity,"播放器暂不可用，请重新打开 Aurora。"),Toast.LENGTH_SHORT).show();scan();}});
+        b.setOnClickListener(v->{if(controller!=null||v==play||v==mode)try{action.run();}catch(RuntimeException e){Toast.makeText(activity,DesktopLanguage.t(activity,"播放器暂不可用，请重新打开 Aurora。"),Toast.LENGTH_SHORT).show();scan();}});
         b.setOnKeyListener((v,key,e)->{
             if(e.getAction()!=KeyEvent.ACTION_DOWN)return false;
             if(key==KeyEvent.KEYCODE_DPAD_DOWN){
-                if(v==cardSettings&&play.isEnabled())play.requestFocus();else goToApps.run();
+                goToApps.run();
                 return true;
             }
-            if(key==KeyEvent.KEYCODE_DPAD_UP){if(v!=cardSettings)cardSettings.requestFocus();else {View inputs=activity.findViewById(R.id.btnInputs);if(inputs!=null&&inputs.getVisibility()==View.VISIBLE)inputs.requestFocus();else {View wifi=activity.findViewById(R.id.btnWifi);if(wifi!=null)wifi.requestFocus();}}return true;}
+            if(key==KeyEvent.KEYCODE_DPAD_UP){View inputs=activity.findViewById(R.id.btnInputs);if(inputs!=null&&inputs.getVisibility()==View.VISIBLE)inputs.requestFocus();else {View wifi=activity.findViewById(R.id.btnWifi);if(wifi!=null)wifi.requestFocus();}return true;}
             return false;
         });
         LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(dp(width),dp(46));buttonRow.addView(b,params);return b;
@@ -175,12 +171,15 @@ final class NowPlayingCard {
         if(idleLocal)return;
         if(!enabled()){boolean focused=slot.hasFocus();slot.setVisibility(View.INVISIBLE);if(focused)slot.post(goToApps);return;}
         place();slot.setVisibility(View.VISIBLE);artwork.setImageDrawable(null);
+        // Same media id may come back after the card was hidden; without this restart render()
+        // would see unchanged artwork/title and never put the cover back.
+        lastArtwork=null;lastTitle=null;
         android.content.SharedPreferences prefs=activity.getSharedPreferences(Config.SETTINGS_NAME,0);
         title.setText(prefs.getString("music_last_title",DesktopLanguage.t(activity,"桌面音乐")));
         artist.setText(prefs.getString("music_last_artist",DesktopLanguage.t(activity,"点击播放，继续上次音乐")));
         long duration=prefs.getLong("music_last_duration",0),position=prefs.getLong("music_last_position",0);
         time.setText(stamp(position)+" / "+stamp(duration));progress.setProgress(duration>0?(int)(Math.min(position,duration)*1000/duration):0);
-        play.setText(connecting?DesktopLanguage.t(activity,"连接中"):DesktopLanguage.t(activity,"播放"));enable(play,true);enable(cardSettings,true);
+        play.setText(connecting?DesktopLanguage.t(activity,"连接中"):DesktopLanguage.t(activity,"播放"));enable(play,true);
         for(Button b:new Button[]{previous,next,shuffle})enable(b,false);enable(mode,true);
     }
     private void disconnectBrowser(){
@@ -232,7 +231,7 @@ final class NowPlayingCard {
         CharSequence song=m==null?null:m.getText(MediaMetadataCompat.METADATA_KEY_TITLE);
         if(TextUtils.isEmpty(song)&&m!=null)song=m.getText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE);
         if(TextUtils.isEmpty(song)){hide();return;}
-        place();slot.setVisibility(View.VISIBLE);title.setText(song);enable(cardSettings,true);
+        place();slot.setVisibility(View.VISIBLE);title.setText(song);
         CharSequence who=m.getText(MediaMetadataCompat.METADATA_KEY_ARTIST);if(TextUtils.isEmpty(who))who=m.getText(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST);artist.setText(TextUtils.isEmpty(who)?"Aurora":who);
         Bitmap cover=m.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON);if(cover==null)cover=m.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART);if(cover==null)cover=m.getBitmap(MediaMetadataCompat.METADATA_KEY_ART);
         if(cover!=lastArtwork || !TextUtils.equals(song,lastTitle)){lastArtwork=cover;lastTitle=song;artwork.setImageBitmap(cover);artwork.setVisibility(cover==null?View.GONE:View.VISIBLE);}

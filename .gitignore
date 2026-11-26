@@ -12,7 +12,11 @@ backup/
 # Generated install bundles and JVM crash reports stay out of contributions.
 *.apk
 *.aab
+*.idsig
 launcher/hs_err_pid*.log
 launcher/replay_pid*.log
 
 launcher/updateagent/build/
+
+# machine-specific packaging helper (signing paths)
+launcher/tools/package-*.sh

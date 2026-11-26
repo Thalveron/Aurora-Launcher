@@ -10,12 +10,14 @@ android {
         applicationId 'com.gathin.tvhome'
         minSdk 26
         targetSdk 34
-        versionCode 147
-        versionName '1.4.7'
+        versionCode 167
+        versionName '1.5.0'
     }
 
     buildTypes {
         release {
+            // The protected updater restores private settings through run-as on this TV.
+            debuggable true
             // R8 strips and optimises the code (AndroidX included): smaller APK, faster start on a slow TV CPU.
             minifyEnabled true
             shrinkResources true
@@ -44,8 +46,14 @@ dependencies {
 
 android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/updateAgentAssets'))
 tasks.register('prepareUpdateAgent', Copy) {
- dependsOn ':updateagent:assembleDebug'
- from(project(':updateagent').layout.buildDirectory.file('outputs/apk/debug/updateagent-debug.apk'))
+ def previousRelease = providers.gradleProperty('previousReleaseApk')
+ if (previousRelease.isPresent()) {
+     from(zipTree(previousRelease.get())) { include 'assets/update-agent.apk'; eachFile { path = 'update-agent.apk' } }
+     includeEmptyDirs = false
+ } else {
+     dependsOn ':updateagent:assembleDebug'
+     from(project(':updateagent').layout.buildDirectory.file('outputs/apk/debug/updateagent-debug.apk'))
+ }
  into(layout.buildDirectory.dir('generated/updateAgentAssets'))
  rename { 'update-agent.apk' }
 }

@@ -13,9 +13,66 @@ final class LauncherUpdater {
  static String version(Context c)throws Exception{return c.getPackageManager().getPackageInfo(c.getPackageName(),0).versionName;}
  static synchronized void start(Context c){
   if(started)return;started=true;Context app=c.getApplicationContext();
+  try{observeVersion(app);}catch(Exception e){android.util.Log.w("AuroraUpdater","版本历史读取失败",e);}
   worker.scheduleWithFixedDelay(()->{try{if(preparedRelease!=null)return;refreshResult(app);probe(app);JSONObject config=load(app);JSONObject uploaded=config.optJSONObject("uploaded");if(uploaded!=null&&uploaded.optLong("expiresAt")<System.currentTimeMillis()){config.remove("uploaded");persist(app);}if(!isBusy(app)&&config.optBoolean("autoCheck",true)&&System.currentTimeMillis()-config.optLong("lastAttempt")>12*3600000L)checkNow(app);
    if(!isBusy(app)&&!config.has("pendingInstaller")&&!config.has("uploaded")&&config.optBoolean("automatic")&&maintenance&&config.has("latest")&&config.getJSONObject("latest").optLong("versionCode")>code(app)&&config.getJSONObject("latest").optLong("versionCode")!=config.optLong("blockedVersionCode")&&(MainActivity.isHomeVisible()||AuroraActivity.visible)&&IdleStandby.idleMillis()>120000&&!StandbyPlayback.protectedNow(app)){busy=true;try{installNow(app,"update",true);}finally{busy=false;}}
   }catch(Exception error){message="检查更新失败："+String.valueOf(error.getMessage());}},15,60,TimeUnit.SECONDS);
+ }
+ private static synchronized void observeVersion(Context c)throws Exception{
+  JSONObject state=load(c);long installed=code(c);String name=version(c);
+  if(state.optLong("observedCode")==installed&&name.equals(state.optString("observedName")))return;
+  if(state.has("observedCode")){
+   state.put("history",new JSONObject().put("versionCode",state.getLong("observedCode")).put("version",state.getString("observedName")));
+   JSONObject pending=state.optJSONObject("pendingInstaller");
+   if(pending!=null&&pending.getJSONObject("release").optLong("versionCode")==installed&&pending.has("snapshot"))
+    state.put("previous",pending.getJSONObject("snapshot"));
+  }
+  state.put("observedCode",installed).put("observedName",name);persist(c);
+  pruneLocal(c);
+ }
+ private static synchronized void pruneLocal(Context c)throws Exception{
+  JSONObject s=load(c),saved=s.optJSONObject("previous"),pending=s.optJSONObject("pendingInstaller");
+  JSONObject staged=pending==null?null:pending.optJSONObject("snapshot");
+  File[] dirs=directory(c).listFiles();if(dirs==null)return;
+  for(File dir:dirs){String n=dir.getName();if(!n.matches("rollback-[a-f0-9-]{36}")||(saved!=null&&n.equals(saved.optString("localDir")))||(staged!=null&&n.equals(staged.optString("localDir"))))continue;
+   new File(dir,"previous.apk").delete();new File(dir,"backup.zip").delete();dir.delete();}
+ }
+ private static JSONObject manualSnapshot(Context c)throws Exception{
+  File root=directory(c),dir=new File(root,"rollback-"+UUID.randomUUID());
+  if(!dir.mkdir())throw new IOException("无法准备回退目录");
+  File apk=new File(dir,"previous.apk"),config=new File(dir,"backup.zip");
+  try{
+   java.nio.file.Files.copy(new File(c.getApplicationInfo().sourceDir).toPath(),apk.toPath());
+   java.nio.file.Files.copy(UpdateBackup.create(c,false).toPath(),config.toPath());
+   return new JSONObject().put("localDir",dir.getName()).put("versionCode",code(c)).put("version",version(c))
+    .put("sha256",UpdatePolicy.sha(apk)).put("backupSha",UpdatePolicy.sha(config));
+  }catch(Exception e){apk.delete();config.delete();dir.delete();throw e;}
+ }
+ private static boolean matches(JSONObject history,JSONObject backup){
+  return history!=null&&backup!=null&&history.optLong("versionCode")==backup.optLong("versionCode")
+   &&history.optString("version").equals(backup.optString("version"));
+ }
+ private static String verifiedKey="";
+ private static boolean verified(Context c,JSONObject backup)throws Exception{
+  if(backup==null||!maintenance)return false;
+  String sha=backup.getString("sha256"),zip=backup.getString("backupSha");
+  if(backup.has("localDir")){
+   String name=backup.getString("localDir");if(!name.matches("rollback-[a-f0-9-]{36}"))return false;
+   File dir=new File(directory(c),name),apk=new File(dir,"previous.apk"),config=new File(dir,"backup.zip");
+   if(!apk.isFile()||!config.isFile())return false;
+   String key=name+sha+zip+apk.lastModified()+":"+config.lastModified()+":"+apk.length()+":"+config.length();
+   if(key.equals(verifiedKey))return true;
+   if(!sha.equals(UpdatePolicy.sha(apk))||!zip.equals(UpdatePolicy.sha(config)))return false;
+   verifiedKey=key;return true;
+  }
+  String dir=backup.optString("runDir");
+  if(!dir.matches(java.util.regex.Pattern.quote(LauncherUpdateAgent.ROOT)+"[a-f0-9]{24}"))return false;
+  String prefix="run-as "+LauncherUpdateAgent.GUARD+" ";
+  String info=maintenanceShell(c,prefix+"stat -c '%s:%Y' "+dir+"/previous.apk "+dir+"/backup.zip");
+  if(!info.matches("[0-9]+:[0-9]+\\s+[0-9]+:[0-9]+"))return false;
+  String key=dir+info+sha+zip;if(key.equals(verifiedKey))return true;
+  String sums=maintenanceShell(c,prefix+"sha256sum "+dir+"/previous.apk "+dir+"/backup.zip");
+  if(!sums.startsWith(sha+" ")||!sums.contains("\n"+zip+" "))return false;verifiedKey=key;return true;
  }
  private static void probe(Context c){
   try{if(!TvAdb.status().optBoolean("connected"))throw new IOException("本机 ADB 未连接；可检查更新和使用系统确认安装，自动更新/回退不可用");
@@ -42,8 +99,12 @@ final class LauncherUpdater {
   persist(c);WebAudit.record(c,"127.0.0.1","桌面更新结果",message,state.equals("failed")?503:200);
  }
  static synchronized JSONObject state(Context c)throws Exception{
-  load(c);JSONObject pending=load(c).optJSONObject("pendingInstaller");if(pending!=null&&c.getPackageManager().getPackageInfo(c.getPackageName(),0).lastUpdateTime>pending.optLong("createdAt")&&code(c)>=pending.getJSONObject("release").optLong("versionCode")){load(c).remove("pendingInstaller");persist(c);pending=null;}if(pending!=null&&phase.equals("idle")){phase="install_permission";message="已保留校验过的安装包，点击继续安装";}refreshResult(c);JSONObject out=new JSONObject().put("currentVersion",version(c)).put("currentVersionCode",code(c)).put("hasPendingInstaller",pending!=null).put("autoCheck",load(c).optBoolean("autoCheck",true)).put("automatic",load(c).optBoolean("automatic")).put("busy",isBusy(c)).put("phase",phase).put("message",message).put("progress",percent).put("maintenanceAvailable",maintenance).put("maintenanceReason",capabilityReason).put("lastChecked",load(c).optLong("lastChecked")).put("sources",new JSONArray(Arrays.asList(UpdatePolicy.manifestSources()))).put("routes",lines).put("repository","https://github.com/"+UpdatePolicy.REPO).put("lastResult",load(c).optJSONObject("lastResult"));
-  JSONObject latest=load(c).optJSONObject("latest"),previous=load(c).optJSONObject("previous");out.put("latest",latest==null?JSONObject.NULL:latest).put("newVersion",latest!=null&&latest.optLong("versionCode")>code(c)).put("previous",previous==null?JSONObject.NULL:previous).put("rollbackAvailable",maintenance&&previous!=null);
+  observeVersion(c);JSONObject pending=load(c).optJSONObject("pendingInstaller");if(pending!=null&&c.getPackageManager().getPackageInfo(c.getPackageName(),0).lastUpdateTime>pending.optLong("createdAt")&&code(c)>=pending.getJSONObject("release").optLong("versionCode")){load(c).remove("pendingInstaller");persist(c);pending=null;}if(pending!=null&&phase.equals("idle")){phase="install_permission";message="已保留校验过的安装包，点击继续安装";}refreshResult(c);JSONObject out=new JSONObject().put("currentVersion",version(c)).put("currentVersionCode",code(c)).put("hasPendingInstaller",pending!=null).put("autoCheck",load(c).optBoolean("autoCheck",true)).put("automatic",load(c).optBoolean("automatic")).put("busy",isBusy(c)).put("phase",phase).put("message",message).put("progress",percent).put("maintenanceAvailable",maintenance).put("maintenanceReason",capabilityReason).put("lastChecked",load(c).optLong("lastChecked")).put("sources",new JSONArray(Arrays.asList(UpdatePolicy.manifestSources()))).put("routes",lines).put("repository","https://github.com/"+UpdatePolicy.REPO).put("lastResult",load(c).optJSONObject("lastResult"));
+  JSONObject latest=load(c).optJSONObject("latest"),previous=load(c).optJSONObject("previous");JSONObject history=load(c).optJSONObject("history");boolean available=false;if(matches(history,previous))try{available=verified(c,previous);}catch(Exception ignored){}out.put("latest",latest==null?JSONObject.NULL:latest).put("newVersion",latest!=null&&latest.optLong("versionCode")>code(c)).put("previous",history==null?JSONObject.NULL:history).put("rollbackAvailable",available);
+  if(!available){
+   String why=history==null?"暂无上一版本记录":!matches(history,previous)?"缺少该版本对应的安装包和配置备份":!maintenance?capabilityReason:"安装包或配置备份缺失，或校验失败";
+   out.put("rollbackReason",why);
+  }
   return out;
  }
  static synchronized JSONObject configure(Context c,JSONObject input)throws Exception{
@@ -95,7 +156,7 @@ final class LauncherUpdater {
  private static void installPrepared(Context c,File target,JSONObject release,String mode,boolean automatic)throws Exception{
   validate(c,target,release);
   // A manual update must never launch a detached process that restores/clears app data.
-  if(!automatic&&!mode.equals("clean")){synchronized(LauncherUpdater.class){load(c).put("pendingInstaller",new JSONObject().put("file",target.getName()).put("release",release).put("createdAt",System.currentTimeMillis()));persist(c);}openInstaller(c,target);return;}
+  if(!automatic&&!mode.equals("clean")){JSONObject snapshot=manualSnapshot(c);synchronized(LauncherUpdater.class){load(c).put("pendingInstaller",new JSONObject().put("file",target.getName()).put("snapshot",snapshot).put("release",release).put("createdAt",System.currentTimeMillis()));persist(c);pruneLocal(c);}openInstaller(c,target);return;}
   probe(c);if(!maintenance)throw new IOException(capabilityReason);
   phase="backing_up";message=mode.equals("clean")?"正在备份全部桌面数据，确认可恢复后才清空":"正在保存上一版本和设置";
   File backup=UpdateBackup.create(c,mode.equals("clean"));if(c.getFilesDir().getUsableSpace()<backup.length()+target.length()+new File(c.getApplicationInfo().sourceDir).length()+128L*1024*1024)throw new IOException("独立恢复包和安装所需空间不足，未清空数据");Map<String,File> files=new HashMap<>();files.put("/target",target);files.put("/previous",new File(c.getApplicationInfo().sourceDir));files.put("/backup",backup);
@@ -141,11 +202,27 @@ final class LauncherUpdater {
  }
  private static JSONObject basePlan(Context c,String mode)throws Exception{
   String id=java.util.UUID.randomUUID().toString().replace("-","").substring(0,24);
-  return new JSONObject().put("id",id).put("mode",mode).put("dataDir",c.getDataDir().getPath()).put("externalDir",c.getExternalFilesDir(null).getPath()).put("uid",android.os.Process.myUid()).put("useRunAs",useRunAs).put("healthToken",AuroraRules.token()).put("healthTimeoutSeconds",120).put("healthPort",mode.equals("clean")?8899:ConsoleSettings.port(c));
+  // The agent checks the new build over loopback. BackgroundUploadServer always keeps a
+  // plain-HTTP loopback listener on 8899 (the main port when it is free, otherwise a second
+  // 127.0.0.1 socket), so that port is the only one right for every http/https/port setup.
+  // Using ConsoleSettings.port(c) broke health checks whenever HTTPS was on with a custom port.
+  return new JSONObject().put("id",id).put("mode",mode).put("dataDir",c.getDataDir().getPath()).put("externalDir",c.getExternalFilesDir(null).getPath()).put("uid",android.os.Process.myUid()).put("useRunAs",useRunAs).put("healthToken",AuroraRules.token()).put("healthTimeoutSeconds",120).put("healthPort",8899);
  }
  private static void rollback(Context c)throws Exception{
   probe(c);if(!maintenance)throw new IOException(capabilityReason);
-  JSONObject previous=load(c).getJSONObject("previous");JSONObject plan=basePlan(c,"rollback").put("previousRun",previous.getString("runDir")).put("targetCode",previous.getLong("versionCode")).put("targetSha",previous.getString("sha256")).put("backupSha",previous.getString("backupSha")).put("fullBackup",previous.optBoolean("fullBackup")).put("previousCode",code(c)).put("previousVersion",version(c));launch(c,plan);
+  JSONObject previous=load(c).getJSONObject("previous");
+  if(!matches(load(c).optJSONObject("history"),previous)||!verified(c,previous))throw new IOException("上一版本的回退备份不可用");
+  String runDir=previous.optString("runDir");
+  if(previous.has("localDir")){
+   ensureHelper(c);runDir=LauncherUpdateAgent.ROOT+UUID.randomUUID().toString().replace("-","").substring(0,24);
+   String guard="run-as "+LauncherUpdateAgent.GUARD+" ";maintenanceShell(c,guard+"mkdir -p "+runDir);
+   File dir=new File(directory(c),previous.getString("localDir"));
+   for(String file:new String[]{"previous.apk","backup.zip"}){
+    String cmd="run-as "+c.getPackageName()+" cat "+UpdatePolicy.quote(new File(dir,file).getPath())+" | "+guard+"sh -c "+UpdatePolicy.quote("cat > "+runDir+"/"+file);
+    TvAdb.runQueued(c,"shell:"+cmd,4096,180000);
+   }
+  }
+  JSONObject plan=basePlan(c,"rollback").put("previousRun",runDir).put("targetCode",previous.getLong("versionCode")).put("targetSha",previous.getString("sha256")).put("backupSha",previous.getString("backupSha")).put("fullBackup",previous.optBoolean("fullBackup")).put("previousCode",code(c)).put("previousVersion",version(c));launch(c,plan);
  }
  private static void launch(Context c,JSONObject plan)throws Exception{
   ensureHelper(c);pruneRecovery(c,plan);String dir=LauncherUpdateAgent.ROOT+plan.getString("id"),source=c.getPackageManager().getApplicationInfo(LauncherUpdateAgent.GUARD,0).sourceDir;

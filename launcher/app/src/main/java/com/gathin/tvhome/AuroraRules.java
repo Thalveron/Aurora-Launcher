@@ -16,10 +16,13 @@ final class AuroraRules {
                 || ((address.getAddress()[0] & 0xfe) == 0xfc && address.getAddress().length == 16);
     }
     static boolean originAllowed(String origin, String host) {
+        return originAllowed(origin,host,false);
+    }
+    static boolean originAllowed(String origin,String host,boolean tls) {
         if (origin == null) return true; // Non-browser clients still need authentication.
         try {
             URI uri = new URI(origin);
-            return "http".equals(uri.getScheme()) && host != null
+            return (tls?"https":"http").equals(uri.getScheme()) && host != null
                     && host.equalsIgnoreCase(uri.getRawAuthority()) && uri.getRawUserInfo() == null
                     && (uri.getRawPath() == null || uri.getRawPath().isEmpty());
         } catch (Exception invalid) { return false; }

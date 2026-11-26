@@ -55,16 +55,23 @@ final class AuroraData {
         List<ApplicationInfo> list=new ArrayList<>(installed.values());
         Collections.sort(list,(a,b)->a.loadLabel(c.getPackageManager()).toString().compareToIgnoreCase(b.loadLabel(c.getPackageManager()).toString()));
         JSONArray result=new JSONArray();
+        if(DesktopSharing.enabled(c))result.put(new JSONObject().put("package",DesktopSharing.SHORTCUT).put("name","Wi-Fi 密码").put("icon","/api/v1/icons/"+DesktopSharing.SHORTCUT));
         for(ApplicationInfo app:list) result.put(new JSONObject().put("package",app.packageName)
                 .put("name",AppManagement.label(c,app.packageName,app.loadLabel(c.getPackageManager()).toString())).put("icon",AppManagement.iconUrl(c,app.packageName)));
         return result;
     }
     static byte[] icon(Context c,String pkg)throws Exception {
-        WebApps.valid(c,pkg);
-        byte[] custom=AppManagement.icon(c,pkg);if(custom!=null)return custom;
-        Drawable drawable=c.getPackageManager().getApplicationIcon(pkg);
+        boolean wifi=DesktopSharing.SHORTCUT.equals(pkg);
+        if(!wifi)WebApps.valid(c,pkg);
+        byte[] custom=wifi?null:AppManagement.icon(c,pkg);if(custom!=null)return custom;
+        Drawable drawable=wifi?c.getDrawable(R.drawable.ic_wifi):c.getPackageManager().getApplicationIcon(pkg);
         Bitmap bitmap=Bitmap.createBitmap(128,128,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(bitmap);
-        drawable.setBounds(0,0,128,128);drawable.draw(canvas);
+        if(wifi){
+            android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            paint.setShader(new android.graphics.LinearGradient(0,0,128,128,0xff2475dc,0xff1748a7,android.graphics.Shader.TileMode.CLAMP));
+            canvas.drawRoundRect(0,0,128,128,22,22,paint);drawable.setBounds(21,21,107,107);
+        }else drawable.setBounds(0,0,128,128);
+        drawable.draw(canvas);
         ByteArrayOutputStream out=new ByteArrayOutputStream();bitmap.compress(Bitmap.CompressFormat.PNG,100,out);bitmap.recycle();return out.toByteArray();
     }
     static MediaController controller(Context c) {

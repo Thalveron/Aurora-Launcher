@@ -12,6 +12,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- The launcher lists and manages every installed app; on Android 11+ that needs package
+         visibility beyond the launcher intents. This build is sideloaded, not distributed on Play. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -42,6 +46,10 @@
             <category android:name="com.gathin.tvhome.category.DOCK_CARD" />
         </intent>
         <!-- China-market MIUI TV firmware: the Settings and Wi-Fi pills fall back to Xiaomi's settings app. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
         <package android:name="com.xiaomi.mitv.settings" />
     </queries>
 
@@ -88,7 +96,7 @@
         </activity>
 
         <activity android:name=".BootInputActivity" android:exported="true" android:excludeFromRecents="true" android:launchMode="singleTask" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
-        <service android:name=".UploadService" android:exported="false" />
+        <service android:name=".UploadService" android:exported="false" android:foregroundServiceType="dataSync" />
         <activity android:name=".DesktopInformationActivity" android:exported="false" android:screenOrientation="landscape" android:theme="@style/Theme.TvHome.InfoDrawer" />
         <activity android:name=".UpdateInstallActivity" android:exported="false" android:screenOrientation="landscape" android:theme="@android:style/Theme.Material.Dialog.NoActionBar" />
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.updates" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/updater_paths" /></provider>

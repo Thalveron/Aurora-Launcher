@@ -36,7 +36,7 @@ final class PersonalBackground {
     private final Runnable rotate=this::rotateSlide;
     private java.util.List<File> playlist(){return AuroraBackgrounds.active(activity)?AuroraBackgrounds.files(activity,ambient):ambient?AmbientSlideshow.files(activity):java.util.Collections.emptyList();}
     private void rotateSlide(){if(!active)return;java.util.List<File> files=playlist();if(files.size()<2)return;slide=files.get((++slideIndex)%files.size());clearViews();show();if(active&&texture!=null&&texture.isAvailable())startVideo(texture.getSurfaceTexture());scheduleSlides();}
-    private void scheduleSlides(){handler.removeCallbacks(rotate);if(active&&playlist().size()>1)handler.postDelayed(rotate,(AuroraBackgrounds.active(activity)?AuroraBackgrounds.seconds(activity,ambient):activity.getSharedPreferences("background",0).getInt("slides_seconds",8))*1000L);}
+    private void scheduleSlides(){handler.removeCallbacks(rotate);if(active&&fullscreenOwner==null&&playlist().size()>1)handler.postDelayed(rotate,(AuroraBackgrounds.active(activity)?AuroraBackgrounds.seconds(activity,ambient):activity.getSharedPreferences("background",0).getInt("slides_seconds",8))*1000L);}
     private String mode(){if(AuroraBackgrounds.active(activity)){File f=selected();return f.isFile()?BackgroundStore.kind(f):"default";}return slide!=null?BackgroundStore.kind(slide):BackgroundStore.mode(activity,ambient);}
     private File selected(){if(slide!=null)return slide;if(AuroraBackgrounds.active(activity)){java.util.List<File> files=playlist();return files.isEmpty()?new File(activity.getFilesDir(),"no-selected-background"):files.get(0);}return BackgroundStore.file(activity,mode(),ambient);}
     private String key(){return mode()+":"+selected().getName();}
@@ -55,6 +55,18 @@ final class PersonalBackground {
         long next = activity.getSharedPreferences("background", 0).getLong("revision", 0);
         if (next != revision) { revision = next;slide=null;slideIndex=0;java.util.List<File> files=playlist();if(!files.isEmpty())slide=files.get(0);scheduleSlides();if(!contentKey.equals(key())){clearViews();show();} }
         if(texture!=null&&texture.isAvailable())startVideo(texture.getSurfaceTexture());
+    }
+    private Object fullscreenOwner;
+    void suspendForFullscreen(Object owner,Runnable released){
+        fullscreenOwner=owner;
+        handler.removeCallbacks(rotate);
+        releasePlayer();
+        releaser.execute(()->handler.post(()->{if(fullscreenOwner==owner)released.run();}));
+    }
+    void finishFullscreen(Object owner,boolean foreground){
+        if(fullscreenOwner!=owner)return;
+        fullscreenOwner=null;
+        if(foreground&&active)resume();
     }
     void pause() { active = false; handler.removeCallbacks(rotate); handler.postDelayed(delayedRelease, 400); }
     void close() { active = false; handler.removeCallbacks(rotate); handler.removeCallbacks(delayedRelease); clearViews(); }
@@ -115,7 +127,7 @@ final class PersonalBackground {
         return result;
     }
     private void startVideo(SurfaceTexture target) {
-        if (!active || player != null) return;
+        if (!active || fullscreenOwner!=null || player != null) return;
         try {
             texture.setVisibility(View.VISIBLE);
             texture.setAlpha(0f);

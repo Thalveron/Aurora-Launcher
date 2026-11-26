@@ -81,7 +81,7 @@
  function summaryOf(card){
   if(card.id.indexOf('appearance-')===0)return card.querySelectorAll('.setting-row').length+' 项';
   if(card.querySelector('#greeting-fields')){var font=card.querySelector('[data-setting-key=greetingStyle] select'),size=card.querySelector('[data-setting-key=greetingSize] input[type=number]');return choice(font)+(size?' · '+size.value+' px':'');}
-  if(card.querySelector('#saver-track'))return choice(el('saver-track'))||'未选择歌曲';
+  if(card.querySelector('#saver-track'))return '已选 '+el('saver-track').selectedOptions.length+' 首';
   if(card.querySelector('#bgm-enabled'))return (el('bgm-enabled').checked?'音乐已开启':'音乐已关闭')+' · '+el('bgm-volume').value+'%';
   if(card.querySelector('#saver-spectrum-fields')){var select=card.querySelector('select'),opacity=card.querySelector('[data-setting-key=opacity] input[type=number]');return choice(select)+(opacity?' · '+opacity.value+'%':'');}
   return '';
@@ -115,21 +115,22 @@
   drop.addEventListener('dragleave',function(){drop.classList.remove('drag-over');});
   drop.addEventListener('drop',async function(e){e.preventDefault();drop.classList.remove('drag-over');if(!view()||input.disabled)return;try{await view().upload(Array.from(e.dataTransfer.files));}catch(error){text(el('background-upload-status'),error.message);}});
   var tabs=node('div','ui-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','背景用途');drop.after(tabs);
-  ['desktop','saver'].forEach(function(scope,index){var title=scope==='desktop'?'桌面背景':'屏保背景',tab=button(title,function(){activeBackground=scope;syncBackgroundTabs();});tab.id='background-tab-'+scope;tab.setAttribute('role','tab');tab.setAttribute('aria-controls','background-pane-'+scope);tabs.append(tab);
+  ['desktop','saver','fullscreen'].forEach(function(scope,index){var title=scope==='desktop'?'桌面背景':scope==='fullscreen'?'全屏音乐播放背景':'屏保背景',tab=button(title,function(){activeBackground=scope;syncBackgroundTabs();});tab.id='background-tab-'+scope;tab.setAttribute('role','tab');tab.setAttribute('aria-controls','background-pane-'+scope);tabs.append(tab);
    var pane=node('section','ui-card background-pane');pane.id='background-pane-'+scope;pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby',tab.id);tabs.after(pane);
+   if(scope==='fullscreen'){var grid=node('div','gallery');grid.id='fullscreen-slides';pane.append(grid);return;}
    var gallery=el(scope+'-slides'),seconds=el(scope==='desktop'?'slideSeconds':'saverSlideSeconds'),row=seconds.closest('.setting-row')||seconds.closest('label');pane.append(gallery,row);var caption=node('p','ui-card-note','勾选表示用于当前背景，取消勾选表示移除；点击底部保存后同步到电视。');pane.append(caption);
   });
   var toolbar=node('div','background-actions');toolbar.id='background-actions';toolbar.append(node('span','','未选择背景'));tabs.after(toolbar);
   Array.from(panel.children).filter(function(n){return n.classList.contains('ui-card')&&!n.classList.contains('background-pane');}).forEach(function(card){card.classList.add('ui-obsolete-wrapper');});
   syncBackgroundTabs();
  }
- function syncBackgroundTabs(){['desktop','saver'].forEach(function(scope){var tab=el('background-tab-'+scope),pane=el('background-pane-'+scope);if(tab){tab.setAttribute('aria-selected',String(scope===activeBackground));tab.tabIndex=scope===activeBackground?0:-1;}setHidden(pane,scope!==activeBackground);});if(view())backgrounds(activeBackground);updateSelection();}
- function updateSelection(){var bar=el('background-actions');if(!bar||!view())return;var count=view().state()[activeBackground].length;text(bar.querySelector('span'),count?'已勾选 '+count+' 项，修改后请保存':'未勾选背景，修改后请保存');}
+ function syncBackgroundTabs(){['desktop','saver','fullscreen'].forEach(function(scope){var tab=el('background-tab-'+scope),pane=el('background-pane-'+scope);if(tab){tab.setAttribute('aria-selected',String(scope===activeBackground));tab.tabIndex=scope===activeBackground?0:-1;}setHidden(pane,scope!==activeBackground);});if(view())backgrounds(activeBackground);updateSelection();}
+ function updateSelection(){var bar=el('background-actions');if(!bar||!view())return;bar.hidden=activeBackground==='fullscreen';if(bar.hidden)return;var count=view().state()[activeBackground].length;text(bar.querySelector('span'),count?'已勾选 '+count+' 项，修改后请保存':'未勾选背景，修改后请保存');}
  function toggleBackground(scope,id,checked){if(!view())return;var ids=view().state()[scope].filter(function(value){return value!==id;});if(checked)ids.push(id);view().choose(scope,ids);updateSelection();}
  async function deleteAsset(id){if(!view()||!confirm('删除这项素材？所有主题共用此库，正在使用的素材不能删除。'))return;try{await view().deleteAssets([id]);backgrounds('desktop');backgrounds('saver');}catch(error){notify(error.message);}}
  function moveOrder(scope,from,to){var ids=orders[scope],i=ids.indexOf(from),j=ids.indexOf(to);if(i<0||j<0||i===j)return;ids.splice(j,0,ids.splice(i,1)[0]);var state=view().state(),active=state[scope],next=ids.filter(function(id){return active.indexOf(id)>=0;});if(JSON.stringify(next)!==JSON.stringify(active))view().choose(scope,next);backgrounds(scope);}
  function backgrounds(scope){
-  setupBackgrounds();if(!view())return;var state=view().state(),box=el(scope+'-slides');if(!box)return;
+  setupBackgrounds();if(!view())return;if(activeBackground==='fullscreen'&&window.AuroraFullscreenGallery)window.AuroraFullscreenGallery();if(scope==='fullscreen')return;var state=view().state(),box=el(scope+'-slides');if(!box)return;
   var list=state.assets.filter(function(a){return a.kind==='background';}),byId={};list.forEach(function(a){byId[a.id]=a;});
   var existing=orders[scope].filter(function(id){return !!byId[id];});state[scope].concat(list.map(function(a){return a.id;})).forEach(function(id){if(byId[id]&&existing.indexOf(id)<0)existing.push(id);});var applied=state[scope==='desktop'?'appliedDesktop':'appliedSaver']||state[scope];existing=existing.filter(function(id){return applied.indexOf(id)>=0;}).concat(existing.filter(function(id){return applied.indexOf(id)<0;}));orders[scope]=existing;
   box.replaceChildren();
@@ -137,7 +138,7 @@
    var check=node('input');check.type='checkbox';check.checked=state[scope].indexOf(id)>=0;check.setAttribute('aria-label','选择素材 '+asset.name);check.onchange=function(){toggleBackground(scope,id,check.checked);card.classList.toggle('is-selected',check.checked);};card.prepend(check);
    card.append(node('small','asset-size',(Number(asset.bytes||0)/1048576).toFixed(1)+' MB'));
    var desktop=(state.appliedDesktop||[]).indexOf(id)>=0,saver=(state.appliedSaver||[]).indexOf(id)>=0;
-   if(desktop||saver)card.append(node('span','asset-used',desktop&&saver?'桌面 / 屏保使用中':desktop?'桌面使用中':'屏保使用中'));
+   if(!asset.uses&&(desktop||saver))card.append(node('span','asset-used',desktop&&saver?'桌面 / 屏保使用中':desktop?'桌面使用中':'屏保使用中'));
    if(asset.video){var badge=node('span','asset-video','▶ 视频');card.prepend(badge);}
    card.ondragstart=function(e){e.dataTransfer.setData('text/aurora-background',id);card.classList.add('dragging');};card.ondragend=function(){card.classList.remove('dragging');};card.ondragover=function(e){if(Array.from(e.dataTransfer.types).indexOf('text/aurora-background')>=0)e.preventDefault();};card.ondrop=function(e){var from=e.dataTransfer.getData('text/aurora-background');if(from){e.preventDefault();moveOrder(scope,from,id);}};
    var arrows=node('div','asset-order');[-1,1].forEach(function(step){var b=button(step<0?'←':'→',function(){moveOrder(scope,id,existing[index+step]);});b.disabled=index+step<0||index+step>=existing.length;b.setAttribute('aria-label',(step<0?'前移 ':'后移 ')+asset.name);arrows.append(b);});var remove=button('删除素材',function(){deleteAsset(id);},'danger');arrows.append(remove);card.append(arrows);box.append(card);

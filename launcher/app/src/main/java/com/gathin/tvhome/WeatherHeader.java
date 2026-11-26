@@ -21,6 +21,8 @@ final class WeatherHeader {
         this.activity=activity;this.view=view;
     }
     private boolean minimal;
+    /** Last text drawn, so the 2 s poll does not rebuild the icons and relayout when nothing changed. */
+    private String lastLabel = "";
     void setMinimal(boolean value){minimal=value;render(false);}
     void resume(){active=true;refresh();}
     void pause(){active=false;main.removeCallbacks(tick);}
@@ -44,6 +46,7 @@ final class WeatherHeader {
         String text=cached();long age=System.currentTimeMillis()-activity.getSharedPreferences("aurora_service_state",0).getLong("weatherAt",0);
         String label=text==null?(failure?DesktopLanguage.city(activity)+DesktopLanguage.t(activity,"天气暂不可用 · 点此重试"):DesktopLanguage.city(activity)+DesktopLanguage.t(activity,"天气更新中…")):text+(failure||age>3*HOUR?DesktopLanguage.t(activity," · 待更新"):"");
         if(minimal&&label.contains("\n"))label=label.substring(0,label.indexOf("\n"));
+        if(label.equals(lastLabel))return;lastLabel=label;
         android.text.SpannableStringBuilder rich=new android.text.SpannableStringBuilder();
         java.util.regex.Matcher matcher=java.util.regex.Pattern.compile("@(\\d+)@").matcher(label);int last=0;
         StringBuilder spoken=new StringBuilder();
