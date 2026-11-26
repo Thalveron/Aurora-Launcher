@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.40",
-    "versionCode": 188,
+    "version": "0.4.41",
+    "versionCode": 189,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.40/Aurora-Launcher-v0.4.40.apk",
-    "sha256": "17f253c902de97a72a3eb5a6bf6c61590e083848d60fcf1ead82ad4957c14828",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.41/Aurora-Launcher-v0.4.41.apk",
+    "sha256": "73cbda5061e313081f226d8df770a15e65043871709fdbcc425eab6dbe7171bc",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.40\n\n- 下方两行歌词的上下间距收紧：上行 52%、下行 71%（原来 46%/74%）。\n- 下行与上行末尾的衔接间距由 1.5px 调到 4px，阶梯更清晰。\n- 两行总宽超屏时仍按比例缩小字号，不截断歌词内容。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.41\n\n- 下方两行改为固定成对显示：先点亮第一行，唱完后点亮第二行，两行都唱完才换成下一对。\n- 两行整块下移：上行 60%、下行 79%（原 52%/71%）。\n- 长句仍按比例缩小字号，阶梯衔接与 4px 间距不变。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }

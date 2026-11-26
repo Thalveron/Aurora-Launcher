@@ -85,12 +85,15 @@ final class ScrollingLyricsView extends View {
  }
  private void drawBottomTwo(Canvas c){
   int current=fullscreenScale>0?4:3;
-  String upper=lines[current],lower=lines[current+1];
-  if(TextUtils.isEmpty(upper))return;
+  // Fixed pairs: show two lines together, light the first, then the second, and only then advance.
+  boolean second=(index&1)!=0;
+  int upperSlot=second?current-1:current,lowerSlot=second?current:current+1;
+  String upper=upperSlot>=0?lines[upperSlot]:"",lower=lowerSlot<lines.length?lines[lowerSlot]:"";
+  if(TextUtils.isEmpty(upper)&&TextUtils.isEmpty(lower))return;
   float density=getResources().getDisplayMetrics().density;
   float inset=getWidth()*.05f,maxWidth=getWidth()-2*inset;
   float upperSize=36*fullscreenScale,lowerSize=26*fullscreenScale;
-  float upperWidth=measure(upper,upperSize,true),lowerWidth=TextUtils.isEmpty(lower)?0:measure(lower,lowerSize,false);
+  float upperWidth=measure(upper,upperSize,true),lowerWidth=measure(lower,lowerSize,TextUtils.isEmpty(lower)||second?true:false);
   float total=upperWidth+lowerWidth;
   if(total>maxWidth&&total>0){
    float factor=Math.max(.55f,maxWidth/total);
@@ -100,10 +103,10 @@ final class ScrollingLyricsView extends View {
   if(align==1)start=inset;
   else if(align==2)start=Math.max(inset,getWidth()-inset-(upperWidth+lowerWidth));
   else start=Math.max(inset,(getWidth()-(upperWidth+lowerWidth))/2f);
-  drawAt(c,upper,upperSize,start,getHeight()*.52f,base,255,true);
+  drawAt(c,upper,upperSize,start,getHeight()*.60f,base,255,!second);
   if(!TextUtils.isEmpty(lower)){
    float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*4f);
-   drawAt(c,lower,lowerSize,x,getHeight()*.71f,0xFFD4E2EF,175,false);
+   drawAt(c,lower,lowerSize,x,getHeight()*.79f,base,second?255:175,second);
   }
  }
  private float measure(String line,float size,boolean bold){
