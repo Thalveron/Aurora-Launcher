@@ -41,14 +41,17 @@ final class DesktopMusicScreen {
     DesktopMusicScreen(Activity a,java.util.function.Supplier<PersonalBackground> desktop){activity=a;this.desktop=desktop;}
     static android.content.SharedPreferences prefs(Context c){return c.getSharedPreferences("fullscreen_"+AuroraThemes.current(c),0);}
     static JSONObject settings(Context c)throws Exception{
-        return new JSONObject().put("minutes",prefs(c).getInt("minutes",0))
-                .put("background",prefs(c).getString("background",""))
-                .put("hideCover",prefs(c).getBoolean("hide_cover",false))
-                .put("lyricsAlign",prefs(c).getString("lyrics_align","center"))
-                .put("lyricsLayout",prefs(c).getString("lyrics_layout","side"))
-                .put("hideLyrics",prefs(c).getBoolean("hide_lyrics",false))
-                .put("spectrumEnabled",prefs(c).getBoolean("spectrum_enabled",true))
-                .put("spectrum",spectrum(c));
+        android.content.SharedPreferences p=prefs(c);
+        String raw=p.getString("spectrum","");
+        JSONObject spectrum=raw.isEmpty()?defaultSpectrum():new JSONObject(raw);
+        return new JSONObject().put("minutes",p.getInt("minutes",0))
+                .put("background",p.getString("background",""))
+                .put("hideCover",p.getBoolean("hide_cover",false))
+                .put("lyricsAlign",p.getString("lyrics_align","center"))
+                .put("lyricsLayout",p.getString("lyrics_layout","side"))
+                .put("hideLyrics",p.getBoolean("hide_lyrics",false))
+                .put("spectrumEnabled",p.getBoolean("spectrum_enabled",true))
+                .put("spectrum",spectrum);
     }
     static JSONObject spectrum(Context c)throws Exception{
         String raw=prefs(c).getString("spectrum","");
@@ -169,7 +172,8 @@ final class DesktopMusicScreen {
             android.util.DisplayMetrics m=activity.getResources().getDisplayMetrics();
             text.append("screen=").append(m.widthPixels).append('x').append(m.heightPixels).append('\n');
             text.append("align=").append(prefs(activity).getString("lyrics_align","center")).append(" layout=").append(prefs(activity).getString("lyrics_layout","side")).append('\n');
-            try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(dir,"fullscreen-debug.txt"))){out.write(text.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));}catch(Exception ignored){}
+            final String payload=text.toString();
+            new Thread(()->{try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(dir,"fullscreen-debug.txt"))){out.write(payload.getBytes(java.nio.charset.StandardCharsets.UTF_8));}catch(Exception ignored){}},"aurora-fullscreen-debug").start();
         }catch(Exception ignored){}
     }
     private void tintBackground(){
@@ -200,10 +204,12 @@ final class DesktopMusicScreen {
     }
     /** Local ADB can grant the capture permission the spectrum needs, without a manual dialog. */
     private void ensureAudioCapture(){
-        try{
-            if(activity.checkSelfPermission("android.permission.RECORD_AUDIO")==android.content.pm.PackageManager.PERMISSION_GRANTED)return;
-            if(TvAdb.status().optBoolean("connected"))TvAdb.shell(activity,"pm grant "+activity.getPackageName()+" android.permission.RECORD_AUDIO");
-        }catch(Exception ignored){}
+        if(activity.checkSelfPermission("android.permission.RECORD_AUDIO")==android.content.pm.PackageManager.PERMISSION_GRANTED)return;
+        final android.content.Context app=activity.getApplicationContext();
+        new Thread(()->{
+            try{if(TvAdb.status().optBoolean("connected"))TvAdb.shell(app,"pm grant "+app.getPackageName()+" android.permission.RECORD_AUDIO");}
+            catch(Exception ignored){}
+        },"aurora-capture-grant").start();
     }
     private void spectrumUnavailableHint(){
         if(spectrumHintShown||content==null)return;
@@ -362,7 +368,9 @@ final class DesktopMusicScreen {
             return true;
         });
         screen.show();update(controller);
-        if(spectrum!=null&&spectrumSettings!=null){JSONObject spec=spectrumSettings;handler.postDelayed(()->{if(screen==opened&&spectrum!=null){spectrum.setSpectrum(spec);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}},250);}
+        if(spectrum!=null&&spectrumSettings!=null){JSONObject spec=spectrumSettings;
+            long captureDelay=activity.checkSelfPermission("android.permission.RECORD_AUDIO")==android.content.pm.PackageManager.PERMISSION_GRANTED?250:1600;
+            handler.postDelayed(()->{if(screen==opened&&spectrum!=null){spectrum.setSpectrum(spec);spectrum.start();spectrum.setPlaying(true);spectrumRunning=true;}},captureDelay);}
         String path=videoPath;
         Runnable startBackground=()->{if(screen==opened&&running&&video!=null&&path!=null)video.setVideoPath(path);};
         if(background==null)startBackground.run();

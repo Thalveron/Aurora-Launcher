@@ -64,6 +64,6 @@ final class WeatherHeader {
         if(closed||!active)return;
         main.removeCallbacks(tick);
         try{AuroraServices.weather(activity);render(false);}catch(Exception failure){render(true);}
-        main.postDelayed(tick,2000);
+        main.postDelayed(tick,10000);
     }
 }

@@ -16,12 +16,15 @@ final class ScrollingLyricsView extends View {
  private float progress,offset;
  private ValueAnimator scroll,highlight;
  private final float fullscreenScale;
+ private final Typeface boldFont=Typeface.create("sans-serif",Typeface.BOLD);
+ private final Typeface normalFont=Typeface.create("sans-serif",Typeface.NORMAL);
+ private int highlightColor=0xFFFFD166;
  /** side: the original centred seven-row panel. bottom-one / bottom-two: strips for the fullscreen player. */
  private String layout="side";
  /** 0 centre, 1 left, 2 right: where a line sits inside the view. */
  private int align=0;
  ScrollingLyricsView(Context c){this(c,0);}
- ScrollingLyricsView(Context c,float scale){super(c);fullscreenScale=scale;if(scale>0)lines=new String[8];Arrays.fill(lines,"");setLayerType(View.LAYER_TYPE_SOFTWARE,null);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
+ ScrollingLyricsView(Context c,float scale){super(c);fullscreenScale=scale;highlightColor=c.getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166);if(scale>0)lines=new String[8];Arrays.fill(lines,"");setLayerType(View.LAYER_TYPE_SOFTWARE,null);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
  /** Fullscreen only: side (default), bottom-one, bottom-two, plus left/centre/right alignment. */
  void setStyle(String value,String alignment){
   if("side".equals(value)||"bottom-one".equals(value)||"bottom-two".equals(value))layout=value;
@@ -100,7 +103,7 @@ final class ScrollingLyricsView extends View {
   if(align==1)start=inset;
   else if(align==2)start=Math.max(inset,getWidth()-inset-fit);
   else start=Math.max(inset,(getWidth()-fit)/2f);
-  int sung=getContext().getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166);
+  int sung=highlightColor;
   drawAt(c,upper,upperSize,start,getHeight()*.72f,second?sung:base,255,!second);
   if(!TextUtils.isEmpty(lower)){
    float x=start+upperWidth+gap;
@@ -110,14 +113,14 @@ final class ScrollingLyricsView extends View {
  }
  private float measure(String line,float size,boolean bold){
   if(TextUtils.isEmpty(line))return 0;
-  text.setTypeface(Typeface.create("sans-serif",bold?Typeface.BOLD:Typeface.NORMAL));
+  text.setTypeface(bold?boldFont:normalFont);
   text.setTextSize(Math.max(8f,size));
   return text.measureText(line);
  }
  private void drawAt(Canvas c,String line,float size,float x,float centerY,int color,int alpha,boolean highlight){
   if(TextUtils.isEmpty(line))return;
   float density=getResources().getDisplayMetrics().density;
-  text.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));
+  text.setTypeface(boldFont);
   text.setTextSize(Math.max(8f,size));
   float width=text.measureText(line);
   float y=centerY-(text.ascent()+text.descent())/2f;
@@ -128,14 +131,14 @@ final class ScrollingLyricsView extends View {
    float completed=text.measureText(line,0,at);
    if(at<line.length())completed+=text.measureText(line,at,at+1)*(chars-at);
    int save=c.save();c.clipRect(x,y+text.ascent()-density,x+completed,y+text.descent()+density);
-   text.setColor(getContext().getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166));text.setAlpha(255);
+   text.setColor(highlightColor);text.setAlpha(255);
    c.drawText(line,x,y,text);c.restoreToCount(save);
   }
  }
  private float dp(){return getResources().getDisplayMetrics().density;}
  private void drawLine(Canvas c,String line,float size,float centerY,int color,int alpha,int alignMode,boolean highlight,float shift){
   if(TextUtils.isEmpty(line))return;
-  text.setTypeface(Typeface.create("sans-serif",highlight?Typeface.BOLD:Typeface.NORMAL));
+  text.setTypeface(highlight?boldFont:normalFont);
   text.setTextSize(Math.max(8f,size));
   float inset=getWidth()*.01f;
   float max=getWidth()-2*inset,width=text.measureText(line);
@@ -156,7 +159,7 @@ final class ScrollingLyricsView extends View {
    float completed=text.measureText(line,0,at);
    if(at<line.length())completed+=text.measureText(line,at,at+1)*(chars-at);
    int save=c.save();c.clipRect(x,y+text.ascent()-dp(),x+completed,y+text.descent()+dp());
-   text.setColor(getContext().getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166));text.setAlpha(255);
+   text.setColor(highlightColor);text.setAlpha(255);
    c.drawText(line,x,y,text);c.restoreToCount(save);
   }
  }

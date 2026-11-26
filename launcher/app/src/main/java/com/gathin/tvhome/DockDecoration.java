@@ -68,7 +68,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
             }
         }
         if(any){dock.inset(-14*density,-14*density);drawGlass(c,parent,dock,26*density);}
-        if(parent.hasWindowFocus())parent.postInvalidateDelayed(1000);
+        if(parent.hasWindowFocus())parent.postInvalidateDelayed(2000);
     }
     private void drawGlass(Canvas c,RecyclerView parent,RectF bounds,float radius){
         if(blurred!=null){

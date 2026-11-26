@@ -54,6 +54,7 @@ final class NowPlayingCard {
         else{place();scan();}
     }
     private Bitmap lastArtwork;
+    private String lastSavedTitle,lastSavedArtist;private long lastSavedDuration=-1;
     private final Runnable tick=new Runnable(){public void run(){if(!active)return;scan();updateProgress();main.postDelayed(this,1000);}};
     private final MediaSessionManager.OnActiveSessionsChangedListener changed=ignored->scan();
     private final BroadcastReceiver receiver=new BroadcastReceiver(){@Override public void onReceive(Context c,Intent i){scan();}};
@@ -245,7 +246,12 @@ final class NowPlayingCard {
         enable(previous,(actions&PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)!=0);enable(next,(actions&PlaybackStateCompat.ACTION_SKIP_TO_NEXT)!=0);
         enable(play,(actions&(PlaybackStateCompat.ACTION_PLAY|PlaybackStateCompat.ACTION_PAUSE|PlaybackStateCompat.ACTION_PLAY_PAUSE))!=0);
         spectrum.setPlaying(state!=null&&state.getState()==PlaybackStateCompat.STATE_PLAYING);renderMode();updateProgress();
-        activity.getSharedPreferences(Config.SETTINGS_NAME,0).edit().putString("music_last_title",song.toString()).putString("music_last_artist",artist.getText().toString()).putLong("music_last_duration",m.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)).apply();
+        String saveTitle=title.getText().toString(),saveArtist=artist.getText().toString();
+        long saveDuration=m.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
+        if(!saveTitle.equals(lastSavedTitle)||!saveArtist.equals(lastSavedArtist)||saveDuration!=lastSavedDuration){
+            lastSavedTitle=saveTitle;lastSavedArtist=saveArtist;lastSavedDuration=saveDuration;
+            activity.getSharedPreferences(Config.SETTINGS_NAME,0).edit().putString("music_last_title",saveTitle).putString("music_last_artist",saveArtist).putLong("music_last_duration",saveDuration).apply();
+        }
     }
     private void enable(Button b,boolean enabled){b.setEnabled(enabled);b.setAlpha(enabled?1:.4f);}
     private void renderMode(){if(controller==null)return;int shuffle=controller.getShuffleMode(),repeat=controller.getRepeatMode();

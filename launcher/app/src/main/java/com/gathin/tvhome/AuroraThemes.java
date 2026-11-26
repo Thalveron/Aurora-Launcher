@@ -9,20 +9,37 @@ import java.nio.charset.StandardCharsets;
 
 final class AuroraThemes {
     static final String FOUNDATION="foundation";
-    static File root(Context c)throws IOException {
-        File external=c.getExternalFilesDir(null);if(external==null)throw new IOException("应用外部目录不可用");
-        File root=new File(external,"aurora");if(!root.isDirectory()&&!root.mkdirs())throw new IOException("无法创建主题目录");return root;
+    private static File rootCache;private static Context rootOwner;
+    private static String configText;private static long configStamp=Long.MIN_VALUE;
+    private static String currentId;private static long currentStamp=Long.MIN_VALUE;
+    static synchronized File root(Context c)throws IOException {
+        Context app=c.getApplicationContext();
+        if(rootCache!=null&&rootOwner==app)return rootCache;
+        File external=app.getExternalFilesDir(null);if(external==null)throw new IOException("应用外部目录不可用");
+        File root=new File(external,"aurora");if(!root.isDirectory()&&!root.mkdirs())throw new IOException("无法创建主题目录");
+        rootCache=root;rootOwner=app;return root;
+    }
+    private static long stamp(File file){return file.lastModified()*31+file.length();}
+    private static JSONObject defaults(Context c,boolean recovered)throws Exception{
+        JSONObject value=new JSONObject().put("locale",DesktopLanguage.code(c)).put("consoleLocale","zh-CN").put("theme","legacy").put("lastGood","legacy").put("icon_fallback","app");
+        return recovered?value.put("recovered",true):value;
     }
     static synchronized JSONObject config(Context c)throws Exception {
-        AtomicFile file=new AtomicFile(new File(root(c),"config.json"));
-        try(InputStream in=file.openRead()){JSONObject value=new JSONObject(new String(read(in,1024*1024),StandardCharsets.UTF_8));value.put("locale",DesktopLanguage.code(c));if(!value.has("consoleLocale"))value.put("consoleLocale","zh-CN");return value;}
-        catch(FileNotFoundException missing){return new JSONObject().put("locale",DesktopLanguage.code(c)).put("consoleLocale","zh-CN").put("theme","legacy").put("lastGood","legacy").put("icon_fallback","app");}
-        catch(Exception corrupt){return new JSONObject().put("locale",DesktopLanguage.code(c)).put("consoleLocale","zh-CN").put("theme","legacy").put("lastGood","legacy").put("icon_fallback","app").put("recovered",true);}
+        File file=new File(root(c),"config.json");long stamp=stamp(file);String text;
+        if(configText!=null&&configStamp==stamp)text=configText;
+        else{
+            try(InputStream in=new AtomicFile(file).openRead()){text=new String(read(in,1024*1024),StandardCharsets.UTF_8);}
+            catch(FileNotFoundException missing){configText=null;configStamp=stamp;return defaults(c,false);}
+            configText=text;configStamp=stamp;
+        }
+        try{JSONObject value=new JSONObject(text);value.put("locale",DesktopLanguage.code(c));if(!value.has("consoleLocale"))value.put("consoleLocale","zh-CN");return value;}
+        catch(Exception corrupt){return defaults(c,true);}
     }
     static synchronized void save(Context c,JSONObject config)throws Exception {
         AtomicFile file=new AtomicFile(new File(root(c),"config.json"));FileOutputStream out=null;
         try{out=file.startWrite();out.write(config.toString().getBytes(StandardCharsets.UTF_8));file.finishWrite(out);}
         catch(Exception error){if(out!=null)file.failWrite(out);throw error;}
+        configText=null;configStamp=Long.MIN_VALUE;currentId=null;currentStamp=Long.MIN_VALUE;
     }
     static String id(String id) {
         if(!id.matches("[a-z][a-z0-9_-]{0,39}"))throw new IllegalArgumentException("主题编号无效");return id;
@@ -62,9 +79,13 @@ final class AuroraThemes {
         if(path.startsWith("themes/user_"))return AuroraCssThemes.asset(c,path);
         try(InputStream in=c.getAssets().open("aurora/"+path)){return read(in,4*1024*1024);}
     }
-    static String current(Context c) {
-        try{String id=config(c).optString("theme","legacy");manifest(c,id);return id;}
-        catch(Exception invalid){return "legacy";}
+    static synchronized String current(Context c) {
+        try{
+            long stamp=stamp(new File(root(c),"config.json"));
+            if(currentId!=null&&currentStamp==stamp)return currentId;
+            String id=config(c).optString("theme","legacy");manifest(c,id);
+            currentId=id;currentStamp=stamp;return id;
+        }catch(Exception invalid){return "legacy";}
     }
     static byte[] read(InputStream in,int limit)throws IOException {
         ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[8192];int n;
