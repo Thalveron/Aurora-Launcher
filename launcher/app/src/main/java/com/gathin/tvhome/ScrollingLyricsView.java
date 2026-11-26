@@ -103,10 +103,12 @@ final class ScrollingLyricsView extends View {
   if(align==1)start=inset;
   else if(align==2)start=Math.max(inset,getWidth()-inset-(upperWidth+lowerWidth));
   else start=Math.max(inset,(getWidth()-(upperWidth+lowerWidth))/2f);
-  drawAt(c,upper,upperSize,start,getHeight()*.72f,base,255,!second);
+  int sung=getContext().getSharedPreferences(Config.SETTINGS_NAME,0).getInt("lyrics_highlight",0xFFFFD166);
+  // A finished row keeps the sung colour; the next row stays as bright as the upper one.
+  drawAt(c,upper,upperSize,start,getHeight()*.72f,second?sung:base,255,!second);
   if(!TextUtils.isEmpty(lower)){
    float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*4f);
-   drawAt(c,lower,lowerSize,x,getHeight()*.90f,base,second?255:175,second);
+   drawAt(c,lower,lowerSize,x,getHeight()*.90f,base,255,second);
   }
  }
  private float measure(String line,float size,boolean bold){

@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.42",
-    "versionCode": 190,
+    "version": "0.4.43",
+    "versionCode": 191,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.42/Aurora-Launcher-v0.4.42.apk",
-    "sha256": "100f99fd4fb82e9727153104d4d3633c387aae20ece66c579726817ae4614253",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.43/Aurora-Launcher-v0.4.43.apk",
+    "sha256": "22ec8e462e6b3e94e276acada57c1efbf75f5b96c3565e513553ff5321e337b9",
     "bytes": 17500513,
-    "notes": "Aurora Launcher 0.4.42\n\n- 下方两行歌词统一字号与字重：都是 32 号粗体，不再一大一小。\n- 两行整块继续下移：上行 72%、下行 90%；歌词块底部留白由 170 收到 150，为下移腾出空间。\n- 成对显示、顺序点亮、长句自动缩字保持不变。\n- 更新保留现有用户设置。\n"
+    "notes": "Aurora Launcher 0.4.43\n\n- 下方两行歌词：唱完的一行保持“已唱”颜色（逐字高亮色，默认金色），不再回落到未唱颜色。\n- 未唱的下行与上行同字号、同粗体、同亮度（去掉原来 175 的透明度）。\n- 正在唱的行仍按进度逐字高亮。\n- 更新保留现有用户设置。\n"
   },
   "history": []
 }
