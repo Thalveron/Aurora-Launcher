@@ -246,7 +246,7 @@ final class DesktopMusicScreen {
         if("bottom-one".equals(layout)||"bottom-two".equals(layout)){
             int box="bottom-two".equals(layout)?Math.round(300*scale):Math.round(190*scale);
             FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(Math.round(width*.9f),box,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-            lines.bottomMargin=Math.round(170*scale);
+            lines.bottomMargin=Math.round(("bottom-two".equals(layout)?150:170)*scale);
             return lines;
         }
         FrameLayout.LayoutParams lines=new FrameLayout.LayoutParams(width,Math.round(824*scale));
@@ -335,7 +335,7 @@ final class DesktopMusicScreen {
             if("bottom-one".equals(lyricsLayout)||"bottom-two".equals(lyricsLayout)){
                 int height="bottom-two".equals(lyricsLayout)?Math.round(300*scale):Math.round(190*scale);
                 lines=new FrameLayout.LayoutParams(Math.round(metrics.widthPixels*.9f),height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-                lines.bottomMargin=Math.round(170*scale);
+                lines.bottomMargin=Math.round(("bottom-two".equals(lyricsLayout)?150:170)*scale);
             }else{
                 lines=new FrameLayout.LayoutParams(metrics.widthPixels,Math.round(824*scale));
                 lines.topMargin=Math.round((metrics.heightPixels-lines.height)/2f);

@@ -92,8 +92,8 @@ final class ScrollingLyricsView extends View {
   if(TextUtils.isEmpty(upper)&&TextUtils.isEmpty(lower))return;
   float density=getResources().getDisplayMetrics().density;
   float inset=getWidth()*.05f,maxWidth=getWidth()-2*inset;
-  float upperSize=36*fullscreenScale,lowerSize=26*fullscreenScale;
-  float upperWidth=measure(upper,upperSize,true),lowerWidth=measure(lower,lowerSize,TextUtils.isEmpty(lower)||second?true:false);
+  float upperSize=32*fullscreenScale,lowerSize=32*fullscreenScale;
+  float upperWidth=measure(upper,upperSize,true),lowerWidth=measure(lower,lowerSize,true);
   float total=upperWidth+lowerWidth;
   if(total>maxWidth&&total>0){
    float factor=Math.max(.55f,maxWidth/total);
@@ -103,10 +103,10 @@ final class ScrollingLyricsView extends View {
   if(align==1)start=inset;
   else if(align==2)start=Math.max(inset,getWidth()-inset-(upperWidth+lowerWidth));
   else start=Math.max(inset,(getWidth()-(upperWidth+lowerWidth))/2f);
-  drawAt(c,upper,upperSize,start,getHeight()*.60f,base,255,!second);
+  drawAt(c,upper,upperSize,start,getHeight()*.72f,base,255,!second);
   if(!TextUtils.isEmpty(lower)){
    float x=Math.min(getWidth()-inset-lowerWidth,start+upperWidth+density*4f);
-   drawAt(c,lower,lowerSize,x,getHeight()*.79f,base,second?255:175,second);
+   drawAt(c,lower,lowerSize,x,getHeight()*.90f,base,second?255:175,second);
   }
  }
  private float measure(String line,float size,boolean bold){
@@ -118,7 +118,7 @@ final class ScrollingLyricsView extends View {
  private void drawAt(Canvas c,String line,float size,float x,float centerY,int color,int alpha,boolean highlight){
   if(TextUtils.isEmpty(line))return;
   float density=getResources().getDisplayMetrics().density;
-  text.setTypeface(Typeface.create("sans-serif",highlight?Typeface.BOLD:Typeface.NORMAL));
+  text.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));
   text.setTextSize(Math.max(8f,size));
   float width=text.measureText(line),max=getWidth()-2*getWidth()*.01f;
   if(width>max&&width>0){text.setTextSize(text.getTextSize()*max/width);width=max;}
