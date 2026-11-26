@@ -57,6 +57,12 @@ final class PersonalBackground {
         scheduleSlides();
         long next = activity.getSharedPreferences("background", 0).getLong("revision", 0);
         if (next != revision) { revision = next;slide=null;slideIndex=0;java.util.List<File> files=playlist();if(!files.isEmpty())slide=files.get(0);scheduleSlides();if(!contentKey.equals(key())){clearViews();show();} }
+        // An activity that was recreated or whose view was detached can come back with no media view.
+        if (media == null || media.getParent() == null) { clearViews(); show(); }
+        // The SurfaceView's producer may have been destroyed while the app was in the background while
+        // the old MediaPlayer stayed attached. Rebuild the player so the first frame is drawn again.
+        if (player != null) releasePlayer();
+        videoAttempts = 0;
         if(surfaceReady)startVideo();
     }
     private Object fullscreenOwner;
