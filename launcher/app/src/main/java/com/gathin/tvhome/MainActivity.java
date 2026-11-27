@@ -127,6 +127,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     // scroll moves the glass in lockstep with its tile instead of becoming a moving spring target.
     private float glassScrollShift;
     private boolean glassShown;
+    private boolean gridFocusPending;
     // Static so they survive the activity being destroyed while another app is open (low-memory TVs,
     // or Developer options → "Don't keep activities"); they only reset when the process dies.
     private static int lastFocused = 0;
@@ -204,6 +205,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         handler.postDelayed(this,250);
     }};
     private long webLayoutRevision;
+    static volatile boolean focusGridOnResume;
+    static void focusGridAfterSaver(){focusGridOnResume=true;}
     static boolean isHomeVisible(){return visibleHome!=null;}
     static boolean focusHomeInPlace(){
         MainActivity home=visibleHome;if(home==null)return false;
@@ -795,6 +798,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onResume();if(preparingDefaults)return;desktopMusicScreen=new DesktopMusicScreen(this,()->personalBackground);desktopMusicScreen.start();AuroraServices.resync();if(!AuroraThemes.current(this).equals("legacy")&&!getIntent().getBooleanExtra("aurora_recovery",false)){AuroraThemes.open(this);return;}if(!DesktopLanguage.code(this).equals(desktopLocaleAtCreation)){recreateForLanguage();return;}
         if(webLayoutRevision!=getSharedPreferences(Config.SETTINGS_NAME,0).getLong("web_layout_revision",0)){recreate();return;}
         visibleHome=this;
+        if(focusGridOnResume){focusGridOnResume=false;gridFocusPending=true;grid.postDelayed(()->ensureGridFocus(8),300);}
+        grid.postDelayed(this::snapFocusGlass,350);
+        grid.postDelayed(this::snapFocusGlass,1000);
         getWindow().getDecorView().postDelayed(()->{if(visibleHome==this&&!initialAppsPending)UpdateHealth.uiReady(this);},1500);
         handler.removeCallbacks(globalClockTick);handler.post(globalClockTick);
         WebPreview.window=getWindow();
@@ -969,6 +975,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onWindowFocusChanged(hasFocus);if(preparingDefaults)return;
         if (hasFocus) {
             if(personalBackground!=null)personalBackground.onWindowFocusGained();
+            if(gridFocusPending)ensureGridFocus(8);
+            grid.postDelayed(this::snapFocusGlass,250);
+            grid.postDelayed(this::snapFocusGlass,900);
             if (libraryFocusPending && appLibrary == null) focusLibrary();
             showCardPrompt();
         }
@@ -1219,6 +1228,28 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         openPopup = appLibrary.popup;
         appLibrary.show();
+    }
+
+    /** Put focus back on the first tile after the screensaver; retry until the window accepts focus. */
+    private void ensureGridFocus(int attempts){
+        if(attempts<=0||grid==null||isFinishing())return;
+        View focused=grid.findFocus();
+        if(focused!=null&&grid.findContainingViewHolder(focused)!=null){gridFocusPending=false;snapFocusGlass();return;}
+        focusTile(0);
+        grid.postDelayed(()->ensureGridFocus(attempts-1),300);
+    }
+
+    /** Re-snap the focus glass to the focused tile after a resume; layout and scroll may have moved. */
+    private void snapFocusGlass(){
+        if(grid==null||!hasWindowFocus()||isFinishing())return;
+        View focused=grid.findFocus();
+        if(focused==null){focusTile(0);return;}
+        RecyclerView.ViewHolder holder=grid.findContainingViewHolder(focused);if(holder==null)return;
+        int position=holder.getBindingAdapterPosition();if(position==RecyclerView.NO_POSITION)return;
+        springX.cancel();springY.cancel();glassScrollShift=0;
+        onTileFocused(position,focused);
+        glass.setTranslationX(glassTargetX);
+        glass.setTranslationY(glassTargetY);
     }
 
     @Override

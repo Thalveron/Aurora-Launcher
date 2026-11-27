@@ -25,5 +25,5 @@ final class AuroraSaver {
         }
         launching=0;active=true;AuroraActivity.nativeSaver(true);return new JSONObject().put("active",true);
     });}
-    static void exit(Context c){launching=0;active=false;AuroraActivity.nativeSaver(false);AuroraBgm.silence(c);AuroraActivity.finishSaverHost();}
+    static void exit(Context c){launching=0;active=false;AuroraActivity.nativeSaver(false);AuroraBgm.silence(c);MainActivity.focusGridAfterSaver();AuroraActivity.finishSaverHost();}
 }

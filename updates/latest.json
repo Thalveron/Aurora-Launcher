@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.84",
-    "versionCode": 232,
+    "version": "0.4.89",
+    "versionCode": 237,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.84/Aurora-Launcher-v0.4.84.apk",
-    "sha256": "48ca5972dda29c23ea086b549bedbef21ebfd966eca50e0756e09f4ecbac1acf",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.89/Aurora-Launcher-v0.4.89.apk",
+    "sha256": "4b27e2d8916f627e4cfcf1ff22d4309b254ab21c1db63312737c6b7279c1614a",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.84\n\n- 背景库排序：当前主题、屏保、共享屏保、全屏音乐正在使用的背景自动排在前面，未使用的排在后面。\n- 保留 0.4.83 的 TextureView 全屏铺满与 HDMI 切换修复。\n"
+    "notes": "Aurora Launcher 0.4.89\n\n- 桌面频谱：媒体没有播放时不再绘制，停止后会立即清空。\n- 屏保频谱：背景音乐没有播放时不再绘制，避免残留或误画。\n- 保留 0.4.88 的视频背景修复与 0.4.84 的背景库排序。\n"
   },
   "history": []
 }
