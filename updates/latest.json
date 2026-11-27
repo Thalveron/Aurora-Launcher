@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.89",
-    "versionCode": 237,
+    "version": "0.4.90",
+    "versionCode": 238,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.89/Aurora-Launcher-v0.4.89.apk",
-    "sha256": "4b27e2d8916f627e4cfcf1ff22d4309b254ab21c1db63312737c6b7279c1614a",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.90/Aurora-Launcher-v0.4.90.apk",
+    "sha256": "184561af3c3506a8c2b4c34bafcca89c8519eb32ff5e76a3e5837b5ecc887e76",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.89\n\n- 桌面频谱：媒体没有播放时不再绘制，停止后会立即清空。\n- 屏保频谱：背景音乐没有播放时不再绘制，避免残留或误画。\n- 保留 0.4.88 的视频背景修复与 0.4.84 的背景库排序。\n"
+    "notes": "Aurora Launcher 0.4.90\n\n- 屏保 bgm 请求：播放时 1 秒一次，停止时降到 5 秒一次，仍能自动发现音乐开始。\n- i18n MutationObserver 忽略歌曲/进度/时间等高频区域，其余文本节流 250ms，减少每秒全量 DOM 翻译。\n- 语音配置轮询 15 秒改为 60 秒。\n- 视频背景 preload 改为 metadata，切换壁纸时不再立即全量缓冲。\n- 保留 0.4.89 的频谱仅播放时绘制。\n"
   },
   "history": []
 }

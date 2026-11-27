@@ -8,7 +8,15 @@
  if(observer)observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','title','placeholder','alt']});}
  function set(value){if(['zh-CN','en-US'].indexOf(value)<0)return;language=value;localStorage.setItem(localeKey,value);translate();}
  fetch('/core/strings-en.json').then(function(r){if(r.ok===false)throw Error('Translation catalog unavailable');return r.json();}).then(function(v){dictionary=v;var keys=Object.keys(v).filter(function(k){return /[\u4e00-\u9fff]/.test(k)&&k.trim().length>1;}).sort(function(a,b){return b.length-a.length;});phrasePattern=keys.length?new RegExp(keys.map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|'),'g'):null;translate();}).catch(function(){console.warn('Aurora translation catalog could not be loaded');});
- document.addEventListener('DOMContentLoaded',function(){observer=new MutationObserver(function(){if(!scheduled){scheduled=true;requestAnimationFrame(translate);}});translate();function refresh(){if(!document.hidden&&location.pathname.indexOf('login.html')<0&&window.AuroraAPI)AuroraAPI.request('config').then(function(c){set((consolePage?c.consoleLocale:c.locale)||'zh-CN');}).catch(function(){});}if(consolePage&&!window.AuroraAPI){fetch('/api/v1/config',{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(v){if(v.ok)set(v.data.consoleLocale||'zh-CN');}).catch(function(){});}refresh();setInterval(refresh,15000);});
+ document.addEventListener('DOMContentLoaded',function(){observer=new MutationObserver(function(records){
+  var relevant=false;
+  for(var i=0;i<records.length;i++){
+    var target=records[i].target,el=target.nodeType===1?target:target.parentElement;
+    if(!el||!el.closest('#song,#artist,#progress,.time,#desktop-lyrics,#saver-lyrics,#saver-greeting')){relevant=true;break;}
+  }
+  if(!relevant)return;
+  if(!scheduled){scheduled=true;setTimeout(function(){scheduled=false;requestAnimationFrame(translate);},250);}
+});translate();function refresh(){if(!document.hidden&&location.pathname.indexOf('login.html')<0&&window.AuroraAPI)AuroraAPI.request('config').then(function(c){set((consolePage?c.consoleLocale:c.locale)||'zh-CN');}).catch(function(){});}if(consolePage&&!window.AuroraAPI){fetch('/api/v1/config',{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(v){if(v.ok)set(v.data.consoleLocale||'zh-CN');}).catch(function(){});}refresh();setInterval(refresh,15000);});
  window.addEventListener('storage',function(e){if(e.key===localeKey&&e.newValue)set(e.newValue);});
  var confirm=window.confirm,prompt=window.prompt;window.confirm=function(s){return confirm(t(s));};window.prompt=function(s,v){return prompt(t(s),v);};
  window.AuroraI18n={set:set,t:t,get:function(){return language;}};
