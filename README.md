@@ -4,7 +4,7 @@ Android TV 可定制桌面：原生极简桌面、网页主题层和局域网 We
 
 ## 下载
 
-[最新版本](https://github.com/Thalveron/Aurora-Launcher/releases/latest) · 当前 v0.4.94
+[最新版本](https://github.com/Thalveron/Aurora-Launcher/releases/latest) · 当前 v0.4.95
 
 支持图片/视频背景（含 4K）、屏保、背景音乐、歌词与频谱、时间天气、应用管理和在线更新。全新安装会内置一套桌面、屏保、全屏音乐配置及三套背景；已有安装保留自己的设置。
 

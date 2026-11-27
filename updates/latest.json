@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.94",
-    "versionCode": 242,
+    "version": "0.4.95",
+    "versionCode": 243,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.94/Aurora-Launcher-v0.4.94.apk",
-    "sha256": "ef402cc5293c1e5625f0935df82d71dc5272cfd81966111490974c934637dba9",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.95/Aurora-Launcher-v0.4.95.apk",
+    "sha256": "674e999b47116c0d9b2a7f0ce51a9b24c0397abbbceebc33aa854f71d39bc62b",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.94\n\n- 暂停时忽略音乐 App 继续广播的逐帧歌词更新，避免暂停后卡片反复重绘。\n- 外观设置序列化保持每秒一次；rAF 仍按播放状态续帧。\n- 移除 0.4.93 诊断日志。\n"
+    "notes": "Aurora Launcher 0.4.95\n\n- 桌面信息抽屉先显示标题与标签，内容延后一帧填充，减少打开时的卡住感。\n- 入场动画 240ms 改为 160ms，并从 25% 位置起滑。\n- 二维码改为后台线程生成，先占位再填入，避免主线程被 650×650 编码阻塞。\n- 保留 0.4.94 的暂停歌词更新过滤。\n"
   },
   "history": []
 }

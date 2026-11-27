@@ -11,7 +11,7 @@ public final class DesktopInformationActivity extends Activity {
  @Override public void onCreate(Bundle state){
   super.onCreate(state);getWindow().setFlags(1024,1024);getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
   LinearLayout root=new LinearLayout(this);root.setPadding(dp(24),dp(20),dp(24),dp(16));root.setOrientation(LinearLayout.VERTICAL);
-  android.graphics.drawable.GradientDrawable panel=new android.graphics.drawable.GradientDrawable();panel.setColor(0xfa142130);panel.setCornerRadii(new float[]{dp(24),dp(24),0,0,0,0,dp(24),dp(24)});root.setBackground(panel);setContentView(root);drawer=root;root.post(()->{if(closing)return;root.setTranslationX(root.getWidth());root.animate().translationX(0).setDuration(240).start();});
+  android.graphics.drawable.GradientDrawable panel=new android.graphics.drawable.GradientDrawable();panel.setColor(0xfa142130);panel.setCornerRadii(new float[]{dp(24),dp(24),0,0,0,0,dp(24),dp(24)});root.setBackground(panel);setContentView(root);drawer=root;root.post(()->{if(closing)return;root.setTranslationX(root.getWidth()*0.25f);root.animate().translationX(0).setDuration(160).start();});
   Point screen=new Point();getWindowManager().getDefaultDisplay().getSize(screen);getWindow().setGravity(Gravity.RIGHT|Gravity.TOP);getWindow().setLayout(Math.min(dp(640),Math.round(screen.x*.62f)),ViewGroup.LayoutParams.MATCH_PARENT);setFinishOnTouchOutside(true);
   title(root,t("桌面信息"),26);try{title(root,"Aurora Launcher · v"+LauncherUpdater.version(this),15);}catch(Exception ignored){}
   LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);root.addView(tabs,new LinearLayout.LayoutParams(-1,-2));
@@ -20,7 +20,7 @@ public final class DesktopInformationActivity extends Activity {
   ScrollView scroll=new ScrollView(this);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(4),0,dp(4),dp(20));scroll.addView(content);
   settingsTab.setOnFocusChangeListener((v,focused)->{if(focused&&(updatePage||projectPage)){updatePage=false;settings();}});updatesTab.setOnFocusChangeListener((v,focused)->{if(focused&&!updatePage){updatePage=true;updates();}});
   projectTab.setOnFocusChangeListener((v,focused)->{if(focused&&!projectPage)project();});
-  LauncherUpdater.start(this);if("updates".equals(getIntent().getStringExtra("page"))){updatePage=true;updates();updatesTab.requestFocus();}else{settings();settingsTab.requestFocus();}main.postDelayed(refresh,2000);
+  LauncherUpdater.start(this);if("updates".equals(getIntent().getStringExtra("page"))){updatePage=true;updatesTab.requestFocus();root.post(()->{if(!closing)updates();});}else{settingsTab.requestFocus();root.post(()->{if(!closing)settings();});}main.postDelayed(refresh,2000);
  }
  @Override public void finish(){if(closing)return;if(drawer==null){super.finish();return;}closing=true;drawer.animate().translationX(drawer.getWidth()).setDuration(180).withEndAction(this::finishNow).start();}
  private void finishNow(){super.finish();overridePendingTransition(0,0);}
@@ -60,9 +60,25 @@ public final class DesktopInformationActivity extends Activity {
   updatePage=false;projectPage=true;content.removeAllViews();
   String url="https://github.com/Thalveron/Aurora-Launcher";
   title(content,t("项目地址"),30);title(content,url,20);
-  try{addQr(url);}catch(WriterException error){title(content,t("二维码生成失败"),18);}
+  addQr(url);
  }
- private void addQr(String url)throws WriterException{java.util.Map<EncodeHintType,Object> hints=new java.util.EnumMap<>(EncodeHintType.class);hints.put(EncodeHintType.CHARACTER_SET,"UTF-8");hints.put(EncodeHintType.MARGIN,3);BitMatrix matrix=new MultiFormatWriter().encode(url,BarcodeFormat.QR_CODE,650,650,hints);int[] pixels=new int[650*650];for(int y=0;y<650;y++)for(int x=0;x<650;x++)pixels[y*650+x]=matrix.get(x,y)?Color.BLACK:Color.WHITE;ImageView qr=new ImageView(this);qr.setImageBitmap(Bitmap.createBitmap(pixels,650,650,Bitmap.Config.ARGB_8888));qr.setContentDescription(url);LinearLayout.LayoutParams qrSize=new LinearLayout.LayoutParams(dp(240),dp(240));qrSize.gravity=Gravity.CENTER_HORIZONTAL;qrSize.topMargin=dp(16);content.addView(qr,qrSize);}
+ private void addQr(String url){
+  final FrameLayout slot=new FrameLayout(this);
+  LinearLayout.LayoutParams qrSize=new LinearLayout.LayoutParams(dp(240),dp(240));
+  qrSize.gravity=Gravity.CENTER_HORIZONTAL;qrSize.topMargin=dp(16);
+  content.addView(slot,qrSize);
+  new Thread(()->{
+   try{
+    java.util.Map<EncodeHintType,Object> hints=new java.util.EnumMap<>(EncodeHintType.class);
+    hints.put(EncodeHintType.CHARACTER_SET,"UTF-8");hints.put(EncodeHintType.MARGIN,3);
+    BitMatrix matrix=new MultiFormatWriter().encode(url,BarcodeFormat.QR_CODE,650,650,hints);
+    int[] pixels=new int[650*650];
+    for(int y=0;y<650;y++)for(int x=0;x<650;x++)pixels[y*650+x]=matrix.get(x,y)?Color.BLACK:Color.WHITE;
+    final Bitmap bmp=Bitmap.createBitmap(pixels,650,650,Bitmap.Config.ARGB_8888);
+    main.post(()->{if(isFinishing()||isDestroyed()||slot.getParent()==null)return;ImageView qr=new ImageView(this);qr.setImageBitmap(bmp);qr.setContentDescription(url);slot.addView(qr);});
+   }catch(Exception ignored){}
+  },"aurora-qr").start();
+ }
  private void homeAction(boolean restore){new Thread(()->{try{JSONObject result=restore?DefaultHome.restore(this,new JSONObject().put("confirmed",true)):DefaultHome.takeOver(this,new JSONObject().put("confirmed",true).put("disableOriginal",true));main.post(()->{if(isFinishing()||closing)return;Toast.makeText(this,result.optString("message"),Toast.LENGTH_LONG).show();if(!updatePage&&!projectPage)settings();});}catch(Exception e){main.post(()->Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show());}},"aurora-default-home").start();}
  private void updates(){
   projectPage=false;
