@@ -26,7 +26,7 @@ public class AuroraActivity extends Activity {
         if(android.os.SystemClock.elapsedRealtime()>deadline){fallback("主题没有及时准备好，已返回原生桌面");return;}
         web.evaluateJavascript("document.documentElement.dataset.auroraReady === 'true'",value->{
             if(closed)return;
-            if("true".equals(value)){ready=true;UpdateHealth.uiReady(AuroraActivity.this);if(saverOnly){try{saverError="";AuroraSaver.enter(AuroraActivity.this);}catch(Exception error){saverError=String.valueOf(error);android.widget.Toast.makeText(AuroraActivity.this,error.getMessage(),android.widget.Toast.LENGTH_LONG).show();finish();}main.postDelayed(()->loading.setVisibility(android.view.View.GONE),250);return;}nativeSaver(AuroraSaver.active);loading.setVisibility(android.view.View.GONE);
+            if("true".equals(value)){ready=true;UpdateHealth.uiReady(AuroraActivity.this);if(saverOnly){try{saverError="";AuroraSaver.enter(AuroraActivity.this);}catch(Exception error){saverError=String.valueOf(error);saverLog("enter: "+error);android.widget.Toast.makeText(AuroraActivity.this,error.getMessage(),android.widget.Toast.LENGTH_LONG).show();finish();}main.postDelayed(()->loading.setVisibility(android.view.View.GONE),250);return;}nativeSaver(AuroraSaver.active);loading.setVisibility(android.view.View.GONE);
                 new Thread(()->{try{org.json.JSONObject config=AuroraThemes.config(AuroraActivity.this);config.put("lastGood",theme);if(triedPackaged){config.put("theme",AuroraThemes.FOUNDATION);config.put("forcePackaged",true);}AuroraThemes.save(AuroraActivity.this,config);}catch(Exception ignored){}},"aurora-ready").start();}
             else main.postDelayed(this,250);
         });
@@ -95,7 +95,12 @@ public class AuroraActivity extends Activity {
         if(!latch.await(2,java.util.concurrent.TimeUnit.SECONDS)||result[0]==null){org.json.JSONArray stack=new org.json.JSONArray();for(StackTraceElement e:android.os.Looper.getMainLooper().getThread().getStackTrace())stack.put(e.toString());return new org.json.JSONObject().put("ready","false").put("mainStack",stack);}return new org.json.JSONObject(result[0]).put("idleMillis",idleMillis()).put("saverActive",AuroraSaver.active).put("saverError",saverError);
     }
     private boolean trusted(android.net.Uri uri){return "http".equals(uri.getScheme())&&"127.0.0.1".equals(uri.getHost())&&uri.getPort()==8899;}
+    private void saverLog(String message){
+        if(!saverOnly)return;
+        try{java.io.File f=new java.io.File(getExternalFilesDir(null),"saver-error.txt");java.io.FileWriter w=new java.io.FileWriter(f,true);w.write(android.os.SystemClock.elapsedRealtime()+" "+message+" url="+web.getUrl()+"\n");w.close();}catch(Exception ignored){}
+    }
     private void fallback(String message){
+        saverLog("fallback: "+message);
         if(closed)return;
         if(saverOnly){android.widget.Toast.makeText(this,message,android.widget.Toast.LENGTH_LONG).show();finish();return;}
         if(!triedPackaged&&web!=null){triedPackaged=true;theme=AuroraThemes.FOUNDATION;ready=false;

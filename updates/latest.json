@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.96",
-    "versionCode": 244,
+    "version": "0.4.101",
+    "versionCode": 249,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.96/Aurora-Launcher-v0.4.96.apk",
-    "sha256": "6846801912ba7d77164ecc30c3cc3e8f79e21825c7eb58eac9ceddd8c482f3e8",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.101/Aurora-Launcher-v0.4.101.apk",
+    "sha256": "779bf163db0f057e3efb05cffdcefdef90823a990145d0a8f189e40bcc181f1a",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.96\n\n- 屏保天气图标从系统 emoji 改为内联矢量 SVG，天气符号不再模糊。\n- 保留 0.4.95 的桌面信息抽屉与二维码异步生成。\n"
+    "notes": "Aurora Launcher v0.4.101\n\n- 屏保修复：恢复 0.4.98/0.4.99 误删的 WebView 初始化（JavaScript、DOM 存储、媒体自动播放、本地会话 Cookie、加载提示、错误兜底），屏保不再 15 秒超时退出；补齐 weatherIcon() 定义，修复“屏保加载失败”。\n- 屏保天气图标改为彩色内联矢量 SVG：太阳金黄、云朵浅蓝、雨滴蓝色、雪花淡蓝、雷电黄色；阴天/雾用更深的蓝灰云。\n- 图标加轻微投影，浅色壁纸下也清晰；尺寸微调到 1.15em。\n"
   },
   "history": []
 }
