@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.91",
-    "versionCode": 239,
+    "version": "0.4.92",
+    "versionCode": 240,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.91/Aurora-Launcher-v0.4.91.apk",
-    "sha256": "a8f3c365f9a67b004651a5d62f224b7502ad0090aefbed6ee2a237ce3d0fa86c",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.92/Aurora-Launcher-v0.4.92.apk",
+    "sha256": "a2003058c0ab04c815214bd7e1156cd467c2848f1b092793447276665f231d5e",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.91\n\n- 频谱动画的 requestAnimationFrame 只在需要绘制时续帧；暂停/静置后不再空转，不再持续合成相同画面。\n- 播放状态变化、屏保状态变化、页面重新可见时主动 kick 一次，开始播放能立即恢复。\n- 保留 0.4.90 的屏保请求降频、i18n 节流、语音/预加载优化。\n"
+    "notes": "Aurora Launcher 0.4.92\n\n- WebSocket 设置快照从每 50ms 序列化一次改为每 1 秒一次，外观更新最多延迟 1 秒，降低桌面常驻 CPU。\n- 频谱/桌面播放判断优先使用 media.state===3，比 playing 布尔更准确。\n- 保留 0.4.91 的 rAF 按需续帧。\n"
   },
   "history": []
 }

@@ -396,8 +396,8 @@ final class AuroraHttp {
         while(!socket.isClosed()){
             if(socket.getInetAddress().isLoopbackAddress()&&!AuroraActivity.visible)break;
             if(!socket.getInetAddress().isLoopbackAddress()&&!AuroraLogin.valid(c,headers.get("cookie")))break;
-            String appearance=AuroraSettings.get(c).toString();if(!appearance.equals(lastAppearance)){ws(out,1,new JSONObject().put("type","snapshot").put("data",new JSONObject().put("appearance",new JSONObject(appearance))).toString().getBytes(StandardCharsets.UTF_8));lastAppearance=appearance;}
             if(android.os.SystemClock.elapsedRealtime()>=nextSnapshot){nextSnapshot=android.os.SystemClock.elapsedRealtime()+1000;
+            String appearance=AuroraSettings.get(c).toString();if(!appearance.equals(lastAppearance)){ws(out,1,new JSONObject().put("type","snapshot").put("data",new JSONObject().put("appearance",new JSONObject(appearance))).toString().getBytes(StandardCharsets.UTF_8));lastAppearance=appearance;}
             if(ticks++%10==0)apps=AuroraData.apps(c);
             JSONObject snapshot=new JSONObject().put("time",AuroraData.time(c)).put("weather",AuroraData.weather(c)).put("media",AuroraData.media(c)).put("status",AuroraData.status(c)).put("config",AuroraThemes.publicConfig(c)).put("appearance",AuroraSettings.get(c)).put("saver",new JSONObject().put("active",AuroraSaver.active));
             String nextMedia=snapshot.getJSONObject("media").toString(),nextConfig=snapshot.getJSONObject("config").toString(),nextApps=apps.toString();
