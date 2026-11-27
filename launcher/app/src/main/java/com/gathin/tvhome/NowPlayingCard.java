@@ -61,6 +61,8 @@ final class NowPlayingCard {
     private final BroadcastReceiver lyricReceiver=new BroadcastReceiver(){@Override public void onReceive(Context c,Intent intent){
         if(idleLocal)return;
         if(controller==null || !"com.craftworks.music.tvcustom".equals(controller.getPackageName()))return;
+        PlaybackStateCompat ps=controller.getPlaybackState();
+        if(ps==null||ps.getState()!=PlaybackStateCompat.STATE_PLAYING)return;
         boolean enabled=activity.getSharedPreferences(Config.SETTINGS_NAME,0).getBoolean("desktop_lyrics_visible",activity.getSharedPreferences(Config.SETTINGS_NAME,0).getBoolean("desktop_lyrics",true));
         lyrics.setVisibility(enabled?View.VISIBLE:View.INVISIBLE);
         lyrics.update(intent.getStringArrayExtra("window"),intent.getIntExtra("index",-1),intent.getFloatExtra("progress",0f),
