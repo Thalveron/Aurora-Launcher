@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "latest": {
-    "version": "0.4.95",
-    "versionCode": 243,
+    "version": "0.4.96",
+    "versionCode": 244,
     "minSdk": 26,
-    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.95/Aurora-Launcher-v0.4.95.apk",
-    "sha256": "674e999b47116c0d9b2a7f0ce51a9b24c0397abbbceebc33aa854f71d39bc62b",
+    "url": "https://github.com/Thalveron/Aurora-Launcher/releases/download/v0.4.96/Aurora-Launcher-v0.4.96.apk",
+    "sha256": "6846801912ba7d77164ecc30c3cc3e8f79e21825c7eb58eac9ceddd8c482f3e8",
     "bytes": 47724953,
-    "notes": "Aurora Launcher 0.4.95\n\n- 桌面信息抽屉先显示标题与标签，内容延后一帧填充，减少打开时的卡住感。\n- 入场动画 240ms 改为 160ms，并从 25% 位置起滑。\n- 二维码改为后台线程生成，先占位再填入，避免主线程被 650×650 编码阻塞。\n- 保留 0.4.94 的暂停歌词更新过滤。\n"
+    "notes": "Aurora Launcher 0.4.96\n\n- 屏保天气图标从系统 emoji 改为内联矢量 SVG，天气符号不再模糊。\n- 保留 0.4.95 的桌面信息抽屉与二维码异步生成。\n"
   },
   "history": []
 }

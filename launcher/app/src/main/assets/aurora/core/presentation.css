@@ -3,7 +3,7 @@
 .saver-clock{font-family:sans-serif;font-size:64px;line-height:1.05;font-weight:700;font-style:italic;letter-spacing:-2.5px;white-space:nowrap}
 .saver-details{margin-left:28px;padding-left:20px;border-left:1px solid #ffffff55;line-height:1.6;font-size:14px}
 .saver-date{font-size:14px;margin:0;opacity:.85}
-.saver-weather{font-size:15px;margin:0;padding:0}
+.saver-weather{font-size:15px;margin:0;padding:0}.weather-icon{width:1.05em;height:1.05em;vertical-align:-.15em;margin-right:.22em}
 .saver-full{font-size:14px;opacity:.85;white-space:pre-line}
 .saver-lyrics{position:absolute;left:15%;right:15%;top:43%;height:250px}.saver-lyrics .lyric-line{height:60px;line-height:60px;font-size:30px}.saver-lyrics .active{font-size:36px}.saver-spectrum{position:absolute;bottom:35px;left:15%;width:70%;height:130px}.saver-exit-note{position:absolute;bottom:15px;right:30px;font-size:14px;opacity:.45}body.saver-active[data-saver-info=hidden] .saver-info,body.saver-active[data-saver-info=hidden] .saver-exit-note{display:none}body.saver-active[data-saver-info=minimal] .saver-full{display:none}@media(max-width:1400px){main.aurora-grid{gap:18px}.lyric-line{font-size:18px;height:36px;line-height:36px}.lyric-line.active{font-size:21px}.lyrics-window{height:110px}.audio-spectrum{height:60px}}
 
